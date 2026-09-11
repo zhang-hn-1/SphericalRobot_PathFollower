@@ -267,3 +267,30 @@ Three endgame controllers were compared on identical paths at stage 6, 2048 envi
 - Run-to-run noise with the paired design is about 1-2 points, so the 14 point worst-bucket gain is well outside it.
 
 `prior_endpoint_floor` and `prior_endpoint_pure_pursuit` are off by default (`PATH_PRIOR_ENDPOINT_FLOOR`, `PATH_ENDPOINT_PP`), so every earlier result stays reproducible.
+
+### Analytic-prior search: verified result
+
+- Coordinate descent over 32 prior parameters, 269 paired evaluations, scored by
+  the smoothed worst (path type x curvature) bucket. The S-curve parameters were
+  absent from the schedule in the first pass, which is why the search stalled
+  with s_curve at |k|=0.4 as the worst bucket; adding the 15 `prior_s_*` gains
+  let it move again.
+- Verified on held-out curvature (values in no training stage) at two seeds,
+  2048 environments, one paired episode per environment:
+
+  | seed | split | overall | worst bucket |
+  |---|---|---|---|
+  | 7777 | train | 90.4% | 56.2% |
+  | 7777 | held-out | 88.0% | 63.2% |
+  | 9999 | held-out | 88.7% | 61.8% |
+
+- The reference with only the endgame fix reaches 78.9% / 35.1% out of sample,
+  so the search adds 9-10 points overall and 24-28 on the worst bucket on unseen
+  curvature. The worst bucket is higher out of sample than in sample, so this is
+  not path-set fitting.
+- Scoring by the average instead would have been misleading: the configuration
+  that maximises overall reaches 94.4% on the training curvature but only
+  85.5-87.0% overall and 37-44% on the worst bucket out of sample.
+- Remaining gap: s_curve at |k|=0.40-0.45, failures dominated by `deviation`
+  (leaving the 1.5 m corridor) rather than `timeout`. Everything else is 88% or
+  above. See artifacts/path_follower/RECOMMENDED_PRIOR.md.
