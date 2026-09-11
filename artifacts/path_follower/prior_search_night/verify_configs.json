@@ -1,0 +1,37 @@
+[
+  {
+    "label": "defaults_reference"
+  },
+  {
+    "label": "search_best_1",
+    "prior_normal_drive": 0.24999999999999997,
+    "prior_normal_heading_kp": 2.0,
+    "prior_tight_heading_kp": 1.3,
+    "prior_gain_min": 0.24,
+    "prior_endpoint_blend_distance": 0.2,
+    "prior_normal_cross_track_kp": 0.30000000000000004,
+    "prior_gain_offset": 0.122,
+    "prior_tight_curvature": 0.43
+  },
+  {
+    "label": "search_best_2",
+    "prior_normal_drive": 0.24999999999999997,
+    "prior_normal_heading_kp": 2.0,
+    "prior_tight_heading_kp": 0.8,
+    "prior_gain_min": 0.24,
+    "prior_endpoint_blend_distance": 0.2,
+    "prior_normal_cross_track_kp": 0.30000000000000004,
+    "prior_gain_offset": 0.122,
+    "prior_tight_curvature": 0.43
+  },
+  {
+    "label": "search_best_3",
+    "prior_normal_drive": 0.24999999999999997,
+    "prior_normal_heading_kp": 2.0,
+    "prior_tight_heading_kp": 1.3,
+    "prior_gain_min": 0.24,
+    "prior_endpoint_blend_distance": 0.2,
+    "prior_normal_cross_track_kp": 0.4,
+    "prior_gain_offset": 0.122
+  }
+]
