@@ -15,6 +15,11 @@
 #
 # Episode counts of 512 are used because the archived scans used 32-128, which
 # is only +/- 8-15 points of confidence.
+#
+# PATH_ABLATION_CHECKPOINTS selects which iterations to evaluate (default "0 50":
+# the zero-initialised actor, i.e. the bare prior, and one trained checkpoint).
+# Use "0 50 75 100 125" to check whether training eventually collapses the prior
+# the way the V5b run did.
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -40,7 +45,7 @@ export PATH_EVAL_STAGE=6
 export PATH_EVAL_EPISODES="${PATH_EVAL_EPISODES:-512}"
 export PATH_EVAL_OUTPUT="$OUT"
 
-for checkpoint in 0 50; do
+for checkpoint in ${PATH_ABLATION_CHECKPOINTS:-0 50}; do
   if [ "$checkpoint" = 0 ]; then
     policy="prior"
   else

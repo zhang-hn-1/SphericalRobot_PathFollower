@@ -1,0 +1,177 @@
+{
+  "checkpoint": "/media/jason/Jason\u2018s u/SphericalRobot_PathFollower_20260911/logs/rotunbot_path/Sep11_08-30-20_geometric_path_v6_safe_from_scratch/model_0.pt",
+  "checkpoint_iteration": 0,
+  "stage": 6,
+  "forced_path_type": null,
+  "forced_curvature": null,
+  "layout_split": "test",
+  "seed": 4206,
+  "episodes": 512,
+  "stochastic_actions": false,
+  "success_rate": 0.716796875,
+  "cross_track_median_m": 0.09771793708205223,
+  "cross_track_p95_m": 0.6218938201665878,
+  "endpoint_distance_median_m": 0.19943272322416306,
+  "terminal_speed_median_mps": 0.060597823932766914,
+  "terminal_speed_p95_mps": 0.09859719052910805,
+  "by_path_type": {
+    "straight": {
+      "episodes": 147,
+      "success_rate": 1.0
+    },
+    "left_arc": {
+      "episodes": 101,
+      "success_rate": 0.4158415841584158
+    },
+    "right_arc": {
+      "episodes": 100,
+      "success_rate": 0.49
+    },
+    "s_curve": {
+      "episodes": 164,
+      "success_rate": 0.7865853658536586
+    }
+  },
+  "by_type_curvature": {
+    "left_arc@k0.15": {
+      "path_type": "left_arc",
+      "curvature": 0.15,
+      "episodes": 38,
+      "success_rate": 0.4473684210526316,
+      "failure_reasons": {
+        "success": 17,
+        "timeout": 21
+      }
+    },
+    "left_arc@k0.3": {
+      "path_type": "left_arc",
+      "curvature": 0.3,
+      "episodes": 24,
+      "success_rate": 0.5,
+      "failure_reasons": {
+        "success": 12,
+        "timeout": 12
+      }
+    },
+    "left_arc@k0.45": {
+      "path_type": "left_arc",
+      "curvature": 0.45,
+      "episodes": 39,
+      "success_rate": 0.3333333333333333,
+      "failure_reasons": {
+        "success": 13,
+        "timeout": 26
+      }
+    },
+    "right_arc@k-0.45": {
+      "path_type": "right_arc",
+      "curvature": -0.45,
+      "episodes": 22,
+      "success_rate": 0.5,
+      "failure_reasons": {
+        "success": 11,
+        "timeout": 11
+      }
+    },
+    "right_arc@k-0.3": {
+      "path_type": "right_arc",
+      "curvature": -0.3,
+      "episodes": 37,
+      "success_rate": 0.43243243243243246,
+      "failure_reasons": {
+        "success": 16,
+        "timeout": 21
+      }
+    },
+    "right_arc@k-0.15": {
+      "path_type": "right_arc",
+      "curvature": -0.15,
+      "episodes": 41,
+      "success_rate": 0.5365853658536586,
+      "failure_reasons": {
+        "success": 22,
+        "timeout": 19
+      }
+    },
+    "s_curve@k-0.45": {
+      "path_type": "s_curve",
+      "curvature": -0.45,
+      "episodes": 30,
+      "success_rate": 0.5333333333333333,
+      "failure_reasons": {
+        "success": 16,
+        "timeout": 14
+      }
+    },
+    "s_curve@k-0.3": {
+      "path_type": "s_curve",
+      "curvature": -0.3,
+      "episodes": 26,
+      "success_rate": 0.9615384615384616,
+      "failure_reasons": {
+        "success": 25,
+        "timeout": 1
+      }
+    },
+    "s_curve@k-0.15": {
+      "path_type": "s_curve",
+      "curvature": -0.15,
+      "episodes": 28,
+      "success_rate": 1.0,
+      "failure_reasons": {
+        "success": 28
+      }
+    },
+    "s_curve@k0.15": {
+      "path_type": "s_curve",
+      "curvature": 0.15,
+      "episodes": 23,
+      "success_rate": 1.0,
+      "failure_reasons": {
+        "success": 23
+      }
+    },
+    "s_curve@k0.3": {
+      "path_type": "s_curve",
+      "curvature": 0.3,
+      "episodes": 30,
+      "success_rate": 0.8333333333333334,
+      "failure_reasons": {
+        "success": 25,
+        "timeout": 5
+      }
+    },
+    "s_curve@k0.45": {
+      "path_type": "s_curve",
+      "curvature": 0.45,
+      "episodes": 27,
+      "success_rate": 0.4444444444444444,
+      "failure_reasons": {
+        "success": 12,
+        "timeout": 15
+      }
+    },
+    "straight@k0": {
+      "path_type": "straight",
+      "curvature": 0.0,
+      "episodes": 147,
+      "success_rate": 1.0,
+      "failure_reasons": {
+        "success": 147
+      }
+    }
+  },
+  "failure_reasons": {
+    "success": 367,
+    "timeout": 145
+  },
+  "trace_env0_action_mean": [
+    0.00016945006791502237,
+    0.00018321818788535893
+  ],
+  "trace_env0_action_abs_p95": [
+    0.00021061263396404684,
+    0.0004242239228915423
+  ],
+  "trace_env0_displacement_m": 3.192208766937256
+}

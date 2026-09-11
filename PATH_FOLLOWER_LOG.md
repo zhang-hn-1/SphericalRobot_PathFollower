@@ -190,3 +190,28 @@ A stage advances only after a 4096-episode window reaches 75% success. Episode r
 - A 64-episode checkpoint scan found model 50 at straight 100%, left R3 68.75%, right R3 64.06%. Continued joint training regressed: model 75 left/right 48.44%/31.25%; model 100 left/right 54.69%/4.69%.
 - Stop the joint run and keep model 50. V5c resumes it with fresh Adam, freezes the temporal encoder plus straight/left experts, trains only the right expert on R3, lowers LR to 2e-5, PPO epochs to 2, clip to 0.1, and std to 0.03-0.08. The same procedure will be applied to the left expert after selecting the best right checkpoint.
 
+
+## Local port and evaluation hardening (local RTX 4070)
+
+- The project runs on the local machine. Four environment blockers were fixed without modifying the shared venv: numpy >= 1.24 removed `np.float` which IsaacGym's `torch_utils.py` evaluates at import time; `ninja` was absent from PATH; setuptools 75 hides `distutils.version` from torch 1.10's tensorboard shim; and the CUDA 11.3 nvrtc has no `sm_89` target for IsaacGym's TorchScript helpers. See LOCAL_SETUP.md.
+- Throughput at 2048 envs: 1.13-1.23 s per iteration, 173k steps/s, peak 6.9 GB of 8.2 GB.
+- Evaluations now record the per-episode path curvature, a (path type x curvature) breakdown, and failure reasons. `PATH_LAYOUT_SPLIT=test` draws curvature from a held-out set {0.15, 0.30, 0.45} disjoint from every stage list.
+
+### The headline success rate is not a stable statistic
+
+- V6 `model_0` at stage 6, n=256, scored 96.5% in the archive. Re-running the identical configuration (seed 8206) reproduces 96.9%, so the code path is faithful.
+- The same checkpoint at n=512, seed 4206 scores 81.6%. The difference is the sampled curvature mixture: the prior scores 32% at k=0.25 and 100% at k=0.40, and the two seeds drew different proportions of gentle versus sharp arcs.
+- Report the (path type x curvature) rows; the overall number moves about 15 points on seed alone.
+
+### Prior versus learned residual
+
+- V6 `model_0` is the zero-initialised actor, i.e. the analytic prior with no learned contribution. At n=512, seed 4206: prior 81.6% train / 71.7% test; `model_50` 81.8% / 71.9%; `model_100` 82.8% / 73.2%; `model_125` 82.6% / 71.7%.
+- The learned residual contributes nothing measurable over 125 updates and does not degrade either. The earlier apparent decline (96.5 -> 94.1 -> 91.4 across three n=256 checkpoints) was sampling noise.
+- Held-out curvature costs a consistent ~10 points (81.6 -> 71.7): the first measured generalisation number the project has.
+
+### Failure mode is an endgame stall, not a deviation
+
+- On stage 6 the analytic prior's failures are essentially all `timeout`. Episode records show the ball stopping at a median of 0.43-0.52 m from the last path sample with terminal speed about 0.00 m/s, then standing still for the rest of the 40 s budget. Cross-track error on successful episodes is 0.03-0.07 m, so path following itself is accurate.
+- Every success is also threshold-marginal: median endpoint 0.135-0.197 m against the 0.20 m limit, and median terminal speed 0.095-0.099 m/s against the 0.10 m/s limit.
+- Path length is a strong confound. `max_arc_steps = 120 deg / (|k| * ds)` caps sharp arcs, so k=0.40 never exceeds 5.2 m and k=0.50 never exceeds 4.2 m, while k=0.20-0.25 can reach 8 m. Restricting to 4.0-5.0 m raises left k=0.25 from 32% to 60% and right k=0.25 from 46% to 75%. "Gentle curvature fails" is substantially "long paths fail".
+- The deceleration ramp was the obvious suspect (`desired = cruise * clamp(d/stop, 0, 1)`, stop=0.90 below |k|=0.38 and 2.40 above). Sweeping it refutes the hypothesis: 0.45 gives 81.8%, 0.90 gives 81.6%, 2.40 gives 74.8% on train. A longer ramp makes the ball slow down earlier and stall further short.

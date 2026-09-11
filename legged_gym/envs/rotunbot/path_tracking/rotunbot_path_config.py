@@ -78,7 +78,13 @@ class RotunbotPathCfg(RotunbotVelCleanCfg):
         prior_s_mid_cross_track_kp = 0.10
         prior_s_mid_heading_kp = 1.00
         prior_normal_drive = 0.25
-        prior_normal_stop_distance = 0.90
+        # Deceleration-ramp scale: desired speed is cruise * clamp(d/stop, 0, 1).
+        # A short ramp asks the ball to slow below its minimum rolling speed, at
+        # which point it stalls short of the endpoint rather than closing it.
+        # Overridable so the ramp can be swept without editing code.
+        prior_normal_stop_distance = float(
+            os.environ.get("PATH_PRIOR_NORMAL_STOP", "0.90")
+        )
         prior_normal_cross_track_kp = 0.20
         prior_normal_heading_kp = 1.50
         prior_tight_drive = 0.45

@@ -1,0 +1,255 @@
+{
+  "checkpoint": "/media/jason/Jason\u2018s u/SphericalRobot_PathFollower_20260911/logs/rotunbot_path/Sep11_08-30-20_geometric_path_v6_safe_from_scratch/model_50.pt",
+  "checkpoint_iteration": 50,
+  "stage": 6,
+  "forced_path_type": null,
+  "forced_curvature": null,
+  "layout_split": "train",
+  "seed": 4206,
+  "episodes": 512,
+  "stochastic_actions": false,
+  "success_rate": 0.818359375,
+  "cross_track_median_m": 0.09116992354393005,
+  "cross_track_p95_m": 0.5635713130235672,
+  "endpoint_distance_median_m": 0.19923459738492966,
+  "terminal_speed_median_mps": 0.07369490340352058,
+  "terminal_speed_p95_mps": 0.09943728558719159,
+  "by_path_type": {
+    "straight": {
+      "episodes": 139,
+      "success_rate": 1.0
+    },
+    "left_arc": {
+      "episodes": 114,
+      "success_rate": 0.7280701754385965
+    },
+    "right_arc": {
+      "episodes": 105,
+      "success_rate": 0.7142857142857143
+    },
+    "s_curve": {
+      "episodes": 154,
+      "success_rate": 0.7922077922077922
+    }
+  },
+  "by_type_curvature": {
+    "left_arc@k0.2": {
+      "path_type": "left_arc",
+      "curvature": 0.2,
+      "episodes": 20,
+      "success_rate": 0.6,
+      "failure_reasons": {
+        "success": 12,
+        "timeout": 8
+      }
+    },
+    "left_arc@k0.25": {
+      "path_type": "left_arc",
+      "curvature": 0.25,
+      "episodes": 22,
+      "success_rate": 0.36363636363636365,
+      "failure_reasons": {
+        "success": 8,
+        "timeout": 14
+      }
+    },
+    "left_arc@k0.3333": {
+      "path_type": "left_arc",
+      "curvature": 0.3333,
+      "episodes": 18,
+      "success_rate": 0.6111111111111112,
+      "failure_reasons": {
+        "success": 11,
+        "timeout": 7
+      }
+    },
+    "left_arc@k0.4": {
+      "path_type": "left_arc",
+      "curvature": 0.4,
+      "episodes": 35,
+      "success_rate": 0.9714285714285714,
+      "failure_reasons": {
+        "success": 34,
+        "timeout": 1
+      }
+    },
+    "left_arc@k0.5": {
+      "path_type": "left_arc",
+      "curvature": 0.5,
+      "episodes": 19,
+      "success_rate": 0.9473684210526315,
+      "failure_reasons": {
+        "success": 18,
+        "timeout": 1
+      }
+    },
+    "right_arc@k-0.5": {
+      "path_type": "right_arc",
+      "curvature": -0.5,
+      "episodes": 20,
+      "success_rate": 0.95,
+      "failure_reasons": {
+        "success": 19,
+        "timeout": 1
+      }
+    },
+    "right_arc@k-0.4": {
+      "path_type": "right_arc",
+      "curvature": -0.4,
+      "episodes": 24,
+      "success_rate": 1.0,
+      "failure_reasons": {
+        "success": 24
+      }
+    },
+    "right_arc@k-0.3333": {
+      "path_type": "right_arc",
+      "curvature": -0.3333,
+      "episodes": 17,
+      "success_rate": 0.47058823529411764,
+      "failure_reasons": {
+        "success": 8,
+        "timeout": 9
+      }
+    },
+    "right_arc@k-0.25": {
+      "path_type": "right_arc",
+      "curvature": -0.25,
+      "episodes": 25,
+      "success_rate": 0.48,
+      "failure_reasons": {
+        "success": 12,
+        "timeout": 13
+      }
+    },
+    "right_arc@k-0.2": {
+      "path_type": "right_arc",
+      "curvature": -0.2,
+      "episodes": 19,
+      "success_rate": 0.631578947368421,
+      "failure_reasons": {
+        "success": 12,
+        "timeout": 7
+      }
+    },
+    "s_curve@k-0.5": {
+      "path_type": "s_curve",
+      "curvature": -0.5,
+      "episodes": 19,
+      "success_rate": 0.8421052631578947,
+      "failure_reasons": {
+        "success": 16,
+        "timeout": 3
+      }
+    },
+    "s_curve@k-0.4": {
+      "path_type": "s_curve",
+      "curvature": -0.4,
+      "episodes": 19,
+      "success_rate": 0.2631578947368421,
+      "failure_reasons": {
+        "success": 5,
+        "timeout": 14
+      }
+    },
+    "s_curve@k-0.3333": {
+      "path_type": "s_curve",
+      "curvature": -0.3333,
+      "episodes": 13,
+      "success_rate": 0.9230769230769231,
+      "failure_reasons": {
+        "success": 12,
+        "timeout": 1
+      }
+    },
+    "s_curve@k-0.25": {
+      "path_type": "s_curve",
+      "curvature": -0.25,
+      "episodes": 13,
+      "success_rate": 1.0,
+      "failure_reasons": {
+        "success": 13
+      }
+    },
+    "s_curve@k-0.2": {
+      "path_type": "s_curve",
+      "curvature": -0.2,
+      "episodes": 19,
+      "success_rate": 1.0,
+      "failure_reasons": {
+        "success": 19
+      }
+    },
+    "s_curve@k0.2": {
+      "path_type": "s_curve",
+      "curvature": 0.2,
+      "episodes": 15,
+      "success_rate": 1.0,
+      "failure_reasons": {
+        "success": 15
+      }
+    },
+    "s_curve@k0.25": {
+      "path_type": "s_curve",
+      "curvature": 0.25,
+      "episodes": 16,
+      "success_rate": 0.9375,
+      "failure_reasons": {
+        "success": 15,
+        "timeout": 1
+      }
+    },
+    "s_curve@k0.3333": {
+      "path_type": "s_curve",
+      "curvature": 0.3333,
+      "episodes": 16,
+      "success_rate": 0.8125,
+      "failure_reasons": {
+        "success": 13,
+        "timeout": 3
+      }
+    },
+    "s_curve@k0.4": {
+      "path_type": "s_curve",
+      "curvature": 0.4,
+      "episodes": 12,
+      "success_rate": 0.3333333333333333,
+      "failure_reasons": {
+        "success": 4,
+        "timeout": 8
+      }
+    },
+    "s_curve@k0.5": {
+      "path_type": "s_curve",
+      "curvature": 0.5,
+      "episodes": 12,
+      "success_rate": 0.8333333333333334,
+      "failure_reasons": {
+        "success": 10,
+        "timeout": 2
+      }
+    },
+    "straight@k0": {
+      "path_type": "straight",
+      "curvature": 0.0,
+      "episodes": 139,
+      "success_rate": 1.0,
+      "failure_reasons": {
+        "success": 139
+      }
+    }
+  },
+  "failure_reasons": {
+    "success": 419,
+    "timeout": 93
+  },
+  "trace_env0_action_mean": [
+    0.0018497740384191275,
+    -0.0004587639414239675
+  ],
+  "trace_env0_action_abs_p95": [
+    0.00234828214161098,
+    0.0011977722169831395
+  ],
+  "trace_env0_displacement_m": 3.143007755279541
+}

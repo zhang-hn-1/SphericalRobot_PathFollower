@@ -1,0 +1,255 @@
+{
+  "checkpoint": "/media/jason/Jason\u2018s u/SphericalRobot_PathFollower_20260911/logs/rotunbot_path/Sep11_08-30-20_geometric_path_v6_safe_from_scratch/model_100.pt",
+  "checkpoint_iteration": 100,
+  "stage": 6,
+  "forced_path_type": null,
+  "forced_curvature": null,
+  "layout_split": "train",
+  "seed": 4206,
+  "episodes": 512,
+  "stochastic_actions": false,
+  "success_rate": 0.828125,
+  "cross_track_median_m": 0.08606885001063347,
+  "cross_track_p95_m": 0.5478820979595184,
+  "endpoint_distance_median_m": 0.1992799937725067,
+  "terminal_speed_median_mps": 0.07538630068302155,
+  "terminal_speed_p95_mps": 0.09957536533474923,
+  "by_path_type": {
+    "straight": {
+      "episodes": 131,
+      "success_rate": 1.0
+    },
+    "left_arc": {
+      "episodes": 117,
+      "success_rate": 0.7435897435897436
+    },
+    "right_arc": {
+      "episodes": 102,
+      "success_rate": 0.7254901960784313
+    },
+    "s_curve": {
+      "episodes": 162,
+      "success_rate": 0.8148148148148148
+    }
+  },
+  "by_type_curvature": {
+    "left_arc@k0.2": {
+      "path_type": "left_arc",
+      "curvature": 0.2,
+      "episodes": 23,
+      "success_rate": 0.5652173913043478,
+      "failure_reasons": {
+        "success": 13,
+        "timeout": 10
+      }
+    },
+    "left_arc@k0.25": {
+      "path_type": "left_arc",
+      "curvature": 0.25,
+      "episodes": 23,
+      "success_rate": 0.4782608695652174,
+      "failure_reasons": {
+        "success": 11,
+        "timeout": 12
+      }
+    },
+    "left_arc@k0.3333": {
+      "path_type": "left_arc",
+      "curvature": 0.3333,
+      "episodes": 16,
+      "success_rate": 0.6875,
+      "failure_reasons": {
+        "success": 11,
+        "timeout": 5
+      }
+    },
+    "left_arc@k0.4": {
+      "path_type": "left_arc",
+      "curvature": 0.4,
+      "episodes": 37,
+      "success_rate": 0.972972972972973,
+      "failure_reasons": {
+        "success": 36,
+        "timeout": 1
+      }
+    },
+    "left_arc@k0.5": {
+      "path_type": "left_arc",
+      "curvature": 0.5,
+      "episodes": 18,
+      "success_rate": 0.8888888888888888,
+      "failure_reasons": {
+        "success": 16,
+        "timeout": 2
+      }
+    },
+    "right_arc@k-0.5": {
+      "path_type": "right_arc",
+      "curvature": -0.5,
+      "episodes": 25,
+      "success_rate": 0.92,
+      "failure_reasons": {
+        "success": 23,
+        "timeout": 2
+      }
+    },
+    "right_arc@k-0.4": {
+      "path_type": "right_arc",
+      "curvature": -0.4,
+      "episodes": 20,
+      "success_rate": 1.0,
+      "failure_reasons": {
+        "success": 20
+      }
+    },
+    "right_arc@k-0.3333": {
+      "path_type": "right_arc",
+      "curvature": -0.3333,
+      "episodes": 16,
+      "success_rate": 0.5,
+      "failure_reasons": {
+        "success": 8,
+        "timeout": 8
+      }
+    },
+    "right_arc@k-0.25": {
+      "path_type": "right_arc",
+      "curvature": -0.25,
+      "episodes": 21,
+      "success_rate": 0.47619047619047616,
+      "failure_reasons": {
+        "success": 10,
+        "timeout": 11
+      }
+    },
+    "right_arc@k-0.2": {
+      "path_type": "right_arc",
+      "curvature": -0.2,
+      "episodes": 20,
+      "success_rate": 0.65,
+      "failure_reasons": {
+        "success": 13,
+        "timeout": 7
+      }
+    },
+    "s_curve@k-0.5": {
+      "path_type": "s_curve",
+      "curvature": -0.5,
+      "episodes": 24,
+      "success_rate": 0.875,
+      "failure_reasons": {
+        "success": 21,
+        "timeout": 3
+      }
+    },
+    "s_curve@k-0.4": {
+      "path_type": "s_curve",
+      "curvature": -0.4,
+      "episodes": 17,
+      "success_rate": 0.29411764705882354,
+      "failure_reasons": {
+        "success": 5,
+        "timeout": 12
+      }
+    },
+    "s_curve@k-0.3333": {
+      "path_type": "s_curve",
+      "curvature": -0.3333,
+      "episodes": 15,
+      "success_rate": 0.9333333333333333,
+      "failure_reasons": {
+        "success": 14,
+        "timeout": 1
+      }
+    },
+    "s_curve@k-0.25": {
+      "path_type": "s_curve",
+      "curvature": -0.25,
+      "episodes": 13,
+      "success_rate": 1.0,
+      "failure_reasons": {
+        "success": 13
+      }
+    },
+    "s_curve@k-0.2": {
+      "path_type": "s_curve",
+      "curvature": -0.2,
+      "episodes": 18,
+      "success_rate": 1.0,
+      "failure_reasons": {
+        "success": 18
+      }
+    },
+    "s_curve@k0.2": {
+      "path_type": "s_curve",
+      "curvature": 0.2,
+      "episodes": 14,
+      "success_rate": 1.0,
+      "failure_reasons": {
+        "success": 14
+      }
+    },
+    "s_curve@k0.25": {
+      "path_type": "s_curve",
+      "curvature": 0.25,
+      "episodes": 16,
+      "success_rate": 0.9375,
+      "failure_reasons": {
+        "success": 15,
+        "timeout": 1
+      }
+    },
+    "s_curve@k0.3333": {
+      "path_type": "s_curve",
+      "curvature": 0.3333,
+      "episodes": 21,
+      "success_rate": 0.8095238095238095,
+      "failure_reasons": {
+        "success": 17,
+        "timeout": 4
+      }
+    },
+    "s_curve@k0.4": {
+      "path_type": "s_curve",
+      "curvature": 0.4,
+      "episodes": 10,
+      "success_rate": 0.3,
+      "failure_reasons": {
+        "success": 3,
+        "timeout": 7
+      }
+    },
+    "s_curve@k0.5": {
+      "path_type": "s_curve",
+      "curvature": 0.5,
+      "episodes": 14,
+      "success_rate": 0.8571428571428571,
+      "failure_reasons": {
+        "success": 12,
+        "timeout": 2
+      }
+    },
+    "straight@k0": {
+      "path_type": "straight",
+      "curvature": 0.0,
+      "episodes": 131,
+      "success_rate": 1.0,
+      "failure_reasons": {
+        "success": 131
+      }
+    }
+  },
+  "failure_reasons": {
+    "success": 424,
+    "timeout": 88
+  },
+  "trace_env0_action_mean": [
+    0.010922037065029144,
+    0.003702162764966488
+  ],
+  "trace_env0_action_abs_p95": [
+    0.015076267533004284,
+    0.004465873818844557
+  ],
+  "trace_env0_displacement_m": 3.165126323699951
+}

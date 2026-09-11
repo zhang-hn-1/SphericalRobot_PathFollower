@@ -89,6 +89,7 @@ def load_records():
             "iteration": int(match.group(2)),
             "stage": data.get("stage"),
             "layout_split": data.get("layout_split", "train"),
+            "seed": data.get("seed"),
             "episodes": data.get("episodes"),
             "success": data.get("success_rate"),
             "forced_path_type": forced_type,
@@ -151,8 +152,8 @@ def write_report(records, output):
     lines.append("")
     lines.append("## Per-run detail")
     lines.append("")
-    lines.append("| run | iter | stage | case | split | n | success | failure reasons |")
-    lines.append("|---|---|---|---|---|---|---|---|")
+    lines.append("| run | iter | stage | case | split | seed | n | success | failure reasons |")
+    lines.append("|---|---|---|---|---|---|---|---|---|")
     for record in sorted(records, key=lambda r: (r["run"], r["iteration"])):
         reasons = ", ".join(
             f"{name}={count}" for name, count in sorted(record["failure_reasons"].items())
@@ -165,7 +166,7 @@ def write_report(records, output):
             case += " (sampled)"
         lines.append(
             f"| {record['run']} | {record['iteration']} | {record['stage']} | "
-            f"{case} | {record['layout_split']} | {record['episodes']} | "
+            f"{case} | {record['layout_split']} | {record['seed']} | {record['episodes']} | "
             f"{record['success']:.1%} | {reasons} |"
         )
     lines.append("")
@@ -184,15 +185,27 @@ def write_report(records, output):
     lines.append("")
     lines.append("## Caveats to read these numbers with")
     lines.append("")
+    lines.append("- **The overall success rate is dominated by the randomly sampled")
+    lines.append("  curvature mixture, so it is not a stable statistic.** Measured on the")
+    lines.append("  same checkpoint at stage 6: 96.9% at seed 8206 and 81.6% at seed 4206,")
+    lines.append("  a 15 point swing. The reason is visible in the table above - the")
+    lines.append("  analytic prior scores 32% at k=0.25 and 100% at k=0.40, so a draw with")
+    lines.append("  relatively more gentle arcs scores much lower. Quote the")
+    lines.append("  (path type x curvature) rows, never the headline number.")
     lines.append("- `split=train` is the distribution the policies were trained on. A run")
-    lines.append("  with no `test` row has no measured generalisation.")
+    lines.append("  with no `test` row has no measured generalisation. The two sides are")
+    lines.append("  not comparable across runs unless both are present.")
     lines.append("- Episode counts of 32-128 give roughly +/- 8-15 point confidence")
-    lines.append("  intervals; only compare runs at equal n.")
+    lines.append("  intervals; only compare runs at equal n. The rows below with n<64 and")
+    lines.append("  a large gap to a neighbouring run are usually noise.")
     lines.append("- Successful arc episodes end at a median endpoint distance of about")
     lines.append("  0.199 m against a 0.20 m threshold, so arc success is")
     lines.append("  threshold-hugging rather than comfortably accurate.")
-    lines.append("- Failures are bimodal: either the episode tracks the path, or it")
-    lines.append("  reaches the 1.50 m cross-track termination. There is little in between.")
+    lines.append("- The failure mode depends on the regime, so pooled counts mislead.")
+    lines.append("  End-to-end PPO runs on stage 2 fail overwhelmingly by `timeout` (the")
+    lines.append("  robot never finishes), while stage-6 runs driven by the analytic prior")
+    lines.append("  fail almost exclusively by `timeout` as well, with `deviation`")
+    lines.append("  appearing only in the earlier residual runs.")
     lines.append("")
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text("\n".join(lines), encoding="utf-8")

@@ -1,0 +1,179 @@
+{
+  "checkpoint": "/media/jason/Jason\u2018s u/SphericalRobot_PathFollower_20260911/logs/rotunbot_path/Sep11_08-30-20_geometric_path_v6_safe_from_scratch/model_125.pt",
+  "checkpoint_iteration": 125,
+  "stage": 6,
+  "forced_path_type": null,
+  "forced_curvature": null,
+  "layout_split": "test",
+  "seed": 4206,
+  "episodes": 512,
+  "stochastic_actions": false,
+  "success_rate": 0.716796875,
+  "cross_track_median_m": 0.10779786854982376,
+  "cross_track_p95_m": 0.6261203706264495,
+  "endpoint_distance_median_m": 0.1995018869638443,
+  "terminal_speed_median_mps": 0.059027666226029396,
+  "terminal_speed_p95_mps": 0.09837464094161988,
+  "by_path_type": {
+    "straight": {
+      "episodes": 132,
+      "success_rate": 1.0
+    },
+    "left_arc": {
+      "episodes": 103,
+      "success_rate": 0.4854368932038835
+    },
+    "right_arc": {
+      "episodes": 107,
+      "success_rate": 0.4766355140186916
+    },
+    "s_curve": {
+      "episodes": 170,
+      "success_rate": 0.788235294117647
+    }
+  },
+  "by_type_curvature": {
+    "left_arc@k0.15": {
+      "path_type": "left_arc",
+      "curvature": 0.15,
+      "episodes": 35,
+      "success_rate": 0.5714285714285714,
+      "failure_reasons": {
+        "success": 20,
+        "timeout": 15
+      }
+    },
+    "left_arc@k0.3": {
+      "path_type": "left_arc",
+      "curvature": 0.3,
+      "episodes": 24,
+      "success_rate": 0.5,
+      "failure_reasons": {
+        "success": 12,
+        "timeout": 12
+      }
+    },
+    "left_arc@k0.45": {
+      "path_type": "left_arc",
+      "curvature": 0.45,
+      "episodes": 44,
+      "success_rate": 0.4090909090909091,
+      "failure_reasons": {
+        "success": 18,
+        "timeout": 26
+      }
+    },
+    "right_arc@k-0.45": {
+      "path_type": "right_arc",
+      "curvature": -0.45,
+      "episodes": 28,
+      "success_rate": 0.42857142857142855,
+      "failure_reasons": {
+        "success": 12,
+        "timeout": 16
+      }
+    },
+    "right_arc@k-0.3": {
+      "path_type": "right_arc",
+      "curvature": -0.3,
+      "episodes": 34,
+      "success_rate": 0.5294117647058824,
+      "failure_reasons": {
+        "success": 18,
+        "timeout": 16
+      }
+    },
+    "right_arc@k-0.15": {
+      "path_type": "right_arc",
+      "curvature": -0.15,
+      "episodes": 45,
+      "success_rate": 0.4666666666666667,
+      "failure_reasons": {
+        "success": 21,
+        "timeout": 24
+      }
+    },
+    "s_curve@k-0.45": {
+      "path_type": "s_curve",
+      "curvature": -0.45,
+      "episodes": 37,
+      "success_rate": 0.5405405405405406,
+      "failure_reasons": {
+        "success": 20,
+        "timeout": 17
+      }
+    },
+    "s_curve@k-0.3": {
+      "path_type": "s_curve",
+      "curvature": -0.3,
+      "episodes": 24,
+      "success_rate": 0.9583333333333334,
+      "failure_reasons": {
+        "success": 23,
+        "timeout": 1
+      }
+    },
+    "s_curve@k-0.15": {
+      "path_type": "s_curve",
+      "curvature": -0.15,
+      "episodes": 23,
+      "success_rate": 1.0,
+      "failure_reasons": {
+        "success": 23
+      }
+    },
+    "s_curve@k0.15": {
+      "path_type": "s_curve",
+      "curvature": 0.15,
+      "episodes": 27,
+      "success_rate": 1.0,
+      "failure_reasons": {
+        "success": 27
+      }
+    },
+    "s_curve@k0.3": {
+      "path_type": "s_curve",
+      "curvature": 0.3,
+      "episodes": 32,
+      "success_rate": 0.9375,
+      "failure_reasons": {
+        "success": 30,
+        "timeout": 2
+      }
+    },
+    "s_curve@k0.45": {
+      "path_type": "s_curve",
+      "curvature": 0.45,
+      "episodes": 27,
+      "success_rate": 0.4074074074074074,
+      "failure_reasons": {
+        "success": 11,
+        "timeout": 15,
+        "deviation": 1
+      }
+    },
+    "straight@k0": {
+      "path_type": "straight",
+      "curvature": 0.0,
+      "episodes": 132,
+      "success_rate": 1.0,
+      "failure_reasons": {
+        "success": 132
+      }
+    }
+  },
+  "failure_reasons": {
+    "success": 367,
+    "timeout": 144,
+    "deviation": 1
+  },
+  "trace_env0_action_mean": [
+    0.015290255658328533,
+    0.007701813243329525
+  ],
+  "trace_env0_action_abs_p95": [
+    0.02181088738143444,
+    0.009550696238875389
+  ],
+  "trace_env0_displacement_m": 3.2345991134643555
+}
