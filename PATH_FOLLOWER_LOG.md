@@ -215,3 +215,22 @@ A stage advances only after a 4096-episode window reaches 75% success. Episode r
 - Every success is also threshold-marginal: median endpoint 0.135-0.197 m against the 0.20 m limit, and median terminal speed 0.095-0.099 m/s against the 0.10 m/s limit.
 - Path length is a strong confound. `max_arc_steps = 120 deg / (|k| * ds)` caps sharp arcs, so k=0.40 never exceeds 5.2 m and k=0.50 never exceeds 4.2 m, while k=0.20-0.25 can reach 8 m. Restricting to 4.0-5.0 m raises left k=0.25 from 32% to 60% and right k=0.25 from 46% to 75%. "Gentle curvature fails" is substantially "long paths fail".
 - The deceleration ramp was the obvious suspect (`desired = cruise * clamp(d/stop, 0, 1)`, stop=0.90 below |k|=0.38 and 2.40 above). Sweeping it refutes the hypothesis: 0.45 gives 81.8%, 0.90 gives 81.6%, 2.40 gives 74.8% on train. A longer ramp makes the ball slow down earlier and stall further short.
+
+## Analytic-prior search tooling
+
+- Added `legged_gym/scripts/sweep_path_prior.py` (fixed schedule) and `search_path_prior.py` (budgeted coordinate descent), both driven through `run_local_sweep.sh`. See LOCAL_SETUP.md.
+- The prior is evaluated without any checkpoint: `PATH_ZERO_INIT_ACTOR=1` zeroes weight and bias of every expert's output layer at construction, so the action equals the prior exactly. The harness asserts `max|actor output| == 0` at startup rather than assuming it.
+- The environment is built once and reused, and the RNG is reseeded before every rollout, so each configuration is compared on byte-identical paths. This is what makes 512-2048 episodes enough to resolve a point or two; unpaired evaluation moves the headline number by ~15 points on the mixture alone.
+- Throughput measured on the RTX 4070: 12.6 s per configuration at 512 environments, 15.5 s at 2048. Reseeding and env reuse cut roughly 40 s of IsaacGym start-up per configuration, so a night affords on the order of 1500-1600 evaluations.
+
+### Objective resolution matters more than it looks
+
+- Scoring by the single worst (path type x curvature) bucket is unstable at 512 environments: buckets hold 6-40 episodes, so the score quantises into steps of 2-17 points. The same configuration ranked worse or better depending only on the `min_bucket_n` floor, which is a property of the metric, not the controller.
+- At 2048 environments every bucket holds at least 55 episodes and the smoothed score (mean of the 3 worst buckets) is stable; this is the configuration to search with.
+- Worst cases at stage 6 with defaults, n>=55 per bucket: s_curve at |k|=0.40 scores 23.1-25.9%, right_arc at |k|=0.20 37.4%, left_arc at |k|=0.20-0.25 39.3%. S-curves are not capped by `max_angle`, so the worst cases are also the long ones, consistent with the endgame stall.
+
+### Screen of single-parameter changes (512 envs, 31 configurations)
+
+- No single-parameter perturbation improved the worst bucket over the defaults; the defaults sit at a local optimum in these 15 scalars.
+- Several changes are clearly harmful: `prior_normal_drive` 0.25 -> 0.15 costs 18 points overall and zeroes the worst bucket; `prior_gain_slope` 0.92 -> 1.12 costs 8 points; `prior_r2_curvature` 0.45 -> 0.40 costs 7.
+- A first 3-minute coordinate-descent run accepted `prior_normal_heading_kp` 1.5 -> 2.0 and `prior_tight_cross_track_kp` 0.1 -> 0.2, moving overall 71.5% -> 79.5% on a fixed path set.
