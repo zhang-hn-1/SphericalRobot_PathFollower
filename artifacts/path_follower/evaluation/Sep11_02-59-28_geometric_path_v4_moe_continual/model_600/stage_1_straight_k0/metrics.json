@@ -1,0 +1,33 @@
+{
+  "checkpoint": "/data/lzq/workspace/SphericalRobot_PathFollower_20260911/logs/rotunbot_path/Sep11_02-59-28_geometric_path_v4_moe_continual/model_600.pt",
+  "checkpoint_iteration": 600,
+  "stage": 1,
+  "forced_path_type": "straight",
+  "forced_curvature": "0",
+  "seed": 5901,
+  "episodes": 128,
+  "success_rate": 1.0,
+  "cross_track_median_m": 0.08430784568190575,
+  "cross_track_p95_m": 0.15319630354642866,
+  "endpoint_distance_median_m": 0.1991090402007103,
+  "terminal_speed_median_mps": 0.080022893846035,
+  "terminal_speed_p95_mps": 0.09896862804889679,
+  "by_path_type": {
+    "straight": {
+      "episodes": 128,
+      "success_rate": 1.0
+    }
+  },
+  "failure_reasons": {
+    "success": 128
+  },
+  "trace_env0_action_mean": [
+    0.38010668754577637,
+    -0.43930795788764954
+  ],
+  "trace_env0_action_abs_p95": [
+    0.9868236392736435,
+    0.9641317516565322
+  ],
+  "trace_env0_displacement_m": 3.6162524223327637
+}

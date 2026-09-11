@@ -1,0 +1,12 @@
+/data/lzq/workspace/SphericalRobot_PathFollower_20260911/artifacts/path_follower/v4d_right_r3_feedforward/checkpoint_scan/model_650_right_r3_seed6200.log:  "success_rate": 0.09375,
+/data/lzq/workspace/SphericalRobot_PathFollower_20260911/artifacts/path_follower/v4d_right_r3_feedforward/checkpoint_scan/model_650_right_r3_seed6200.log:      "success_rate": 0.09375
+/data/lzq/workspace/SphericalRobot_PathFollower_20260911/artifacts/path_follower/v4d_right_r3_feedforward/checkpoint_scan/model_675_right_r3_seed6202.log:  "success_rate": 0.09375,
+/data/lzq/workspace/SphericalRobot_PathFollower_20260911/artifacts/path_follower/v4d_right_r3_feedforward/checkpoint_scan/model_675_right_r3_seed6202.log:      "success_rate": 0.09375
+/data/lzq/workspace/SphericalRobot_PathFollower_20260911/artifacts/path_follower/v4d_right_r3_feedforward/checkpoint_scan/model_700_right_r3_seed6204.log:  "success_rate": 0.0546875,
+/data/lzq/workspace/SphericalRobot_PathFollower_20260911/artifacts/path_follower/v4d_right_r3_feedforward/checkpoint_scan/model_700_right_r3_seed6204.log:      "success_rate": 0.0546875
+/data/lzq/workspace/SphericalRobot_PathFollower_20260911/artifacts/path_follower/v4d_right_r3_feedforward/checkpoint_scan/model_725_right_r3_seed6201.log:  "success_rate": 0.046875,
+/data/lzq/workspace/SphericalRobot_PathFollower_20260911/artifacts/path_follower/v4d_right_r3_feedforward/checkpoint_scan/model_725_right_r3_seed6201.log:      "success_rate": 0.046875
+/data/lzq/workspace/SphericalRobot_PathFollower_20260911/artifacts/path_follower/v4d_right_r3_feedforward/checkpoint_scan/model_750_right_r3_seed6203.log:  "success_rate": 0.046875,
+/data/lzq/workspace/SphericalRobot_PathFollower_20260911/artifacts/path_follower/v4d_right_r3_feedforward/checkpoint_scan/model_750_right_r3_seed6203.log:      "success_rate": 0.046875
+/data/lzq/workspace/SphericalRobot_PathFollower_20260911/artifacts/path_follower/v4d_right_r3_feedforward/checkpoint_scan/model_775_right_r3_seed6205.log:  "success_rate": 0.125,
+/data/lzq/workspace/SphericalRobot_PathFollower_20260911/artifacts/path_follower/v4d_right_r3_feedforward/checkpoint_scan/model_775_right_r3_seed6205.log:      "success_rate": 0.125

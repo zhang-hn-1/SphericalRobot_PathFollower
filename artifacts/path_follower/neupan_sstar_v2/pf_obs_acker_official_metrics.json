@@ -1,0 +1,28 @@
+{
+  "scenario": "pf_obs_acker_official",
+  "source": "/data/lzq/workspace/NeuPAN_official_repro_20260910/outputs/pf_obs_acker_official/s_star.npz",
+  "raw_windows": 347,
+  "evaluated_windows": 343,
+  "omitted_sub_0p20m_windows": 4,
+  "success_rate": 0.8862973760932945,
+  "success_count": 304,
+  "failure_reasons": {
+    "timeout": 34,
+    "success": 304,
+    "deviation": 5
+  },
+  "cross_track_median_m": 0.09083594381809235,
+  "endpoint_distance_median_m": 0.19600491225719452,
+  "terminal_speed_median_mps": 0.08829548209905624,
+  "path_length_range_m": [
+    0.4,
+    4.800000000000001
+  ],
+  "peak_abs_curvature_max_1pm": 0.5194586182115712,
+  "path_type_counts": {
+    "2": 148,
+    "3": 48,
+    "0": 5,
+    "1": 142
+  }
+}

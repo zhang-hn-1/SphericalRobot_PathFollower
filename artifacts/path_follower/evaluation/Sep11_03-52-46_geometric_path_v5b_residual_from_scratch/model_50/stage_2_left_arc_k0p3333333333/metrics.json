@@ -1,0 +1,35 @@
+{
+  "checkpoint": "/data/lzq/workspace/SphericalRobot_PathFollower_20260911/logs/rotunbot_path/Sep11_03-52-46_geometric_path_v5b_residual_from_scratch/model_50.pt",
+  "checkpoint_iteration": 50,
+  "stage": 2,
+  "forced_path_type": "left_arc",
+  "forced_curvature": "0.3333333333",
+  "seed": 7552,
+  "episodes": 64,
+  "stochastic_actions": false,
+  "success_rate": 0.6875,
+  "cross_track_median_m": 0.19440250098705292,
+  "cross_track_p95_m": 1.5076453030109405,
+  "endpoint_distance_median_m": 0.199685238301754,
+  "terminal_speed_median_mps": 0.08154145628213882,
+  "terminal_speed_p95_mps": 0.5488670945167541,
+  "by_path_type": {
+    "left_arc": {
+      "episodes": 64,
+      "success_rate": 0.6875
+    }
+  },
+  "failure_reasons": {
+    "success": 44,
+    "deviation": 20
+  },
+  "trace_env0_action_mean": [
+    -0.2511635720729828,
+    -0.054414037615060806
+  ],
+  "trace_env0_action_abs_p95": [
+    0.364294596016407,
+    0.11851109564304352
+  ],
+  "trace_env0_displacement_m": 6.5135111808776855
+}

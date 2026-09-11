@@ -1,0 +1,13 @@
+{
+  "type": "right_arc",
+  "curvature": "-0.4",
+  "stage": 3,
+  "episodes": 256,
+  "success_rate": 1.0,
+  "failure_reasons": {
+    "success": 256
+  },
+  "cross_track_median_m": 0.07571019977331161,
+  "endpoint_distance_median_m": 0.1435997262597084,
+  "terminal_speed_median_mps": 0.09656254202127457
+}

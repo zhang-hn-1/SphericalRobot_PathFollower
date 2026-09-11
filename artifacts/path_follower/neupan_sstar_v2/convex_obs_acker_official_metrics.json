@@ -1,0 +1,27 @@
+{
+  "scenario": "convex_obs_acker_official",
+  "source": "/data/lzq/workspace/NeuPAN_official_repro_20260910/outputs/convex_obs_acker_official/s_star.npz",
+  "raw_windows": 138,
+  "evaluated_windows": 138,
+  "omitted_sub_0p20m_windows": 0,
+  "success_rate": 0.9492753623188406,
+  "success_count": 131,
+  "failure_reasons": {
+    "success": 131,
+    "timeout": 7
+  },
+  "cross_track_median_m": 0.04420180991292,
+  "endpoint_distance_median_m": 0.1795266941189766,
+  "terminal_speed_median_mps": 0.0890854261815548,
+  "path_length_range_m": [
+    0.4,
+    4.55
+  ],
+  "peak_abs_curvature_max_1pm": 0.47658904940902785,
+  "path_type_counts": {
+    "0": 26,
+    "1": 51,
+    "3": 17,
+    "2": 44
+  }
+}

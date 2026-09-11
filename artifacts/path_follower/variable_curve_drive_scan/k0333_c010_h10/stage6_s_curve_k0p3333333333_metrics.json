@@ -1,0 +1,14 @@
+{
+  "type": "s_curve",
+  "curvature": "0.3333333333",
+  "stage": 6,
+  "episodes": 256,
+  "success_rate": 0.76953125,
+  "failure_reasons": {
+    "success": 197,
+    "timeout": 59
+  },
+  "cross_track_median_m": 0.1210683137178421,
+  "endpoint_distance_median_m": 0.1995960921049118,
+  "terminal_speed_median_mps": 0.050253164023160934
+}

@@ -1,0 +1,42 @@
+{
+  "evaluation": "continuous executed-car path with rolling 10 m geometric windows",
+  "checkpoint": null,
+  "speed_reference_used": false,
+  "yaw_at_goal_required": false,
+  "success_endpoint_m": 0.2,
+  "success_speed_mps": 0.1,
+  "success_count": 0,
+  "path_count": 2,
+  "results": [
+    {
+      "scenario": "pf_acker_official",
+      "success": 0,
+      "reason": "timeout",
+      "global_length_m": 142.05,
+      "progress_m": 142.05,
+      "progress_fraction": 1.0,
+      "endpoint_distance_m": 0.29251637337011416,
+      "terminal_speed_mps": 8.597542910138145e-05,
+      "cross_track_median_m": 0.4033760368244178,
+      "cross_track_p95_m": 1.171491143410532,
+      "cross_track_max_m": 1.4167984608296322,
+      "peak_abs_curvature_1pm": 0.4467184386945013,
+      "steps": 35001
+    },
+    {
+      "scenario": "pf_obs_acker_official",
+      "success": 0,
+      "reason": "deviation",
+      "global_length_m": 136.05,
+      "progress_m": 32.35,
+      "progress_fraction": 0.23778022785740535,
+      "endpoint_distance_m": 11.953189786193448,
+      "terminal_speed_mps": 0.21902447938919067,
+      "cross_track_median_m": 0.4820524081197394,
+      "cross_track_p95_m": 1.2099596575144016,
+      "cross_track_max_m": 1.4985100968854503,
+      "peak_abs_curvature_1pm": 0.5191359082183578,
+      "steps": 6307
+    }
+  ]
+}

@@ -1,0 +1,1028 @@
+[
+  {
+    "stop_distance": 1.2,
+    "k_cross": 0.3,
+    "k_heading": 1.5,
+    "gain_mode": "dynamic",
+    "overall_success": 0.6785714285714286,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 0.75,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 1.0,
+      "6.0": 1.0
+    },
+    "median_cross_track_m": 0.11490186303853989,
+    "median_endpoint_distance_m": 0.17923006415367126
+  },
+  {
+    "stop_distance": 1.6,
+    "k_cross": 0.3,
+    "k_heading": 1.2,
+    "gain_mode": 0.6,
+    "overall_success": 0.5714285714285714,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 1.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 0.1891675814986229,
+    "median_endpoint_distance_m": 0.19976020604372025
+  },
+  {
+    "stop_distance": 1.6,
+    "k_cross": 0.3,
+    "k_heading": 1.2,
+    "gain_mode": 0.69,
+    "overall_success": 0.5714285714285714,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 1.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 0.17237994819879532,
+    "median_endpoint_distance_m": 0.19834834337234497
+  },
+  {
+    "stop_distance": 1.6,
+    "k_cross": 0.3,
+    "k_heading": 1.2,
+    "gain_mode": "dynamic",
+    "overall_success": 0.5714285714285714,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 1.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 0.19586193561553955,
+    "median_endpoint_distance_m": 0.19590890407562256
+  },
+  {
+    "stop_distance": 1.6,
+    "k_cross": 0.3,
+    "k_heading": 1.5,
+    "gain_mode": 0.6,
+    "overall_success": 0.5714285714285714,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 1.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 0.17999005317687988,
+    "median_endpoint_distance_m": 0.18789327144622803
+  },
+  {
+    "stop_distance": 1.6,
+    "k_cross": 0.3,
+    "k_heading": 1.5,
+    "gain_mode": 0.69,
+    "overall_success": 0.5714285714285714,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 1.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 0.17300844937562943,
+    "median_endpoint_distance_m": 0.181935653090477
+  },
+  {
+    "stop_distance": 1.6,
+    "k_cross": 0.3,
+    "k_heading": 1.5,
+    "gain_mode": "dynamic",
+    "overall_success": 0.5714285714285714,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 1.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 0.16202131658792496,
+    "median_endpoint_distance_m": 0.19893667846918106
+  },
+  {
+    "stop_distance": 2.0,
+    "k_cross": 0.3,
+    "k_heading": 0.8,
+    "gain_mode": 0.6,
+    "overall_success": 0.5714285714285714,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 1.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 0.18631630390882492,
+    "median_endpoint_distance_m": 0.18851729482412338
+  },
+  {
+    "stop_distance": 2.0,
+    "k_cross": 0.3,
+    "k_heading": 1.5,
+    "gain_mode": 0.69,
+    "overall_success": 0.4642857142857143,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 1.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 0.25,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 0.9195995330810547,
+    "median_endpoint_distance_m": 1.5049793720245361
+  },
+  {
+    "stop_distance": 1.2,
+    "k_cross": 0.3,
+    "k_heading": 1.2,
+    "gain_mode": "dynamic",
+    "overall_success": 0.42857142857142855,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 0.0,
+      "4.5": 0.0,
+      "5.0": 1.0,
+      "5.5": 1.0,
+      "6.0": 1.0
+    },
+    "median_cross_track_m": 1.5024914741516113,
+    "median_endpoint_distance_m": 1.5743787288665771
+  },
+  {
+    "stop_distance": 1.2,
+    "k_cross": 0.6,
+    "k_heading": 1.2,
+    "gain_mode": "dynamic",
+    "overall_success": 0.42857142857142855,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 0.75,
+      "4.5": 0.75,
+      "5.0": 1.0,
+      "5.5": 0.5,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5023820400238037,
+    "median_endpoint_distance_m": 1.5315945744514465
+  },
+  {
+    "stop_distance": 1.2,
+    "k_cross": 0.6,
+    "k_heading": 1.5,
+    "gain_mode": 0.6,
+    "overall_success": 0.42857142857142855,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5020743608474731,
+    "median_endpoint_distance_m": 1.520930290222168
+  },
+  {
+    "stop_distance": 1.6,
+    "k_cross": 0.6,
+    "k_heading": 0.8,
+    "gain_mode": 0.6,
+    "overall_success": 0.42857142857142855,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5019922852516174,
+    "median_endpoint_distance_m": 1.5077015161514282
+  },
+  {
+    "stop_distance": 1.6,
+    "k_cross": 0.6,
+    "k_heading": 0.8,
+    "gain_mode": "dynamic",
+    "overall_success": 0.42857142857142855,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5029799342155457,
+    "median_endpoint_distance_m": 1.5084540247917175
+  },
+  {
+    "stop_distance": 1.6,
+    "k_cross": 0.6,
+    "k_heading": 1.2,
+    "gain_mode": 0.6,
+    "overall_success": 0.42857142857142855,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5015267133712769,
+    "median_endpoint_distance_m": 1.512155294418335
+  },
+  {
+    "stop_distance": 1.6,
+    "k_cross": 0.6,
+    "k_heading": 1.2,
+    "gain_mode": 0.69,
+    "overall_success": 0.42857142857142855,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5018036365509033,
+    "median_endpoint_distance_m": 1.5050703287124634
+  },
+  {
+    "stop_distance": 1.6,
+    "k_cross": 0.6,
+    "k_heading": 1.2,
+    "gain_mode": "dynamic",
+    "overall_success": 0.42857142857142855,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5017313361167908,
+    "median_endpoint_distance_m": 1.5041956901550293
+  },
+  {
+    "stop_distance": 1.6,
+    "k_cross": 0.6,
+    "k_heading": 1.5,
+    "gain_mode": 0.6,
+    "overall_success": 0.42857142857142855,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 1.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 0.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5021114945411682,
+    "median_endpoint_distance_m": 1.5085058808326721
+  },
+  {
+    "stop_distance": 1.6,
+    "k_cross": 0.6,
+    "k_heading": 1.5,
+    "gain_mode": 0.69,
+    "overall_success": 0.42857142857142855,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5012733936309814,
+    "median_endpoint_distance_m": 1.5042085647583008
+  },
+  {
+    "stop_distance": 1.6,
+    "k_cross": 0.6,
+    "k_heading": 1.5,
+    "gain_mode": "dynamic",
+    "overall_success": 0.42857142857142855,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5012100338935852,
+    "median_endpoint_distance_m": 1.5104214549064636
+  },
+  {
+    "stop_distance": 2.0,
+    "k_cross": 0.3,
+    "k_heading": 0.8,
+    "gain_mode": 0.69,
+    "overall_success": 0.42857142857142855,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 0.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 1.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5010335445404053,
+    "median_endpoint_distance_m": 1.5691954493522644
+  },
+  {
+    "stop_distance": 2.0,
+    "k_cross": 0.3,
+    "k_heading": 0.8,
+    "gain_mode": "dynamic",
+    "overall_success": 0.42857142857142855,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5021783709526062,
+    "median_endpoint_distance_m": 1.627458095550537
+  },
+  {
+    "stop_distance": 2.0,
+    "k_cross": 0.3,
+    "k_heading": 1.2,
+    "gain_mode": 0.6,
+    "overall_success": 0.42857142857142855,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 1.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 0.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 0.8514209389686584,
+    "median_endpoint_distance_m": 1.5123223662376404
+  },
+  {
+    "stop_distance": 2.0,
+    "k_cross": 0.3,
+    "k_heading": 1.2,
+    "gain_mode": 0.69,
+    "overall_success": 0.42857142857142855,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.1232807636260986,
+    "median_endpoint_distance_m": 1.5019873976707458
+  },
+  {
+    "stop_distance": 2.0,
+    "k_cross": 0.6,
+    "k_heading": 0.8,
+    "gain_mode": 0.6,
+    "overall_success": 0.42857142857142855,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 1.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 0.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5006877183914185,
+    "median_endpoint_distance_m": 1.5743204355239868
+  },
+  {
+    "stop_distance": 2.0,
+    "k_cross": 0.6,
+    "k_heading": 0.8,
+    "gain_mode": 0.69,
+    "overall_success": 0.42857142857142855,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5009592175483704,
+    "median_endpoint_distance_m": 1.6785231828689575
+  },
+  {
+    "stop_distance": 2.0,
+    "k_cross": 0.6,
+    "k_heading": 0.8,
+    "gain_mode": "dynamic",
+    "overall_success": 0.42857142857142855,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5006555914878845,
+    "median_endpoint_distance_m": 1.5862985253334045
+  },
+  {
+    "stop_distance": 1.2,
+    "k_cross": 0.3,
+    "k_heading": 1.5,
+    "gain_mode": 0.6,
+    "overall_success": 0.39285714285714285,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 0.75,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.2422990798950195,
+    "median_endpoint_distance_m": 1.511666476726532
+  },
+  {
+    "stop_distance": 1.2,
+    "k_cross": 0.3,
+    "k_heading": 0.8,
+    "gain_mode": "dynamic",
+    "overall_success": 0.35714285714285715,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 0.0,
+      "4.5": 0.0,
+      "5.0": 0.5,
+      "5.5": 1.0,
+      "6.0": 1.0
+    },
+    "median_cross_track_m": 1.5038583278656006,
+    "median_endpoint_distance_m": 1.537120521068573
+  },
+  {
+    "stop_distance": 1.2,
+    "k_cross": 0.6,
+    "k_heading": 1.5,
+    "gain_mode": "dynamic",
+    "overall_success": 0.35714285714285715,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 0.25,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 0.25,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.501729667186737,
+    "median_endpoint_distance_m": 1.5281714797019958
+  },
+  {
+    "stop_distance": 1.6,
+    "k_cross": 0.3,
+    "k_heading": 0.8,
+    "gain_mode": "dynamic",
+    "overall_success": 0.35714285714285715,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 0.5,
+      "4.5": 0.0,
+      "5.0": 1.0,
+      "5.5": 1.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5052144527435303,
+    "median_endpoint_distance_m": 1.517499327659607
+  },
+  {
+    "stop_distance": 1.2,
+    "k_cross": 0.3,
+    "k_heading": 1.5,
+    "gain_mode": 0.69,
+    "overall_success": 0.32142857142857145,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 0.0,
+      "4.5": 0.25,
+      "5.0": 1.0,
+      "5.5": 1.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.503084659576416,
+    "median_endpoint_distance_m": 1.5249475836753845
+  },
+  {
+    "stop_distance": 1.2,
+    "k_cross": 0.3,
+    "k_heading": 1.2,
+    "gain_mode": 0.6,
+    "overall_success": 0.2857142857142857,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 0.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5062863230705261,
+    "median_endpoint_distance_m": 1.5805647373199463
+  },
+  {
+    "stop_distance": 1.2,
+    "k_cross": 0.3,
+    "k_heading": 1.2,
+    "gain_mode": 0.69,
+    "overall_success": 0.2857142857142857,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 0.0,
+      "4.5": 0.0,
+      "5.0": 1.0,
+      "5.5": 1.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.50178861618042,
+    "median_endpoint_distance_m": 1.5880292654037476
+  },
+  {
+    "stop_distance": 1.2,
+    "k_cross": 0.6,
+    "k_heading": 0.8,
+    "gain_mode": 0.6,
+    "overall_success": 0.2857142857142857,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 0.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5032190680503845,
+    "median_endpoint_distance_m": 1.5124154090881348
+  },
+  {
+    "stop_distance": 1.2,
+    "k_cross": 0.6,
+    "k_heading": 1.2,
+    "gain_mode": 0.6,
+    "overall_success": 0.2857142857142857,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 0.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5025742650032043,
+    "median_endpoint_distance_m": 1.564068078994751
+  },
+  {
+    "stop_distance": 1.2,
+    "k_cross": 0.6,
+    "k_heading": 1.5,
+    "gain_mode": 0.69,
+    "overall_success": 0.2857142857142857,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 0.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5033645629882812,
+    "median_endpoint_distance_m": 1.602210819721222
+  },
+  {
+    "stop_distance": 1.6,
+    "k_cross": 0.3,
+    "k_heading": 0.8,
+    "gain_mode": 0.6,
+    "overall_success": 0.2857142857142857,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 0.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5027630925178528,
+    "median_endpoint_distance_m": 1.5131681561470032
+  },
+  {
+    "stop_distance": 1.6,
+    "k_cross": 0.3,
+    "k_heading": 0.8,
+    "gain_mode": 0.69,
+    "overall_success": 0.2857142857142857,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 0.0,
+      "4.5": 0.0,
+      "5.0": 1.0,
+      "5.5": 1.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.503173828125,
+    "median_endpoint_distance_m": 1.5179474353790283
+  },
+  {
+    "stop_distance": 1.6,
+    "k_cross": 0.6,
+    "k_heading": 0.8,
+    "gain_mode": 0.69,
+    "overall_success": 0.2857142857142857,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 0.0,
+      "4.5": 1.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5030099749565125,
+    "median_endpoint_distance_m": 1.5098984837532043
+  },
+  {
+    "stop_distance": 2.0,
+    "k_cross": 0.3,
+    "k_heading": 1.5,
+    "gain_mode": 0.6,
+    "overall_success": 0.2857142857142857,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 1.0,
+      "4.0": 1.0,
+      "4.5": 0.0,
+      "5.0": 0.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.501035451889038,
+    "median_endpoint_distance_m": 1.5065366625785828
+  },
+  {
+    "stop_distance": 2.0,
+    "k_cross": 0.3,
+    "k_heading": 1.5,
+    "gain_mode": "dynamic",
+    "overall_success": 0.2857142857142857,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 1.0,
+      "4.0": 1.0,
+      "4.5": 0.0,
+      "5.0": 0.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5010587573051453,
+    "median_endpoint_distance_m": 1.5131672620773315
+  },
+  {
+    "stop_distance": 2.0,
+    "k_cross": 0.6,
+    "k_heading": 1.2,
+    "gain_mode": 0.6,
+    "overall_success": 0.2857142857142857,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 1.0,
+      "4.0": 1.0,
+      "4.5": 0.0,
+      "5.0": 0.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5010051131248474,
+    "median_endpoint_distance_m": 1.508901834487915
+  },
+  {
+    "stop_distance": 2.0,
+    "k_cross": 0.6,
+    "k_heading": 1.2,
+    "gain_mode": 0.69,
+    "overall_success": 0.2857142857142857,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 1.0,
+      "4.5": 1.0,
+      "5.0": 0.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5010929107666016,
+    "median_endpoint_distance_m": 1.5321030020713806
+  },
+  {
+    "stop_distance": 2.0,
+    "k_cross": 0.6,
+    "k_heading": 1.5,
+    "gain_mode": 0.6,
+    "overall_success": 0.2857142857142857,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 1.0,
+      "4.0": 1.0,
+      "4.5": 0.0,
+      "5.0": 0.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5021461844444275,
+    "median_endpoint_distance_m": 1.5367157459259033
+  },
+  {
+    "stop_distance": 2.0,
+    "k_cross": 0.6,
+    "k_heading": 1.5,
+    "gain_mode": 0.69,
+    "overall_success": 0.2857142857142857,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 1.0,
+      "4.0": 1.0,
+      "4.5": 0.0,
+      "5.0": 0.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5022661089897156,
+    "median_endpoint_distance_m": 1.5309914350509644
+  },
+  {
+    "stop_distance": 2.0,
+    "k_cross": 0.6,
+    "k_heading": 1.5,
+    "gain_mode": "dynamic",
+    "overall_success": 0.2857142857142857,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 1.0,
+      "4.0": 1.0,
+      "4.5": 0.0,
+      "5.0": 0.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5023824572563171,
+    "median_endpoint_distance_m": 1.5511423349380493
+  },
+  {
+    "stop_distance": 2.0,
+    "k_cross": 0.3,
+    "k_heading": 1.2,
+    "gain_mode": "dynamic",
+    "overall_success": 0.17857142857142858,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.25,
+      "4.0": 1.0,
+      "4.5": 0.0,
+      "5.0": 0.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5027275085449219,
+    "median_endpoint_distance_m": 1.7060974836349487
+  },
+  {
+    "stop_distance": 1.2,
+    "k_cross": 0.3,
+    "k_heading": 0.8,
+    "gain_mode": 0.6,
+    "overall_success": 0.14285714285714285,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 0.0,
+      "4.5": 0.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5055474042892456,
+    "median_endpoint_distance_m": 1.5697166919708252
+  },
+  {
+    "stop_distance": 1.2,
+    "k_cross": 0.3,
+    "k_heading": 0.8,
+    "gain_mode": 0.69,
+    "overall_success": 0.14285714285714285,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 0.0,
+      "4.5": 0.0,
+      "5.0": 0.0,
+      "5.5": 1.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5039564967155457,
+    "median_endpoint_distance_m": 1.555033802986145
+  },
+  {
+    "stop_distance": 1.2,
+    "k_cross": 0.6,
+    "k_heading": 0.8,
+    "gain_mode": 0.69,
+    "overall_success": 0.14285714285714285,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 0.0,
+      "4.5": 0.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5062958598136902,
+    "median_endpoint_distance_m": 1.5682158470153809
+  },
+  {
+    "stop_distance": 1.2,
+    "k_cross": 0.6,
+    "k_heading": 0.8,
+    "gain_mode": "dynamic",
+    "overall_success": 0.14285714285714285,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 0.0,
+      "4.5": 0.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5053381323814392,
+    "median_endpoint_distance_m": 1.742275595664978
+  },
+  {
+    "stop_distance": 1.2,
+    "k_cross": 0.6,
+    "k_heading": 1.2,
+    "gain_mode": 0.69,
+    "overall_success": 0.14285714285714285,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 0.0,
+      "4.5": 0.0,
+      "5.0": 1.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5060152411460876,
+    "median_endpoint_distance_m": 1.5537495613098145
+  },
+  {
+    "stop_distance": 2.0,
+    "k_cross": 0.6,
+    "k_heading": 1.2,
+    "gain_mode": "dynamic",
+    "overall_success": 0.14285714285714285,
+    "minimum_length_success": 0.0,
+    "success_by_length": {
+      "3.0": 0.0,
+      "3.5": 0.0,
+      "4.0": 1.0,
+      "4.5": 0.0,
+      "5.0": 0.0,
+      "5.5": 0.0,
+      "6.0": 0.0
+    },
+    "median_cross_track_m": 1.5015288591384888,
+    "median_endpoint_distance_m": 1.8116251230239868
+  }
+]

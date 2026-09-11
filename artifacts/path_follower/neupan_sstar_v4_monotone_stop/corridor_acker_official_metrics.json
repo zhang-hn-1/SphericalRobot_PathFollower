@@ -1,0 +1,27 @@
+{
+  "scenario": "corridor_acker_official",
+  "source": "/data/lzq/workspace/NeuPAN_official_repro_20260910/outputs/corridor_acker_official/s_star.npz",
+  "raw_windows": 178,
+  "evaluated_windows": 175,
+  "omitted_sub_0p20m_windows": 3,
+  "success_rate": 0.30857142857142855,
+  "success_count": 54,
+  "failure_reasons": {
+    "success": 54,
+    "timeout": 121
+  },
+  "cross_track_median_m": 0.36617735028266907,
+  "endpoint_distance_median_m": 0.3663991689682007,
+  "terminal_speed_median_mps": 0.00026200266438536346,
+  "path_length_range_m": [
+    0.2,
+    8.8
+  ],
+  "peak_abs_curvature_max_1pm": 0.24363014050835852,
+  "path_type_counts": {
+    "0": 11,
+    "3": 76,
+    "1": 41,
+    "2": 47
+  }
+}

@@ -1,0 +1,1874 @@
+[
+  {
+    "drive": 0.35,
+    "stop_distance": 1.2,
+    "k_cross": 0.05,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 1.2,
+    "k_cross": 0.1,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 1.2,
+    "k_cross": 0.2,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 1.6,
+    "k_cross": 0.05,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 1.6,
+    "k_cross": 0.05,
+    "k_heading": 0.8,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 1.6,
+    "k_cross": 0.05,
+    "k_heading": 1.2,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 1.6,
+    "k_cross": 0.1,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 1.6,
+    "k_cross": 0.1,
+    "k_heading": 0.8,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 1.6,
+    "k_cross": 0.1,
+    "k_heading": 1.2,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 1.6,
+    "k_cross": 0.2,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 1.6,
+    "k_cross": 0.2,
+    "k_heading": 0.8,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 1.6,
+    "k_cross": 0.2,
+    "k_heading": 1.2,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 2.0,
+    "k_cross": 0.05,
+    "k_heading": 0.8,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 2.0,
+    "k_cross": 0.1,
+    "k_heading": 0.8,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 2.0,
+    "k_cross": 0.2,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 2.0,
+    "k_cross": 0.2,
+    "k_heading": 0.8,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 2.0,
+    "k_cross": 0.2,
+    "k_heading": 1.2,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 1.2,
+    "k_cross": 0.05,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 1.2,
+    "k_cross": 0.1,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 1.2,
+    "k_cross": 0.2,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 1.6,
+    "k_cross": 0.05,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 1.6,
+    "k_cross": 0.05,
+    "k_heading": 0.8,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 1.6,
+    "k_cross": 0.05,
+    "k_heading": 1.2,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 1.6,
+    "k_cross": 0.1,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 1.6,
+    "k_cross": 0.1,
+    "k_heading": 0.8,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 1.6,
+    "k_cross": 0.1,
+    "k_heading": 1.2,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 1.6,
+    "k_cross": 0.2,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 1.6,
+    "k_cross": 0.2,
+    "k_heading": 0.8,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 1.6,
+    "k_cross": 0.2,
+    "k_heading": 1.2,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 2.0,
+    "k_cross": 0.05,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 2.0,
+    "k_cross": 0.05,
+    "k_heading": 0.8,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 2.0,
+    "k_cross": 0.1,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 2.0,
+    "k_cross": 0.1,
+    "k_heading": 0.8,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 2.0,
+    "k_cross": 0.1,
+    "k_heading": 1.2,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 2.0,
+    "k_cross": 0.2,
+    "k_heading": 0.8,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 2.0,
+    "k_cross": 0.2,
+    "k_heading": 1.2,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 1.2,
+    "k_cross": 0.05,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 1.2,
+    "k_cross": 0.1,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 1.2,
+    "k_cross": 0.2,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 1.2,
+    "k_cross": 0.2,
+    "k_heading": 0.8,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 1.2,
+    "k_cross": 0.2,
+    "k_heading": 1.2,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 1.6,
+    "k_cross": 0.05,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 1.6,
+    "k_cross": 0.05,
+    "k_heading": 0.8,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 1.6,
+    "k_cross": 0.05,
+    "k_heading": 1.2,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 1.6,
+    "k_cross": 0.1,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 1.6,
+    "k_cross": 0.1,
+    "k_heading": 0.8,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 1.6,
+    "k_cross": 0.1,
+    "k_heading": 1.2,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 1.6,
+    "k_cross": 0.2,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 1.6,
+    "k_cross": 0.2,
+    "k_heading": 0.8,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 1.6,
+    "k_cross": 0.2,
+    "k_heading": 1.2,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 2.0,
+    "k_cross": 0.05,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 1.2,
+    "k_cross": 0.05,
+    "k_heading": 0.8,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 1.2,
+    "k_cross": 0.1,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 1.2,
+    "k_cross": 0.1,
+    "k_heading": 0.8,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 1.2,
+    "k_cross": 0.1,
+    "k_heading": 1.2,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 1.2,
+    "k_cross": 0.2,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 1.2,
+    "k_cross": 0.2,
+    "k_heading": 0.8,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 1.2,
+    "k_cross": 0.2,
+    "k_heading": 1.2,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 1.6,
+    "k_cross": 0.05,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 1.6,
+    "k_cross": 0.05,
+    "k_heading": 0.8,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 1.6,
+    "k_cross": 0.05,
+    "k_heading": 1.2,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 1.6,
+    "k_cross": 0.1,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 1.6,
+    "k_cross": 0.1,
+    "k_heading": 0.8,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 1.6,
+    "k_cross": 0.1,
+    "k_heading": 1.2,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 1.6,
+    "k_cross": 0.2,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 1.6,
+    "k_cross": 0.2,
+    "k_heading": 0.8,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 1.6,
+    "k_cross": 0.2,
+    "k_heading": 1.2,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 2.0,
+    "k_cross": 0.05,
+    "k_heading": 0.5,
+    "overall": 1.0,
+    "minimum": 1.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 1.2,
+    "k_cross": 0.2,
+    "k_heading": 0.8,
+    "overall": 0.8333333333333334,
+    "minimum": 0.5,
+    "by_length": {
+      "4.75": 0.5,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 1.2,
+    "k_cross": 0.1,
+    "k_heading": 0.8,
+    "overall": 0.8333333333333334,
+    "minimum": 0.5,
+    "by_length": {
+      "4.75": 0.5,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 2.0,
+    "k_cross": 0.05,
+    "k_heading": 0.8,
+    "overall": 0.8333333333333334,
+    "minimum": 0.5,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 0.5
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 1.2,
+    "k_cross": 0.05,
+    "k_heading": 1.2,
+    "overall": 0.8333333333333334,
+    "minimum": 0.5,
+    "by_length": {
+      "4.75": 0.5,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 2.0,
+    "k_cross": 0.1,
+    "k_heading": 0.5,
+    "overall": 0.8333333333333334,
+    "minimum": 0.5,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 0.5
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 2.0,
+    "k_cross": 0.05,
+    "k_heading": 1.2,
+    "overall": 0.6666666666666666,
+    "minimum": 0.5,
+    "by_length": {
+      "4.75": 0.5,
+      "5.0": 0.5,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 1.2,
+    "k_cross": 0.05,
+    "k_heading": 0.8,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 1.2,
+    "k_cross": 0.05,
+    "k_heading": 1.2,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 1.2,
+    "k_cross": 0.1,
+    "k_heading": 0.8,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 1.2,
+    "k_cross": 0.1,
+    "k_heading": 1.2,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 1.2,
+    "k_cross": 0.2,
+    "k_heading": 0.8,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 1.2,
+    "k_cross": 0.2,
+    "k_heading": 1.2,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 2.0,
+    "k_cross": 0.05,
+    "k_heading": 1.2,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 2.0,
+    "k_cross": 0.1,
+    "k_heading": 0.5,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 2.0,
+    "k_cross": 0.1,
+    "k_heading": 1.2,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 1.2,
+    "k_cross": 0.05,
+    "k_heading": 0.8,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 1.2,
+    "k_cross": 0.05,
+    "k_heading": 1.2,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 1.2,
+    "k_cross": 0.1,
+    "k_heading": 0.8,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 1.2,
+    "k_cross": 0.1,
+    "k_heading": 1.2,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 1.2,
+    "k_cross": 0.2,
+    "k_heading": 1.2,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 2.0,
+    "k_cross": 0.2,
+    "k_heading": 0.5,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 1.2,
+    "k_cross": 0.05,
+    "k_heading": 0.8,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 1.2,
+    "k_cross": 0.05,
+    "k_heading": 1.2,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 1.2,
+    "k_cross": 0.1,
+    "k_heading": 1.2,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 2.0,
+    "k_cross": 0.1,
+    "k_heading": 0.5,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 2.0,
+    "k_cross": 0.1,
+    "k_heading": 0.8,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 2.0,
+    "k_cross": 0.2,
+    "k_heading": 0.5,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 2.0,
+    "k_cross": 0.2,
+    "k_heading": 0.8,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 1.2,
+    "k_cross": 0.05,
+    "k_heading": 0.5,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 1.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 2.0,
+    "k_cross": 0.05,
+    "k_heading": 0.8,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 2.0,
+    "k_cross": 0.1,
+    "k_heading": 0.8,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 2.0,
+    "k_cross": 0.2,
+    "k_heading": 0.5,
+    "overall": 0.6666666666666666,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 1.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 2.0,
+    "k_cross": 0.05,
+    "k_heading": 0.5,
+    "overall": 0.5,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 0.5,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 2.0,
+    "k_cross": 0.05,
+    "k_heading": 1.2,
+    "overall": 0.3333333333333333,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 1.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 2.4,
+    "k_cross": 0.05,
+    "k_heading": 0.5,
+    "overall": 0.3333333333333333,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 2.4,
+    "k_cross": 0.1,
+    "k_heading": 0.5,
+    "overall": 0.3333333333333333,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 2.4,
+    "k_cross": 0.2,
+    "k_heading": 0.5,
+    "overall": 0.3333333333333333,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 2.0,
+    "k_cross": 0.2,
+    "k_heading": 0.8,
+    "overall": 0.3333333333333333,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 2.4,
+    "k_cross": 0.05,
+    "k_heading": 0.5,
+    "overall": 0.3333333333333333,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 2.4,
+    "k_cross": 0.1,
+    "k_heading": 0.5,
+    "overall": 0.3333333333333333,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 2.4,
+    "k_cross": 0.2,
+    "k_heading": 0.5,
+    "overall": 0.3333333333333333,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 1.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 2.4,
+    "k_cross": 0.05,
+    "k_heading": 0.5,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 2.4,
+    "k_cross": 0.05,
+    "k_heading": 0.8,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 2.4,
+    "k_cross": 0.05,
+    "k_heading": 1.2,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 2.4,
+    "k_cross": 0.1,
+    "k_heading": 0.5,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 2.4,
+    "k_cross": 0.1,
+    "k_heading": 0.8,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 2.4,
+    "k_cross": 0.1,
+    "k_heading": 1.2,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 2.4,
+    "k_cross": 0.2,
+    "k_heading": 0.5,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 2.4,
+    "k_cross": 0.2,
+    "k_heading": 0.8,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.35,
+    "stop_distance": 2.4,
+    "k_cross": 0.2,
+    "k_heading": 1.2,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 2.4,
+    "k_cross": 0.05,
+    "k_heading": 0.5,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 2.4,
+    "k_cross": 0.05,
+    "k_heading": 0.8,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 2.4,
+    "k_cross": 0.05,
+    "k_heading": 1.2,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 2.4,
+    "k_cross": 0.1,
+    "k_heading": 0.5,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 2.4,
+    "k_cross": 0.1,
+    "k_heading": 0.8,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 2.4,
+    "k_cross": 0.1,
+    "k_heading": 1.2,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 2.4,
+    "k_cross": 0.2,
+    "k_heading": 0.5,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 2.4,
+    "k_cross": 0.2,
+    "k_heading": 0.8,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.4,
+    "stop_distance": 2.4,
+    "k_cross": 0.2,
+    "k_heading": 1.2,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 2.0,
+    "k_cross": 0.1,
+    "k_heading": 1.2,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 2.0,
+    "k_cross": 0.2,
+    "k_heading": 1.2,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 2.4,
+    "k_cross": 0.05,
+    "k_heading": 0.8,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 2.4,
+    "k_cross": 0.05,
+    "k_heading": 1.2,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 2.4,
+    "k_cross": 0.1,
+    "k_heading": 0.8,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 2.4,
+    "k_cross": 0.1,
+    "k_heading": 1.2,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 2.4,
+    "k_cross": 0.2,
+    "k_heading": 0.8,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.45,
+    "stop_distance": 2.4,
+    "k_cross": 0.2,
+    "k_heading": 1.2,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 2.0,
+    "k_cross": 0.05,
+    "k_heading": 1.2,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 2.0,
+    "k_cross": 0.1,
+    "k_heading": 1.2,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 2.0,
+    "k_cross": 0.2,
+    "k_heading": 1.2,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 2.4,
+    "k_cross": 0.05,
+    "k_heading": 0.8,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 2.4,
+    "k_cross": 0.05,
+    "k_heading": 1.2,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 2.4,
+    "k_cross": 0.1,
+    "k_heading": 0.8,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 2.4,
+    "k_cross": 0.1,
+    "k_heading": 1.2,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 2.4,
+    "k_cross": 0.2,
+    "k_heading": 0.8,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  },
+  {
+    "drive": 0.5,
+    "stop_distance": 2.4,
+    "k_cross": 0.2,
+    "k_heading": 1.2,
+    "overall": 0.0,
+    "minimum": 0.0,
+    "by_length": {
+      "4.75": 0.0,
+      "5.0": 0.0,
+      "5.2": 0.0
+    }
+  }
+]
