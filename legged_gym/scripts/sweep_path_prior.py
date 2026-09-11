@@ -106,6 +106,26 @@ SCREEN_STEPS = {
     # 0.50 m and 1.00 m cut the path badly and drop the overall rate to 47%.
     "prior_endpoint_blend_distance": 0.05,
     "prior_endpoint_max_curvature": 0.10,
+    # S-curve regime.  These were missing from the schedule entirely, which is
+    # exactly why the search stalled with s_curve at |k|=0.4 as the worst bucket:
+    # its failures are `deviation`, and the gain that resists lateral drift is
+    # prior_s_*_cross_track_kp, which the search could not touch.  Note the
+    # shipped value for the long-curve heading gain is zero.
+    "prior_s_cross_track_kp": 0.05,
+    "prior_s_heading_kp": 0.30,
+    "prior_s_mid_cross_track_kp": 0.05,
+    "prior_s_mid_heading_kp": 0.30,
+    "prior_s_mid_drive": 0.05,
+    "prior_s_mid_stop_distance": 0.30,
+    "prior_s_short_drive": 0.05,
+    "prior_s_long_drive": 0.05,
+    "prior_s_tight_short_cross_track_kp": 0.05,
+    "prior_s_tight_short_heading_kp": 0.20,
+    "prior_s_tight_long_cross_track_kp": 0.05,
+    "prior_s_tight_long_heading_kp": 0.20,
+    "prior_s_regular_long_cross_track_kp": 0.05,
+    "prior_s_regular_long_heading_kp": 0.20,
+    "prior_s_lookahead": 0.20,
 }
 
 

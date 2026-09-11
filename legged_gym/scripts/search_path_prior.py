@@ -79,6 +79,14 @@ LOWER = {
     "prior_gain_min": 0.02, "prior_gain_max": 0.10,
     "prior_tight_curvature": 0.05, "prior_r2_curvature": 0.10,
     "prior_endpoint_blend_distance": 0.02, "prior_endpoint_max_curvature": 0.10,
+    "prior_s_cross_track_kp": 0.0, "prior_s_heading_kp": 0.0,
+    "prior_s_mid_cross_track_kp": 0.0, "prior_s_mid_heading_kp": 0.0,
+    "prior_s_mid_drive": 0.05, "prior_s_mid_stop_distance": 0.30,
+    "prior_s_short_drive": 0.05, "prior_s_long_drive": 0.05,
+    "prior_s_tight_short_cross_track_kp": 0.0, "prior_s_tight_short_heading_kp": 0.0,
+    "prior_s_tight_long_cross_track_kp": 0.0, "prior_s_tight_long_heading_kp": 0.0,
+    "prior_s_regular_long_cross_track_kp": 0.0, "prior_s_regular_long_heading_kp": 0.0,
+    "prior_s_lookahead": 0.40,
 }
 UPPER = {
     "prior_normal_drive": 0.60, "prior_tight_drive": 0.80,
@@ -91,6 +99,14 @@ UPPER = {
     # Blend distances above 1 m are known to cut the path badly (0.50 m and
     # 1.00 m both drop the overall rate from 76% to 47%).
     "prior_endpoint_blend_distance": 1.00, "prior_endpoint_max_curvature": 0.80,
+    "prior_s_cross_track_kp": 1.00, "prior_s_heading_kp": 4.00,
+    "prior_s_mid_cross_track_kp": 1.00, "prior_s_mid_heading_kp": 4.00,
+    "prior_s_mid_drive": 0.80, "prior_s_mid_stop_distance": 4.00,
+    "prior_s_short_drive": 0.80, "prior_s_long_drive": 0.80,
+    "prior_s_tight_short_cross_track_kp": 1.00, "prior_s_tight_short_heading_kp": 3.00,
+    "prior_s_tight_long_cross_track_kp": 1.00, "prior_s_tight_long_heading_kp": 3.00,
+    "prior_s_regular_long_cross_track_kp": 1.00, "prior_s_regular_long_heading_kp": 3.00,
+    "prior_s_lookahead": 3.00,
 }
 TOLERANCE = 1e-3
 MIN_IMPROVEMENT = 0.005
