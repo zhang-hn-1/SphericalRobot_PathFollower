@@ -1,0 +1,6 @@
+[
+  {"label": "baseline_defaults"},
+  {"label": "endpoint_floor", "prior_endpoint_floor": true},
+  {"label": "floor_plus_heading", "prior_endpoint_floor": true, "prior_normal_heading_kp": 2.0},
+  {"label": "floor_plus_tight_cross", "prior_endpoint_floor": true, "prior_tight_cross_track_kp": 0.2}
+]

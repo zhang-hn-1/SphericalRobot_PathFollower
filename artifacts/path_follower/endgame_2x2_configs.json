@@ -1,0 +1,6 @@
+[
+  {"label": "A_baseline"},
+  {"label": "B_floor_only", "prior_endpoint_floor": true},
+  {"label": "C_endpointPP_only", "prior_endpoint_pure_pursuit": true},
+  {"label": "D_floor_and_endpointPP", "prior_endpoint_floor": true, "prior_endpoint_pure_pursuit": true}
+]

@@ -1,0 +1,298 @@
+{
+  "path_type": "s_curve",
+  "curvature": 0.4,
+  "episodes": 128,
+  "bin_width_m": 0.1,
+  "bins": [
+    {
+      "distance_low_m": 0.1,
+      "distance_high_m": 0.2,
+      "samples": 591,
+      "commanded_joint1_rad_s": 0.12549220025539398,
+      "speed_mps": 0.0991506278514862,
+      "commanded_joint2_rad": -0.10131071507930756,
+      "abs_cross_track_m": 0.036932479590177536,
+      "abs_heading_error_rad": 0.11996078491210938
+    },
+    {
+      "distance_low_m": 0.2,
+      "distance_high_m": 0.30000000000000004,
+      "samples": 32483,
+      "commanded_joint1_rad_s": 0.0007408141391351819,
+      "speed_mps": 0.0033588206861168146,
+      "commanded_joint2_rad": -0.006400703452527523,
+      "abs_cross_track_m": 0.2301388382911682,
+      "abs_heading_error_rad": 0.07466733455657959
+    },
+    {
+      "distance_low_m": 0.30000000000000004,
+      "distance_high_m": 0.4,
+      "samples": 44190,
+      "commanded_joint1_rad_s": 0.0021159430034458637,
+      "speed_mps": 0.010498488321900368,
+      "commanded_joint2_rad": -0.03139881789684296,
+      "abs_cross_track_m": 0.3419201076030731,
+      "abs_heading_error_rad": 0.0625150203704834
+    },
+    {
+      "distance_low_m": 0.4,
+      "distance_high_m": 0.5,
+      "samples": 77259,
+      "commanded_joint1_rad_s": 0.0003980626934207976,
+      "speed_mps": 0.0012217126786708832,
+      "commanded_joint2_rad": -0.026288708671927452,
+      "abs_cross_track_m": 0.4424882233142853,
+      "abs_heading_error_rad": 0.07052278518676758
+    },
+    {
+      "distance_low_m": 0.5,
+      "distance_high_m": 0.6000000000000001,
+      "samples": 50764,
+      "commanded_joint1_rad_s": 0.02841956913471222,
+      "speed_mps": 0.015748746693134308,
+      "commanded_joint2_rad": -0.040739528834819794,
+      "abs_cross_track_m": 0.5222506523132324,
+      "abs_heading_error_rad": 0.07862066477537155
+    },
+    {
+      "distance_low_m": 0.6000000000000001,
+      "distance_high_m": 0.7000000000000001,
+      "samples": 26932,
+      "commanded_joint1_rad_s": 0.1740431785583496,
+      "speed_mps": 0.09990426898002625,
+      "commanded_joint2_rad": -0.021984977647662163,
+      "abs_cross_track_m": 0.5713742971420288,
+      "abs_heading_error_rad": 0.12111455202102661
+    },
+    {
+      "distance_low_m": 0.7000000000000001,
+      "distance_high_m": 0.8,
+      "samples": 20950,
+      "commanded_joint1_rad_s": 0.22433975338935852,
+      "speed_mps": 0.12168233096599579,
+      "commanded_joint2_rad": 0.02307940647006035,
+      "abs_cross_track_m": 0.6449005603790283,
+      "abs_heading_error_rad": 0.15425682067871094
+    },
+    {
+      "distance_low_m": 0.8,
+      "distance_high_m": 0.9,
+      "samples": 21443,
+      "commanded_joint1_rad_s": 0.1677577793598175,
+      "speed_mps": 0.09800338745117188,
+      "commanded_joint2_rad": 0.01749461144208908,
+      "abs_cross_track_m": 0.7992015480995178,
+      "abs_heading_error_rad": 0.15565930306911469
+    },
+    {
+      "distance_low_m": 0.9,
+      "distance_high_m": 1.0,
+      "samples": 19365,
+      "commanded_joint1_rad_s": 0.13526538014411926,
+      "speed_mps": 0.0775100439786911,
+      "commanded_joint2_rad": -0.028184447437524796,
+      "abs_cross_track_m": 0.905074954032898,
+      "abs_heading_error_rad": 0.1277948021888733
+    },
+    {
+      "distance_low_m": 1.0,
+      "distance_high_m": 1.1,
+      "samples": 14887,
+      "commanded_joint1_rad_s": 0.28923913836479187,
+      "speed_mps": 0.13762201368808746,
+      "commanded_joint2_rad": 0.037839625030756,
+      "abs_cross_track_m": 0.9317640662193298,
+      "abs_heading_error_rad": 0.19063864648342133
+    },
+    {
+      "distance_low_m": 1.1,
+      "distance_high_m": 1.2000000000000002,
+      "samples": 14630,
+      "commanded_joint1_rad_s": 0.2960865795612335,
+      "speed_mps": 0.150217205286026,
+      "commanded_joint2_rad": 0.08316290378570557,
+      "abs_cross_track_m": 1.0377633571624756,
+      "abs_heading_error_rad": 0.2298409640789032
+    },
+    {
+      "distance_low_m": 1.2000000000000002,
+      "distance_high_m": 1.3,
+      "samples": 14922,
+      "commanded_joint1_rad_s": 0.23219841718673706,
+      "speed_mps": 0.1362265646457672,
+      "commanded_joint2_rad": 0.05198867246508598,
+      "abs_cross_track_m": 1.1971518993377686,
+      "abs_heading_error_rad": 0.28109532594680786
+    },
+    {
+      "distance_low_m": 1.3,
+      "distance_high_m": 1.4000000000000001,
+      "samples": 11095,
+      "commanded_joint1_rad_s": 0.4990226626396179,
+      "speed_mps": 0.21095417439937592,
+      "commanded_joint2_rad": 0.007191604934632778,
+      "abs_cross_track_m": 0.9908192157745361,
+      "abs_heading_error_rad": 0.27888667583465576
+    },
+    {
+      "distance_low_m": 1.4000000000000001,
+      "distance_high_m": 1.5,
+      "samples": 6897,
+      "commanded_joint1_rad_s": 0.7747401595115662,
+      "speed_mps": 0.35084158182144165,
+      "commanded_joint2_rad": -0.050784312188625336,
+      "abs_cross_track_m": 0.4166422188282013,
+      "abs_heading_error_rad": 0.31789231300354004
+    },
+    {
+      "distance_low_m": 1.5,
+      "distance_high_m": 1.6,
+      "samples": 5084,
+      "commanded_joint1_rad_s": 0.8781729936599731,
+      "speed_mps": 0.3986958861351013,
+      "commanded_joint2_rad": -0.018230512738227844,
+      "abs_cross_track_m": 0.358745276927948,
+      "abs_heading_error_rad": 0.3633519411087036
+    },
+    {
+      "distance_low_m": 1.6,
+      "distance_high_m": 1.7000000000000002,
+      "samples": 4617,
+      "commanded_joint1_rad_s": 0.9554039239883423,
+      "speed_mps": 0.4282853603363037,
+      "commanded_joint2_rad": -0.004103433340787888,
+      "abs_cross_track_m": 0.34436583518981934,
+      "abs_heading_error_rad": 0.33121636509895325
+    },
+    {
+      "distance_low_m": 1.7000000000000002,
+      "distance_high_m": 1.8,
+      "samples": 4285,
+      "commanded_joint1_rad_s": 1.0451117753982544,
+      "speed_mps": 0.4483562707901001,
+      "commanded_joint2_rad": -0.02214479260146618,
+      "abs_cross_track_m": 0.32754647731781006,
+      "abs_heading_error_rad": 0.30508458614349365
+    },
+    {
+      "distance_low_m": 1.8,
+      "distance_high_m": 1.9000000000000001,
+      "samples": 4131,
+      "commanded_joint1_rad_s": 1.1538066864013672,
+      "speed_mps": 0.4551334083080292,
+      "commanded_joint2_rad": -0.06278076022863388,
+      "abs_cross_track_m": 0.3196974992752075,
+      "abs_heading_error_rad": 0.2842799425125122
+    },
+    {
+      "distance_low_m": 1.9000000000000001,
+      "distance_high_m": 2.0,
+      "samples": 4021,
+      "commanded_joint1_rad_s": 1.2129453420639038,
+      "speed_mps": 0.4576859176158905,
+      "commanded_joint2_rad": -0.08808276057243347,
+      "abs_cross_track_m": 0.31380710005760193,
+      "abs_heading_error_rad": 0.26658642292022705
+    },
+    {
+      "distance_low_m": 2.0,
+      "distance_high_m": 2.1,
+      "samples": 3994,
+      "commanded_joint1_rad_s": 1.2252395153045654,
+      "speed_mps": 0.4575962424278259,
+      "commanded_joint2_rad": -0.109758660197258,
+      "abs_cross_track_m": 0.2942063808441162,
+      "abs_heading_error_rad": 0.2512139081954956
+    },
+    {
+      "distance_low_m": 2.1,
+      "distance_high_m": 2.2,
+      "samples": 3938,
+      "commanded_joint1_rad_s": 1.2298916578292847,
+      "speed_mps": 0.4580077528953552,
+      "commanded_joint2_rad": -0.120581716299057,
+      "abs_cross_track_m": 0.2817073464393616,
+      "abs_heading_error_rad": 0.23280411958694458
+    },
+    {
+      "distance_low_m": 2.2,
+      "distance_high_m": 2.3000000000000003,
+      "samples": 3913,
+      "commanded_joint1_rad_s": 1.2227716445922852,
+      "speed_mps": 0.46230548620224,
+      "commanded_joint2_rad": -0.12444891035556793,
+      "abs_cross_track_m": 0.27753639221191406,
+      "abs_heading_error_rad": 0.21492397785186768
+    },
+    {
+      "distance_low_m": 2.3000000000000003,
+      "distance_high_m": 2.4000000000000004,
+      "samples": 3867,
+      "commanded_joint1_rad_s": 1.2215659618377686,
+      "speed_mps": 0.46334636211395264,
+      "commanded_joint2_rad": -0.12038526684045792,
+      "abs_cross_track_m": 0.2706369161605835,
+      "abs_heading_error_rad": 0.2011047601699829
+    },
+    {
+      "distance_low_m": 2.4000000000000004,
+      "distance_high_m": 2.5,
+      "samples": 3868,
+      "commanded_joint1_rad_s": 1.222717523574829,
+      "speed_mps": 0.46389758586883545,
+      "commanded_joint2_rad": -0.10873157531023026,
+      "abs_cross_track_m": 0.2656559348106384,
+      "abs_heading_error_rad": 0.18845245242118835
+    },
+    {
+      "distance_low_m": 2.5,
+      "distance_high_m": 2.6,
+      "samples": 3841,
+      "commanded_joint1_rad_s": 1.2206287384033203,
+      "speed_mps": 0.4653681218624115,
+      "commanded_joint2_rad": -0.08484653383493423,
+      "abs_cross_track_m": 0.2622969448566437,
+      "abs_heading_error_rad": 0.17705360054969788
+    },
+    {
+      "distance_low_m": 2.6,
+      "distance_high_m": 2.7,
+      "samples": 3806,
+      "commanded_joint1_rad_s": 1.2176389694213867,
+      "speed_mps": 0.466857373714447,
+      "commanded_joint2_rad": -0.0498725064098835,
+      "abs_cross_track_m": 0.24785342812538147,
+      "abs_heading_error_rad": 0.16457760334014893
+    },
+    {
+      "distance_low_m": 2.7,
+      "distance_high_m": 2.8000000000000003,
+      "samples": 3803,
+      "commanded_joint1_rad_s": 1.2182247638702393,
+      "speed_mps": 0.466907799243927,
+      "commanded_joint2_rad": -0.018188925459980965,
+      "abs_cross_track_m": 0.2315170168876648,
+      "abs_heading_error_rad": 0.1495676189661026
+    },
+    {
+      "distance_low_m": 2.8000000000000003,
+      "distance_high_m": 2.9000000000000004,
+      "samples": 3783,
+      "commanded_joint1_rad_s": 1.218313455581665,
+      "speed_mps": 0.46745797991752625,
+      "commanded_joint2_rad": -0.008002443239092827,
+      "abs_cross_track_m": 0.20740313827991486,
+      "abs_heading_error_rad": 0.13141822814941406
+    },
+    {
+      "distance_low_m": 2.9000000000000004,
+      "distance_high_m": 3.0,
+      "samples": 4028,
+      "commanded_joint1_rad_s": 1.2189816236495972,
+      "speed_mps": 0.46715205907821655,
+      "commanded_joint2_rad": -0.0023173813242465258,
+      "abs_cross_track_m": 0.1535363793373108,
+      "abs_heading_error_rad": 0.10126764327287674
+    }
+  ]
+}

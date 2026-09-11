@@ -176,6 +176,17 @@ class RotunbotPathCfg(RotunbotVelCleanCfg):
         initial_lateral_offset = 0.10
         initial_heading_offset = 0.0872664626
 
+        # The prior's endgame speed ramp is driven by path_remaining, which is arc
+        # length along the path and saturates at the last path sample.  When the
+        # ball carries lateral error into the endgame its projection reaches the
+        # final index while the straight-line distance to that sample is still
+        # 0.4-0.6 m, so an arc-length-only ramp commands ~0 rad/s and parks the
+        # ball outside the 0.20 m success window until the episode times out.
+        # Enabling this makes the ramp use max(path_remaining,
+        # path_endpoint_distance), so the drive stays alive until both agree the
+        # endpoint is reached.  Default off: historical results stay comparable.
+        prior_endpoint_floor = os.environ.get("PATH_PRIOR_ENDPOINT_FLOOR", "0") == "1"
+
         success_endpoint_distance = 0.20
         success_remaining_length = 0.20
         success_speed = 0.10

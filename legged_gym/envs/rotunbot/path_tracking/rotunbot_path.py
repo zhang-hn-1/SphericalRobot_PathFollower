@@ -555,6 +555,22 @@ class RotunbotPath(RotunbotVelClean):
         self.critic_history.append(privileged)
         self.privileged_obs_buf = torch.cat(list(self.critic_history), dim=1)
 
+    def _endgame_distance(self):
+        """Distance still to cover, used by the prior's endgame speed ramp.
+
+        ``path_remaining`` is arc length along the path and saturates at the last
+        path sample.  A ball carrying lateral error into the endgame reaches that
+        final index while the straight-line distance to the sample is still
+        0.4-0.6 m; an arc-length-only ramp then commands ~0 rad/s and the ball
+        parks outside the 0.20 m success window until the episode times out.
+        With ``prior_endpoint_floor`` the ramp uses the larger of the arc-length
+        remaining and the straight-line distance to the endpoint, so the drive
+        only stops once both agree the endpoint has been reached.
+        """
+        if not bool(getattr(self.cfg.path, "prior_endpoint_floor", False)):
+            return self.path_remaining
+        return torch.maximum(self.path_remaining, self.path_endpoint_distance)
+
     def _analytic_pure_pursuit_prior(self):
         """Measured action map driven by a geometric pure-pursuit curvature."""
         cfg = self.cfg.path
@@ -600,7 +616,7 @@ class RotunbotPath(RotunbotVelClean):
             * torch.abs(curvature_command),
             max=float(getattr(cfg, "prior_pp_max_stop_distance", 2.40)),
         )
-        distance_scale = torch.clamp(self.path_remaining / stop_distance, 0.0, 1.0)
+        distance_scale = torch.clamp(self._endgame_distance() / stop_distance, 0.0, 1.0)
         desired_speed = 1.18 * drive * distance_scale
         forward_speed = self.base_lin_vel[:, 0]
         first = desired_speed / 1.18 + float(cfg.prior_speed_kp) * (
@@ -734,7 +750,7 @@ class RotunbotPath(RotunbotVelClean):
         )
         # Arc-length progress is monotone.  Euclidean endpoint distance grows
         # again after an overshoot and used to make the robot accelerate away.
-        distance_scale = torch.clamp(self.path_remaining / stop_distance, 0.0, 1.0)
+        distance_scale = torch.clamp(self._endgame_distance() / stop_distance, 0.0, 1.0)
         desired_speed = (1.18 * drive) * distance_scale
         forward_speed = self.base_lin_vel[:, 0]
         first = desired_speed / 1.18 + float(cfg.prior_speed_kp) * (

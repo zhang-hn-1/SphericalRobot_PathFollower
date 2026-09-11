@@ -100,6 +100,12 @@ SCREEN_STEPS = {
     "prior_gain_max": 0.10,
     "prior_tight_curvature": 0.05,
     "prior_r2_curvature": 0.05,
+    # Endgame homing.  Only useful in combination with prior_endpoint_floor (which
+    # keeps the drive alive once the arc-length remaining saturates), and the
+    # blend distance has a sharp optimum: 0.25 m gives 41.5% on the worst bucket,
+    # 0.50 m and 1.00 m cut the path badly and drop the overall rate to 47%.
+    "prior_endpoint_blend_distance": 0.05,
+    "prior_endpoint_max_curvature": 0.10,
 }
 
 

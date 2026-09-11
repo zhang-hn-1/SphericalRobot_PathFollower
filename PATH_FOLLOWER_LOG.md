@@ -234,3 +234,36 @@ A stage advances only after a 4096-episode window reaches 75% success. Episode r
 - No single-parameter perturbation improved the worst bucket over the defaults; the defaults sit at a local optimum in these 15 scalars.
 - Several changes are clearly harmful: `prior_normal_drive` 0.25 -> 0.15 costs 18 points overall and zeroes the worst bucket; `prior_gain_slope` 0.92 -> 1.12 costs 8 points; `prior_r2_curvature` 0.45 -> 0.40 costs 7.
 - A first 3-minute coordinate-descent run accepted `prior_normal_heading_kp` 1.5 -> 2.0 and `prior_tight_cross_track_kp` 0.1 -> 0.2, moving overall 71.5% -> 79.5% on a fixed path set.
+
+### Endgame stall: root cause found and fixed
+
+The stall was not a tuning problem. Two hypotheses were tested and refuted first:
+
+- **Deceleration ramp.** Sweeping `prior_normal_stop_distance` over 0.45/0.90/2.40 gives 81.8%/81.6%/74.8% overall. Not the lever.
+- **Minimum rolling speed.** An open-loop sweep (`identify_minimum_rolling_speed.py`) shows a strictly linear command-to-speed map, 0.397 (m/s)/(rad/s), with no dead band down to 0.02 rad/s (8 mm/s). The ball can creep arbitrarily slowly.
+
+`trace_prior_endgame.py` then binned the last metres of failing episodes by remaining distance and found the actual mechanism:
+
+| endpoint distance | arc-length remaining | commanded joint-1 | speed | cross-track |
+|---|---|---|---|---|
+| 0.3-0.4 m | 0.100 | 0.070 rad/s | 0.073 | 0.33 m |
+| 0.4-0.5 m | 0.000 | 0.004 rad/s | 0.019 | 0.46 m |
+| 0.5-0.6 m | 0.000 | 0.002 rad/s | 0.017 | 0.54 m |
+
+The prior's speed ramp uses `path_remaining`, which is arc length along the path and saturates at the last path sample. A ball carrying 0.4-0.5 m of lateral error into the endgame reaches that final index while the straight-line distance to the sample is still ~0.5 m, so the ramp commands zero and parks the ball outside the 0.20 m success window. The controller's stop criterion and the success criterion measure different distances.
+
+Three endgame controllers were compared on identical paths at stage 6, 2048 environments:
+
+| configuration | overall | worst bucket |
+|---|---|---|
+| shipped default (`path_remaining` only) | 72.9% | 23.1% |
+| `prior_endpoint_floor`: ramp uses `max(path_remaining, path_endpoint_distance)` | 75.0% | 27.1% |
+| floor + endpoint pure pursuit blended over the last 2.0 m | 50.0% | 24.3% |
+| **floor + endpoint pure pursuit blended over the last 0.25 m** | **75.9%** | **41.5%** |
+
+- The floor alone stops the parking but lets the ball drive away, because steering still follows the path: on left_arc k=0.25 the median endpoint distance becomes 3.96 m at 0.29 m/s.
+- Endpoint pure pursuit alone is harmful when blended over 2 m - it cuts the path and costs 23 points overall.
+- Blending it over the last 0.25 m, on top of the floor, is the working combination: the worst bucket moves 23.1% -> 41.5%, left_arc k=0.25 39% -> 48%, s_curve k=0.40 32% -> 42%. The optimum is sharp; 0.50 m and 1.00 m both collapse to 47% overall.
+- Run-to-run noise with the paired design is about 1-2 points, so the 14 point worst-bucket gain is well outside it.
+
+`prior_endpoint_floor` and `prior_endpoint_pure_pursuit` are off by default (`PATH_PRIOR_ENDPOINT_FLOOR`, `PATH_ENDPOINT_PP`), so every earlier result stays reproducible.

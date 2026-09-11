@@ -1,0 +1,6 @@
+[
+  {"label": "floor_only_reference", "prior_endpoint_floor": true},
+  {"label": "homing_0p25", "prior_endpoint_floor": true, "prior_endpoint_pure_pursuit": true, "prior_endpoint_blend_distance": 0.25},
+  {"label": "homing_0p50", "prior_endpoint_floor": true, "prior_endpoint_pure_pursuit": true, "prior_endpoint_blend_distance": 0.50},
+  {"label": "homing_1p00", "prior_endpoint_floor": true, "prior_endpoint_pure_pursuit": true, "prior_endpoint_blend_distance": 1.00}
+]

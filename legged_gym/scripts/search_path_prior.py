@@ -78,6 +78,7 @@ LOWER = {
     "prior_speed_kp": 0.05, "prior_gain_offset": 0.0, "prior_gain_slope": 0.05,
     "prior_gain_min": 0.02, "prior_gain_max": 0.10,
     "prior_tight_curvature": 0.05, "prior_r2_curvature": 0.10,
+    "prior_endpoint_blend_distance": 0.02, "prior_endpoint_max_curvature": 0.10,
 }
 UPPER = {
     "prior_normal_drive": 0.60, "prior_tight_drive": 0.80,
@@ -93,7 +94,11 @@ MIN_IMPROVEMENT = 0.005
 
 
 def canonical(overrides):
-    return "|".join(f"{k}={overrides[k]:.6g}" for k in sorted(overrides)) or "baseline"
+    parts = []
+    for key in sorted(overrides):
+        value = overrides[key]
+        parts.append(f"{key}={value:.6g}" if isinstance(value, float) else f"{key}={value}")
+    return "|".join(parts) or "baseline"
 
 
 def valid(overrides):
