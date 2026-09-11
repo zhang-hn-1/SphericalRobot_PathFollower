@@ -26,10 +26,14 @@ The venv is shared with other projects and is **not modified** by this checkout.
 
 | Script | Purpose |
 |---|---|
-| `local_env.sh` | shared setup, sourced by the two below |
+| `local_env.sh` | shared setup, sourced by the others |
 | `run_local.sh` | training; all experiment settings come from `PATH_*` env vars |
 | `run_local_eval.sh` | deterministic evaluation of one checkpoint |
+| `run_local_script.sh` | run any analysis script (identification, tracing) |
+| `run_local_sweep.sh` | analytic-prior sweep or budgeted search, see below |
 | `run_ablation_prior_vs_ppo.sh` | the prior-vs-learned-residual ablation |
+| `run_prior_stop_distance_sweep.sh` | single-variable deceleration-ramp sweep |
+| `run_overnight.sh` | search, verify out of sample, summarise, commit |
 
 Overridable before invoking: `PATH_FOLLOWER_PYTHON` (interpreter) and
 `CUDA_VISIBLE_DEVICES` (GPU, default 0).
@@ -37,6 +41,55 @@ Overridable before invoking: `PATH_FOLLOWER_PYTHON` (interpreter) and
 These files live on an exFAT volume, which does not store Unix permission bits.
 If `./run_local.sh` reports "Permission denied", run `bash run_local.sh`
 instead.
+
+## Searching the analytic prior
+
+The learned residual was measured inert (`V6 model_0` through `model_125` are
+indistinguishable at n=512), so the prior is the policy and its scalars are the
+lever. `legged_gym/scripts/sweep_path_prior.py` evaluates a fixed schedule and
+`search_path_prior.py` runs budgeted coordinate descent; both reuse one IsaacGym
+process and reseed before every rollout, so configurations are compared on
+identical paths.
+
+| Setting | Meaning |
+|---|---|
+| `PATH_SWEEP_MODE` | `sweep` (default) or `search` |
+| `PATH_SWEEP_KIND` | `baseline` or `screen` (single-variable perturbations) |
+| `PATH_SWEEP_CONFIGS` | JSON file: `[{"param": value}, ...]` |
+| `PATH_SEARCH_BUDGET_SECONDS` | wall-clock budget for real evaluations |
+| `PATH_SWEEP_MIN_BUCKET_N` | ignore smaller buckets when scoring the worst case |
+| `PATH_SWEEP_OUTPUT` / `PATH_SWEEP_LABEL` | where `results.jsonl` is written |
+| `PATH_LAYOUT_SPLIT` | `train` (default) or `test` (held-out curvature) |
+
+Measured cost: 12.6 s per configuration at 512 environments, 15.5 s at 2048.
+**Use 2048** — at 512 the per-bucket episode counts (6-40) quantise the
+worst-bucket score into steps of 2-17 points, and the reported winner changes
+with the `min_bucket_n` floor. At 2048 every bucket holds at least 55 episodes.
+
+Results append to `results.jsonl` keyed by the canonical parameter tuple, so a
+restart replays instantly and an interrupted run loses at most one evaluation.
+Create `STOP` in the output directory to halt cleanly between evaluations.
+
+## Endgame switches
+
+`trace_prior_endgame.py` showed the prior's speed ramp is driven by
+`path_remaining`, which is arc length along the path and saturates at the last
+path sample. A ball carrying 0.4-0.5 m of lateral error into the endgame reaches
+that final index while the straight-line distance to the sample is still about
+0.5 m, so the ramp commanded ~0 rad/s and parked the ball outside the 0.20 m
+success window. Measured on identical paths at stage 6, 2048 environments:
+
+| configuration | overall | worst bucket |
+|---|---|---|
+| shipped default | 72.9% | 23.1% |
+| `PATH_PRIOR_ENDPOINT_FLOOR=1` | 75.0% | 27.1% |
+| `PATH_PRIOR_ENDPOINT_FLOOR=1` + `PATH_ENDPOINT_PP=1` with default 2.0 m blend | 50.0% | 24.3% |
+| `PATH_PRIOR_ENDPOINT_FLOOR=1` + `PATH_ENDPOINT_PP=1` + `PATH_ENDPOINT_PP_DISTANCE=0.25` | 75.9% | 41.5% |
+
+Both switches default to off, so earlier results stay reproducible. The blend
+distance has a sharp optimum: 0.50 m and 1.00 m cut the path and drop the
+overall rate to 47%.
+
 
 ## Four environment blockers, and how they are handled
 
