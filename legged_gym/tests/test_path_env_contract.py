@@ -30,6 +30,10 @@ CONFIG = LIVE_ENV_DIR / "rotunbot_path_config.py"
 ENV = LIVE_ENV_DIR / "rotunbot_path.py"
 REGISTRY = ROOT / "legged_gym" / "envs" / "__init__.py"
 EVALUATOR = ROOT / "legged_gym" / "scripts" / "evaluate_path_follower.py"
+# SCREEN_STEPS lives with the fixed-schedule sweep; the bounds live with the
+# optimiser, which imports the schedule.
+SWEEP = ROOT / "legged_gym" / "scripts" / "sweep_path_prior.py"
+SEARCH = ROOT / "legged_gym" / "scripts" / "search_path_prior.py"
 
 failures = []
 
@@ -158,6 +162,33 @@ def test_success_criteria():
     check(
         path_cfg["curriculum_max_stage"] == 6,
         "curriculum_max_stage changed",
+    )
+
+
+def test_search_bounds_cover_the_schedule():
+    """Every swept parameter needs declared bounds.
+
+    Adding a parameter to SCREEN_STEPS without adding it to UPPER made the
+    optimiser raise KeyError two evaluations into an unattended run, after the
+    GPU had already been busy.  The search script checks this at start-up too;
+    this keeps the check reachable without importing IsaacGym.
+    """
+    def module_dict(path, name):
+        tree_ = ast.parse(path.read_text(encoding="utf-8"))
+        for node in tree_.body:
+            if isinstance(node, ast.Assign) and isinstance(node.targets[0], ast.Name):
+                if node.targets[0].id == name and isinstance(node.value, ast.Dict):
+                    return [ast.literal_eval(key) for key in node.value.keys]
+        raise AssertionError(f"{name} not found in {path.name}")
+
+    schedule = set(module_dict(SWEEP, "SCREEN_STEPS"))
+    lower = set(module_dict(SEARCH, "LOWER"))
+    upper = set(module_dict(SEARCH, "UPPER"))
+    missing = sorted(schedule - lower) + sorted(schedule - upper)
+    check(
+        not missing,
+        f"swept parameters without bounds: {sorted(set(missing))}; the search "
+        f"aborts at start-up rather than mid-run",
     )
 
 

@@ -88,6 +88,9 @@ UPPER = {
     "prior_speed_kp": 2.00, "prior_gain_offset": 0.30, "prior_gain_slope": 2.00,
     "prior_gain_min": 0.60, "prior_gain_max": 1.20,
     "prior_tight_curvature": 0.60, "prior_r2_curvature": 0.80,
+    # Blend distances above 1 m are known to cut the path badly (0.50 m and
+    # 1.00 m both drop the overall rate from 76% to 47%).
+    "prior_endpoint_blend_distance": 1.00, "prior_endpoint_max_curvature": 0.80,
 }
 TOLERANCE = 1e-3
 MIN_IMPROVEMENT = 0.005
@@ -103,9 +106,13 @@ def canonical(overrides):
 
 def valid(overrides):
     for name, value in overrides.items():
-        if name not in LOWER:
+        low, high = LOWER.get(name), UPPER.get(name)
+        if low is None or high is None:
+            # A parameter with no declared bounds is a schedule/table mismatch,
+            # not a reason to abort an unattended run; let it through unevaluated
+            # by the bounds check rather than raising.
             continue
-        if not (LOWER[name] <= value <= UPPER[name]):
+        if not (low <= value <= high):
             return False
     tight = overrides.get("prior_tight_curvature")
     r2 = overrides.get("prior_r2_curvature")
@@ -127,6 +134,12 @@ def objective(entry):
 
 
 def main():
+    # Fail before spending an hour of GPU time rather than mid-run: a parameter
+    # added to the schedule without bounds has silently aborted a run before.
+    unbounded = [name for name in SCREEN_STEPS if name not in LOWER or name not in UPPER]
+    if unbounded:
+        raise SystemExit(f"swept parameters missing bounds: {unbounded}")
+
     label = os.environ.get("PATH_SWEEP_LABEL", "prior_search")
     budget = float(os.environ.get("PATH_SEARCH_BUDGET_SECONDS", "28800"))
     seed = int(os.environ.get("PATH_SEARCH_SEED", os.environ.get("PATH_EVAL_SEED", "4200")))
