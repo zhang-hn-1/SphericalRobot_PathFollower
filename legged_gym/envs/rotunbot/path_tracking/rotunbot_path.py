@@ -201,7 +201,11 @@ class RotunbotPath(RotunbotVelClean):
           travel direction.  ``n`` must equal ``len(env_ids)``.
         * ``yaw``  - ``[n, M]`` headings in the world frame.  Optional; derived
           from finite differences of ``xy`` when omitted, which is what a planner
-          that only emits waypoints can supply.
+          that only emits waypoints can supply.  **Prefer passing yaw**: on a
+          polyline every vertex becomes a curvature spike once the heading is
+          differentiated, and the controller cannot tell those spikes from real
+          curvature.  Measured on the ``convex`` scenario, 3.6% success with xy
+          only against 99.3% with the yaw column supplied.
         * Spacing may be anything; points are resampled to
           ``cfg.path.sample_spacing`` before installation, and the curvature is
           differentiated from the heading over arc length.

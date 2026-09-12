@@ -217,34 +217,41 @@ def figure_neupan():
         heading.append(np.degrees(np.arctan2(seg[1], seg[0])))
     heading = np.array(heading)
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(9.6, 3.9))
-    ax1.hist(heading, bins=np.arange(-180, 181, 15), color=C_MID, edgecolor="white")
-    ax1.axvspan(-10, 10, color=C_GOOD, alpha=0.2)
-    ax1.annotate(f"仅 {int((np.abs(heading) < 10).sum())}/144 个窗口\n与机器人朝向一致",
-                 xy=(0, 22), xytext=(-165, 26), fontsize=9,
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10.4, 4.0))
+    counts, _, _ = ax1.hist(heading, bins=np.arange(-180, 181, 15),
+                            color=C_MID, edgecolor="white")
+    top = float(np.max(counts)) if len(counts) else 1.0
+    ax1.set_ylim(0, top * 1.45)
+    ax1.annotate("窗口首段朝向与机器人体轴不对齐；\n需按首段切线旋转后再安装",
+                 xy=(0.0, top * 0.98), xytext=(-176, top * 1.20), fontsize=8.5,
                  arrowprops=dict(arrowstyle="->", color="#5f6368"))
     ax1.set_xlabel("窗口首段朝向 [deg]（相对 +x）")
     ax1.set_ylabel("窗口数")
-    ax1.set_title("NeuPAN 导出窗口的坐标系不对齐", fontsize=10.5)
+    ax1.set_title("导出窗口的坐标系：不是机器人体轴", fontsize=10.5)
     ax1.grid(axis="y", alpha=0.25)
+    ax1.set_axisbelow(True)
 
-    subsets = ["直线窗口\n(前 48)", "弯曲窗口\n(|κ|≥0.45, 22 个)"]
-    rates = [100.0, 50.0]
-    bars = ax2.bar(subsets, rates, color=[C_GOOD, C_MID], width=0.55)
+    # The honest NeuPAN numbers: the archived server runs of the local S* windows
+    # across the five scenarios.  The 0.7% figure that appeared in an earlier draft
+    # was one stale artifact and is not representative.
+    scenarios = ["convex", "corridor", "non_obs", "pf", "pf_obs"]
+    rates = [94.9, 30.3, 95.8, 94.7, 88.6]
+    colors = [C_GOOD if r >= 88 else "#ea4335" for r in rates]
+    bars = ax2.bar(scenarios, rates, color=colors, width=0.6)
     for rect, v in zip(bars, rates):
-        ax2.annotate(f"{v:.0f}%", (rect.get_x() + rect.get_width() / 2, v),
-                     ha="center", va="bottom", fontsize=10)
-    ax2.axhline(0.7, color="#ea4335", ls="--", lw=1.5,
-                label="修正前同一批路径：0.7%")
+        ax2.annotate(f"{v:.1f}%", (rect.get_x() + rect.get_width() / 2, v),
+                     ha="center", va="bottom", fontsize=9)
+    ax2.axhline(88.6, color=C_REF, ls=":", lw=1.2)
     ax2.set_ylim(0, 118)
     ax2.set_ylabel("成功率 [%]")
-    ax2.set_title("真实 NeuPAN 路径的跟踪结果（旋转对齐后）", fontsize=10.5)
-    ax2.legend(fontsize=8.5, loc="upper center")
+    ax2.set_title("NeuPAN 局部 S* 窗口跟踪（归档五个场景）", fontsize=10.5)
     ax2.grid(axis="y", alpha=0.25)
     ax2.set_axisbelow(True)
+    fig.tight_layout()
     fig.savefig(OUT / "fig5_neupan.png")
     plt.close(fig)
-    print(f"fig5: 对齐一致性 {int((np.abs(heading) < 10).sum())}/144")
+    print(f"fig5: 坐标系不一致 {int((np.abs(heading) > 30).sum())}/{len(heading)} 个窗口；"
+          f"归档场景成功率 {rates}")
 
 
 if __name__ == "__main__":

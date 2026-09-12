@@ -331,3 +331,32 @@ The worst bucket improves by 7-17 points on unseen curvature for about 1.5 point
 of overall rate. Also added in this pass: `terminal_path_remaining` (the third
 success criterion was the only one not recorded at termination, which is why the
 failure could not be attributed before) and it is now written to evaluations.
+
+### Correction: the NeuPAN baseline, and xy-only path input
+
+Three claims made earlier in this log and in REPORT.md were wrong and are
+corrected here.
+
+1. **The 0.7% figure was one stale artifact, not the NeuPAN state of the art.**
+   `neupan_sstar_v1/non_obs_acker_official_metrics.json` records 0.69%, but the
+   archived server runs of the local S* windows across the five scenarios are
+   convex 94.9%, corridor 30.3%, non_obs 95.8%, pf 94.7%, pf_obs 88.6%. Quoting
+   the stale number made the integration look far worse than it is.
+
+2. **Frame alignment is not the reason for a bad run.** The archived evaluator
+   `evaluate_neupan_sstar.py` already rigidly aligns the first state with each
+   robot (see its `inject_paths`), so alignment cannot explain 0.69%.
+
+3. **Passing xy only makes the reconstruction, not the controller, the subject of
+   the measurement.** `set_external_path` derives the heading by finite
+   differences when no yaw is given, so every polyline vertex becomes a curvature
+   spike. Measured on convex: 3.6% with xy only against 99.3% with the
+   reconstructed yaw column. The 100% / 50% figures reported for
+   `run_neupan_windows.py` therefore measured the reconstruction. The yaw column
+   is reconstructed by `legged_gym/scripts/rebuild_neupan_local_inputs.py` and
+   `run_neupan_coverage.sh` runs the proper evaluator.
+
+The lesson matches the one already recorded for the (path type x curvature)
+breakdown: a number taken from the archive without checking what produced it is
+not evidence. The endgame and overshoot results above were reproduced locally
+under controlled conditions and are unaffected.

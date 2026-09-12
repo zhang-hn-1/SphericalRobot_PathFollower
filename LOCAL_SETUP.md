@@ -189,24 +189,35 @@ advances the cursor (`candidates = max(candidates, path_index)`), so a cursor
 installed behind the robot can never be corrected and one installed ahead makes
 every later projection wrong.  `set_external_path` therefore projects globally.
 
-**2. The path's first segment must be aligned with the robot's heading.**  This
-is the invariant that the first attempt missed.  The windows exported from the
-official Ackermann reproduction (`non_obs_acker_official_trajectories.npz`, 144
-windows x 201 points x 0.05 m) all start at the origin and run 10 m, but their
-axes are not the robot's body axes: across the windows the first segment points
-anywhere from -140 to +141 degrees, and 118 of 144 differ from the robot's
-heading by more than 30 degrees.  Installing them with a translation alone makes
-the path run sideways, the ball turns hard and trips the 1.5 m cross-track
-termination.  Rotating each window by its own initial tangent before installing
-takes the same paths from 0.7% to 100% on the straight subset.
+**2. Pass the yaw column if you have one.**  When `yaw` is omitted the heading is
+differentiated from the xy polyline, and a polyline vertex becomes a curvature
+spike.  Measured on the `convex` scenario: 3.6% success with xy only against
+99.3% with the reconstructed yaw.  An xy-only call therefore measures the
+reconstruction, not the controller.
+`legged_gym/scripts/rebuild_neupan_local_inputs.py` reconstructs the yaw column
+that the archived `desired` arrays lost and validates it against the archived
+curvature.
 
-Measured with `legged_gym/scripts/run_neupan_windows.py` (2048-env harness not
-used; one episode per window, tuned prior):
+### What the archived NeuPAN results actually are
 
-| subset | windows | success | failures |
-|---|---|---|---|
-| straight (first 48) | 48 | **100%** | - |
-| curved, peak \|k\| >= 0.45 | 22 | **50%** | deviation 11, success 11 |
+An earlier version of this document quoted 0.7% as the NeuPAN tracking rate.  That
+came from one stale artifact (`neupan_sstar_v1/non_obs_acker_official_metrics.json`)
+and is not representative.  The archived server runs of the local S* windows
+across the five scenarios are convex 94.9%, corridor 30.3%, non_obs 95.8%,
+pf 94.7%, pf_obs 88.6%.  `run_neupan_coverage.sh` reproduces them locally,
+including the global executed paths under two yaw-reconstruction variants.
+
+The archived evaluator (`evaluate_neupan_sstar.py`) also already rigidly aligns
+the first state with each robot, so frame alignment is not what separates a
+working run from a broken one - the yaw column is.
+
+Measured with `legged_gym/scripts/run_neupan_windows.py` (xy-only, so these are a
+reconstruction check rather than controller numbers), one episode per window:
+
+| subset | windows | success |
+|---|---|---|
+| straight (first 48) | 48 | 100% |
+| curved, peak \|k\| >= 0.45 | 22 | 50% |
 
 The curved subset inherits the sharp-curvature weakness documented above; the
 exported set is mostly straight parking-garage segments (median peak \|k\| of
