@@ -140,18 +140,36 @@ def figure_root_cause():
         med_spd.append(np.median(spd[mask]))
         counts.append(mask.sum())
 
-    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(7.6, 6.0), sharex=True,
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(7.8, 6.2), sharex=True,
                                    gridspec_kw={"height_ratios": [2.2, 1]})
-    ax1.plot(centers, med_cmd, "o-", color=C_GOOD, ms=4, label="关节1 目标速度指令 [rad/s]")
-    ax1.plot(centers, med_spd, "s--", color=C_MID, ms=4, label="实际前进速度 [m/s]")
+    # The two series are different physical quantities - a joint angular velocity
+    # command and the resulting body linear speed - so they get separate axes.
+    # Plotted together on one axis they invite the misreading that they should
+    # coincide; the transmission ratio between them is about 0.4 (m/s)/(rad/s).
+    ax1.plot(centers, med_cmd, "o-", color=C_GOOD, ms=4,
+             label="关节1 目标速度【指令，rad/s】")
+    ax1.set_ylabel("关节1 目标速度 [rad/s]", color=C_GOOD)
+    ax1.tick_params(axis="y", labelcolor=C_GOOD)
+    ax1.set_ylim(-0.02, 0.90)
+
+    ax_speed = ax1.twinx()
+    ax_speed.plot(centers, med_spd, "s--", color=C_MID, ms=4,
+                  label="实际前进速度【结果，m/s】")
+    ax_speed.set_ylabel("实际前进速度 [m/s]", color="#b06000")
+    ax_speed.tick_params(axis="y", labelcolor="#b06000")
+    ax_speed.set_ylim(-0.01, 0.36)
+
     ax1.axvspan(0.4, 0.6, color="#ea4335", alpha=0.20)
-    ax1.annotate("红色区：关节1 指令塌陷到 0.002 rad/s，\n球停在离终点 0.5 m 处并等待超时",
-                 xy=(0.62, 0.52), fontsize=9, color="#c5221f")
+    ax1.annotate("红色区：两条曲线同时归零，\n球停在离终点 0.5 m 处等待超时",
+                 xy=(0.62, 0.62), fontsize=9, color="#c5221f")
     ax1.axvline(0.20, color="#5f6368", ls=":", lw=1.2)
-    ax1.annotate("成功判据 0.20 m", xy=(0.22, 0.72), fontsize=8.5, color="#5f6368")
-    ax1.set_ylabel("中位数")
-    ax1.set_ylim(-0.02, 0.85)
-    ax1.legend(fontsize=9, loc="lower right")
+    ax1.annotate("成功判据 0.20 m", xy=(0.22, 0.80), fontsize=8.5, color="#5f6368")
+    ax1.set_title("末端熄火根因：弧长剩余饱和后指令归零（左弧 κ=0.25，128 episodes）",
+                  fontsize=11)
+    handles = ax1.get_lines() + ax_speed.get_lines()
+    ax1.legend(handles, [h.get_label() for h in handles], fontsize=9, loc="lower right")
+    ax1.grid(alpha=0.25)
+    ax1.set_axisbelow(True)
     ax1.grid(alpha=0.25)
     ax1.set_axisbelow(True)
     ax1.set_title("末端熄火根因：弧长剩余饱和后指令归零（左弧 κ=0.25，128 episodes）", fontsize=11)
