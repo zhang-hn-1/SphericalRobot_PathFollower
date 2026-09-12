@@ -294,3 +294,40 @@ Three endgame controllers were compared on identical paths at stage 6, 2048 envi
 - Remaining gap: s_curve at |k|=0.40-0.45, failures dominated by `deviation`
   (leaving the 1.5 m corridor) rather than `timeout`. Everything else is 88% or
   above. See artifacts/path_follower/RECOMMENDED_PRIOR.md.
+
+### The s_curve bottleneck: overshoot, introduced by the endgame floor
+
+Attributing every terminating episode by which acceptance criterion it failed
+(`attribute_path_failure.py`) resolved the sharp S-curve bottleneck. On s_curve at
+k=0.40, 256 episodes, the 123 failures were:
+
+| criterion | met by failures | median |
+|---|---|---|
+| remaining arc length <= 0.20 m | 100% | 0.000 m |
+| straight-line distance to the final sample <= 0.20 m | 0% | 1.384 m |
+| terminal speed <= 0.10 m/s | 0% | 0.303 m/s |
+
+Every failure had reached the end of the path and then driven past it. Loosening
+the endpoint tolerance changes nothing (52.0% at every tolerance from 0.20 to
+0.50 m), so this was never a specification question.
+
+The cause is the endpoint floor: `max(path_remaining, path_endpoint_distance)`
+keeps the drive alive once the arc-length remaining saturates, but it also grows
+again after an overshoot, so it accelerates the ball away from the endpoint. That
+is the failure mode the original code comment warned about, reintroduced by the
+floor. `PATH_PRIOR_OVERSHOOT_STOP` cuts the drive once the robot is beyond the
+endpoint along the final tangent.
+
+Verified out of sample, 2048 environments, one paired episode per environment:
+
+| configuration | train s7777 | held-out s7777 | held-out s9999 |
+|---|---|---|---|
+| previous recommendation | 90.5% / 54.7% | 88.0% / 62.3% | 88.6% / 61.0% |
+| with overshoot stop, retuned | 89.9% / 79.7% | 87.0% / 76.2% | 86.5% / 68.4% |
+
+(overall / worst (path type x curvature) bucket)
+
+The worst bucket improves by 7-17 points on unseen curvature for about 1.5 points
+of overall rate. Also added in this pass: `terminal_path_remaining` (the third
+success criterion was the only one not recorded at termination, which is why the
+failure could not be attributed before) and it is now written to evaluations.

@@ -1,0 +1,22 @@
+{
+  "path_type": "s_curve",
+  "curvature": 0.4,
+  "episodes": 256,
+  "limits": {
+    "remaining": 0.2,
+    "endpoint": 0.2,
+    "speed": 0.1
+  },
+  "outcomes": {
+    "success (\u5168\u90e8\u6ee1\u8db3)": 133,
+    "\u591a\u9879\u4e0d\u6ee1\u8db3": 123
+  },
+  "reasons": {
+    "success": 133,
+    "deviation": 49,
+    "timeout": 74
+  },
+  "cross_track_median_m": 0.1806279420852661,
+  "endpoint_median_m": 0.19981997460126877,
+  "remaining_median_m": 0.0
+}

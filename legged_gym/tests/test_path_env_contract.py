@@ -263,6 +263,11 @@ def test_failure_taxonomy_is_recorded():
         "terminal_path_curvature is not populated; evaluations cannot break "
         "success down by curvature",
     )
+    check(
+        "terminal_path_remaining" in env_text,
+        "terminal_path_remaining is not populated; success is a conjunction that "
+        "includes path_remaining, so a failure cannot be attributed to a criterion",
+    )
 
     evaluator = EVALUATOR.read_text(encoding="utf-8")
     check(

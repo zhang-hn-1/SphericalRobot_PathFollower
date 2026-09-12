@@ -1,0 +1,4 @@
+[
+  {"label": "A_current"},
+  {"label": "B_overshoot_stop", "prior_endpoint_overshoot_stop": true}
+]

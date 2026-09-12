@@ -96,6 +96,7 @@ def main():
             current = env.path_curvature[batch, env.path_index]  # needed right now
             prior = env._analytic_action_prior()
             phase = env.path_s / torch.clamp(env.path_length, min=1e-6)
+            speed = torch.linalg.vector_norm(env.root_states[:, 7:9], dim=1)
             rows.append(torch.stack([
                 phase,
                 reference,
@@ -103,13 +104,19 @@ def main():
                 prior[:, 1].abs(),                          # joint-2 command magnitude
                 env.path_cross_track.abs(),
                 env.path_remaining,
+                speed,
+                prior[:, 0],                                # joint-1 drive command
+                env.path_heading_error.abs(),
+                env.path_endpoint_distance,
             ], dim=1).cpu().numpy())
             if bool(env.step(zero_action)[3].all()):
                 break
 
     data = np.concatenate(rows, axis=0)
     columns = ["phase_fraction", "reference_curvature", "current_curvature",
-               "abs_joint2_command", "abs_cross_track_m", "remaining_m"]
+               "abs_joint2_command", "abs_cross_track_m", "remaining_m",
+               "speed_mps", "joint1_command", "abs_heading_error_rad",
+               "endpoint_distance_m"]
     remaining = data[:, 5]
     # Only the moving part of the episode is interesting; past the endpoint the
     # ball is parking and the curvature question no longer applies.
@@ -151,15 +158,23 @@ def main():
     print(f"  joint-2 command pinned at limit  : {saturation:6.1%}   <- authority signature")
     print(f"  median |joint-2 command|         : {summary['abs_joint2_command_median']:.3f}")
     print()
-    print(f"{'phase':>10}{'n':>8}{'ref k':>9}{'current k':>11}{'|j2|':>8}{'xtrack':>8}")
-    for low in np.arange(0.0, 1.0, 0.1):
-        mask = (sub[:, 0] >= low) & (sub[:, 0] < low + 0.1)
+    print(f"{'endpoint d':>11}{'n':>8}{'speed':>8}{'j1 cmd':>8}{'|j2|':>7}"
+          f"{'xtrack':>8}{'heading':>9}{'steps在最后1m':>14}")
+    for low, high in ((0.0, 0.2), (0.2, 0.5), (0.5, 1.0), (1.0, 2.0), (2.0, 4.0)):
+        mask = (sub[:, 9] >= low) & (sub[:, 9] < high)
         if mask.sum() < 5:
             continue
         block = sub[mask]
-        print(f"{low:>4.1f}-{low + 0.1:<5.1f}{int(mask.sum()):>8}"
-              f"{np.median(block[:, 1]):>9.3f}{np.median(block[:, 2]):>11.3f}"
-              f"{np.median(block[:, 3]):>8.3f}{np.median(block[:, 4]):>8.3f}")
+        print(f"{low:>5.1f}-{high:<5.1f}{int(mask.sum()):>8}"
+              f"{np.median(block[:, 6]):>8.3f}{np.median(block[:, 7]):>8.3f}"
+              f"{np.median(block[:, 3]):>7.3f}{np.median(block[:, 4]):>8.3f}"
+              f"{np.median(block[:, 8]):>9.3f}")
+
+    # Time spent inside the last metre, as a fraction of the whole episode: a
+    # ball that is moving spends a small share of its steps there.
+    last_metre = float(np.mean(sub[:, 9] < 1.0))
+    print(f"\n样本落在最后 1 m 内的比例: {last_metre:.1%}  "
+          f"(移动中若按弧长均匀分布应远低于此)")
 
     (out / "summary.json").write_text(json.dumps(summary, indent=2))
     print(f"\nwrote {out}")

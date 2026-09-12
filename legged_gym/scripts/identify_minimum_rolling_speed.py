@@ -54,8 +54,13 @@ from legged_gym.utils import get_args, task_registry  # noqa: E402
 # an episode (drive 0.25 and 0.45 map to roughly 0.3 and 0.53 rad/s of cruise,
 # and the endgame ramp divides that by the remaining-distance fraction).
 FIRST_TARGETS = [0.02, 0.03, 0.05, 0.07, 0.10, 0.14, 0.20, 0.28, 0.40, 0.55, 0.80]
-# Joint-2 angles in rad; 0 is straight, the others load the mechanism.
-SECOND_ANGLES = [0.0, 0.30, -0.30]
+# Joint-2 angles in rad; 0 is straight, the others load the mechanism.  Override
+# with PATH_ID_ANGLES to probe whether a large tilt blocks propulsion, which is
+# what the S-curve endgame looks like (|joint-2 command| pinned at its limit).
+SECOND_ANGLES = [
+    float(value) for value in
+    os.environ.get("PATH_ID_ANGLES", "0.0,0.30,-0.30").split(",")
+]
 REPEATS = 4
 
 

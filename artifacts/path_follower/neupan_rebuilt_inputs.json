@@ -1,0 +1,138 @@
+{
+  "global_source": "artifacts/path_follower/neupan_global_v1/trajectories.npz",
+  "local_source": "artifacts/path_follower/neupan_sstar_v2",
+  "savgol_window": 49,
+  "archived_peak_curvature_1pm": {
+    "convex_obs_acker_official": 0.5191359082183047,
+    "corridor_acker_official": 0.20880085578357382,
+    "non_obs_acker_official": 0.5191359082183175,
+    "pf_acker_official": 0.4467184386945013,
+    "pf_obs_acker_official": 0.5191359082183578
+  },
+  "global": [
+    {
+      "scenario": "convex_obs_acker_official",
+      "points": 1068,
+      "length_m": 53.34887196300813,
+      "yaw_mode": "savgol",
+      "reconstructed_peak_curvature_1pm": 0.491439007030822,
+      "csv": "artifacts/path_follower/neupan_global_inputs/convex_obs_acker_official/executed_path.csv"
+    },
+    {
+      "scenario": "corridor_acker_official",
+      "points": 1358,
+      "length_m": 67.84908513100123,
+      "yaw_mode": "savgol",
+      "reconstructed_peak_curvature_1pm": 0.21941661996368922,
+      "csv": "artifacts/path_follower/neupan_global_inputs/corridor_acker_official/executed_path.csv"
+    },
+    {
+      "scenario": "non_obs_acker_official",
+      "points": 1083,
+      "length_m": 54.09779019387994,
+      "yaw_mode": "savgol",
+      "reconstructed_peak_curvature_1pm": 0.512502167697517,
+      "csv": "artifacts/path_follower/neupan_global_inputs/non_obs_acker_official/executed_path.csv"
+    },
+    {
+      "scenario": "pf_acker_official",
+      "points": 2842,
+      "length_m": 142.04278007396087,
+      "yaw_mode": "savgol",
+      "reconstructed_peak_curvature_1pm": 0.43492556161122187,
+      "csv": "artifacts/path_follower/neupan_global_inputs/pf_acker_official/executed_path.csv"
+    },
+    {
+      "scenario": "pf_obs_acker_official",
+      "points": 2722,
+      "length_m": 136.0364668685538,
+      "yaw_mode": "savgol",
+      "reconstructed_peak_curvature_1pm": 0.5749582770490846,
+      "csv": "artifacts/path_follower/neupan_global_inputs/pf_obs_acker_official/executed_path.csv"
+    }
+  ],
+  "global_tangent": [
+    {
+      "scenario": "convex_obs_acker_official",
+      "points": 1068,
+      "length_m": 53.34887196300813,
+      "yaw_mode": "tangent",
+      "reconstructed_peak_curvature_1pm": 2.272846948051303,
+      "csv": "artifacts/path_follower/neupan_global_inputs_tangent/convex_obs_acker_official/executed_path.csv"
+    },
+    {
+      "scenario": "corridor_acker_official",
+      "points": 1358,
+      "length_m": 67.84908513100123,
+      "yaw_mode": "tangent",
+      "reconstructed_peak_curvature_1pm": 0.998214505165338,
+      "csv": "artifacts/path_follower/neupan_global_inputs_tangent/corridor_acker_official/executed_path.csv"
+    },
+    {
+      "scenario": "non_obs_acker_official",
+      "points": 1083,
+      "length_m": 54.09779019387994,
+      "yaw_mode": "tangent",
+      "reconstructed_peak_curvature_1pm": 2.4878543867689427,
+      "csv": "artifacts/path_follower/neupan_global_inputs_tangent/non_obs_acker_official/executed_path.csv"
+    },
+    {
+      "scenario": "pf_acker_official",
+      "points": 2842,
+      "length_m": 142.04278007396087,
+      "yaw_mode": "tangent",
+      "reconstructed_peak_curvature_1pm": 1.7993027890966045,
+      "csv": "artifacts/path_follower/neupan_global_inputs_tangent/pf_acker_official/executed_path.csv"
+    },
+    {
+      "scenario": "pf_obs_acker_official",
+      "points": 2722,
+      "length_m": 136.0364668685538,
+      "yaw_mode": "tangent",
+      "reconstructed_peak_curvature_1pm": 2.393805066441801,
+      "csv": "artifacts/path_follower/neupan_global_inputs_tangent/pf_obs_acker_official/executed_path.csv"
+    }
+  ],
+  "local": [
+    {
+      "scenario": "convex_obs_acker_official",
+      "windows": 138,
+      "padded_points": 92,
+      "length_m_median": 3.9499747517344916,
+      "length_m_max": 4.549891695608454,
+      "npz": "artifacts/path_follower/neupan_local_inputs/convex_obs_acker_official_windows.npz"
+    },
+    {
+      "scenario": "corridor_acker_official",
+      "windows": 175,
+      "padded_points": 177,
+      "length_m_median": 8.199522104117337,
+      "length_m_max": 8.799585739248858,
+      "npz": "artifacts/path_follower/neupan_local_inputs/corridor_acker_official_windows.npz"
+    },
+    {
+      "scenario": "non_obs_acker_official",
+      "windows": 144,
+      "padded_points": 100,
+      "length_m_median": 3.849986505829289,
+      "length_m_max": 4.949668298110966,
+      "npz": "artifacts/path_follower/neupan_local_inputs/non_obs_acker_official_windows.npz"
+    },
+    {
+      "scenario": "pf_acker_official",
+      "windows": 361,
+      "padded_points": 88,
+      "length_m_median": 3.949997662895741,
+      "length_m_max": 4.34971074704906,
+      "npz": "artifacts/path_follower/neupan_local_inputs/pf_acker_official_windows.npz"
+    },
+    {
+      "scenario": "pf_obs_acker_official",
+      "windows": 343,
+      "padded_points": 97,
+      "length_m_median": 3.949988606948198,
+      "length_m_max": 4.7981757400128,
+      "npz": "artifacts/path_follower/neupan_local_inputs/pf_obs_acker_official_windows.npz"
+    }
+  ]
+}

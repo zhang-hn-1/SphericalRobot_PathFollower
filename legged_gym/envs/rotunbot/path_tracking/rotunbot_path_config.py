@@ -187,6 +187,14 @@ class RotunbotPathCfg(RotunbotVelCleanCfg):
         # endpoint is reached.  Default off: historical results stay comparable.
         prior_endpoint_floor = os.environ.get("PATH_PRIOR_ENDPOINT_FLOOR", "0") == "1"
 
+        # Cut the drive once the robot is past the endpoint along the final
+        # tangent.  Without this the endpoint floor accelerates an overshooting
+        # ball away from the endpoint (measured: every s_curve k=0.40 failure had
+        # reached the path end and sat a median 1.38 m past it at 0.30 m/s).
+        prior_endpoint_overshoot_stop = (
+            os.environ.get("PATH_PRIOR_OVERSHOOT_STOP", "0") == "1"
+        )
+
         # The prior's regime branch sets a fixed drive per curvature regime, but
         # curvature authority is coupled to drive (|k|max ~= offset + slope*|a1|).
         # On sharp S-curves the steering command pins at its limit and the ball

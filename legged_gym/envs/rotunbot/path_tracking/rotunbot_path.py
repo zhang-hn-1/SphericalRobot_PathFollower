@@ -104,6 +104,10 @@ class RotunbotPath(RotunbotVelClean):
         self.terminal_path_type = torch.zeros_like(self.path_type)
         self.terminal_path_length = torch.zeros_like(self.path_length)
         self.terminal_path_curvature = torch.zeros_like(self.path_curvature_value)
+        # Success is a conjunction of three criteria, and path_remaining is one of
+        # them, but it was the only one not copied at termination - so a failure
+        # could not be attributed to a criterion afterwards.
+        self.terminal_path_remaining = torch.zeros_like(self.path_s)
         self.terminal_reason = torch.zeros_like(self.path_type)
 
         # Replace inherited history buffers explicitly so the dimensions are
@@ -683,10 +687,29 @@ class RotunbotPath(RotunbotVelClean):
         With ``prior_endpoint_floor`` the ramp uses the larger of the arc-length
         remaining and the straight-line distance to the endpoint, so the drive
         only stops once both agree the endpoint has been reached.
+
+        Taking that maximum naively has a known failure mode: once the ball
+        overshoots, the endpoint distance grows again and the ramp *accelerates*
+        it away.  Measured on s_curve at k=0.40, all 123 failures had reached the
+        end of the path (remaining 0.00 m) yet sat a median 1.38 m past the final
+        sample still moving at 0.30 m/s.  ``prior_endpoint_overshoot_stop``
+        therefore cuts the drive once the robot is beyond the endpoint along the
+        final tangent, so the ramp can only pull the ball towards the endpoint
+        and never push it away.
         """
         if not bool(getattr(self.cfg.path, "prior_endpoint_floor", False)):
             return self.path_remaining
-        return torch.maximum(self.path_remaining, self.path_endpoint_distance)
+        distance = torch.maximum(self.path_remaining, self.path_endpoint_distance)
+        if not bool(getattr(self.cfg.path, "prior_endpoint_overshoot_stop", False)):
+            return distance
+        batch = torch.arange(self.num_envs, device=self.device)
+        endpoint = self.path_xy[batch, self.path_last_index]
+        final_yaw = self.path_yaw[batch, self.path_last_index]
+        along = (
+            (self.root_states[:, 0] - endpoint[:, 0]) * torch.cos(final_yaw)
+            + (self.root_states[:, 1] - endpoint[:, 1]) * torch.sin(final_yaw)
+        )
+        return torch.where(along > 0.0, torch.zeros_like(distance), distance)
 
     def _analytic_pure_pursuit_prior(self):
         """Measured action map driven by a geometric pure-pursuit curvature."""
@@ -1077,6 +1100,7 @@ class RotunbotPath(RotunbotVelClean):
         self.terminal_path_type.copy_(self.path_type)
         self.terminal_path_length.copy_(self.path_length)
         self.terminal_path_curvature.copy_(self.path_curvature_value)
+        self.terminal_path_remaining.copy_(self.path_remaining)
         self.terminal_reason.zero_()
         self.terminal_reason = torch.where(self.time_out_buf, 1, self.terminal_reason)
         self.terminal_reason = torch.where(deviated, 2, self.terminal_reason)

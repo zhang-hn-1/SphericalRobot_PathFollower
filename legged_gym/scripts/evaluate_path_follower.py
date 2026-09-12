@@ -128,6 +128,7 @@ def main():
                         "path_type": TYPE_NAMES[int(env.terminal_path_type[idx].item())],
                         "curvature": float(env.terminal_path_curvature[idx].item()),
                         "path_length_m": float(env.terminal_path_length[idx].item()),
+                        "remaining_m": float(env.terminal_path_remaining[idx].item()),
                         "abs_cross_track_m": float(env.terminal_cross_track[idx].item()),
                         "endpoint_distance_m": float(env.terminal_endpoint_distance[idx].item()),
                         "terminal_speed_mps": float(env.terminal_speed[idx].item()),
