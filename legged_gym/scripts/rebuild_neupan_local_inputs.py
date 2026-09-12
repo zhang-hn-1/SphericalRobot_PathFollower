@@ -139,6 +139,75 @@ def rebuild_local(output_dir):
     return written
 
 
+# ``peak_abs_curvature_max_1pm`` from the archived neupan_sstar_v2 metrics.  The
+# saved local windows are xy-only (``desired`` is prepare_path()'s sample_xy, so
+# the planner yaw was dropped here too), and the smoothing window is chosen per
+# scenario to reproduce these peaks -- the only curvature reference left.
+LOCAL_ARCHIVED_PEAK = {
+    "convex_obs_acker_official": 0.4766,
+    "corridor_acker_official": 0.2436,
+    "non_obs_acker_official": 0.5191,
+    "pf_acker_official": 0.4183,
+    "pf_obs_acker_official": 0.5195,
+}
+# A car cannot exceed roughly 0.5 1/m; anything well above this after smoothing is
+# a defect in the archived xy rather than a real manoeuvre.
+IMPLAUSIBLE_CURVATURE = 1.0
+
+
+def window_peak(window, window_len, spacing=0.05):
+    if len(window) < 7:
+        return 0.0
+    w = min(window_len, len(window) if len(window) % 2 else len(window) - 1)
+    yaw = savgol_yaw(window, max(w, 5), spacing)
+    return float(np.abs(np.gradient(yaw, spacing)).max())
+
+
+def rebuild_local_sstar(output_dir):
+    """Write s_star.npz (``[n, horizon, 3]`` of x, y, yaw) for the official evaluator.
+
+    ``evaluate_neupan_sstar.py`` computes curvature from the state yaw, so it needs
+    a yaw column that the archive no longer has; feeding it xy-only (the
+    run_neupan_windows.py convention) instead makes the environment difference the
+    tangents and turn every polyline vertex into a curvature spike.
+    """
+    written = []
+    for source in sorted(LOCAL_SOURCE_DIR.glob("*_trajectories.npz")):
+        data = np.load(source, allow_pickle=True)
+        scenario = source.name[: -len("_trajectories.npz")]
+        windows = [np.asarray(w, dtype=np.float64) for w in data["desired"]]
+        target = LOCAL_ARCHIVED_PEAK.get(scenario)
+        best = None
+        for candidate in range(5, 42, 2):
+            peak = max(window_peak(w, candidate) for w in windows)
+            cost = abs(peak - target) if target else 0.0
+            if best is None or cost < best[0]:
+                best = (cost, candidate, peak)
+        _, chosen, achieved = best
+        points = max(len(w) for w in windows)
+        states = np.zeros((len(windows), points, 3), dtype=np.float32)
+        defects = 0
+        for row, window in enumerate(windows):
+            yaw = savgol_yaw(window, chosen)
+            states[row, : len(window), 0] = window[:, 0]
+            states[row, : len(window), 1] = window[:, 1]
+            states[row, : len(window), 2] = yaw
+            # Pad with a repeated final state; prepare_path drops zero-length segments.
+            states[row, len(window):] = states[row, len(window) - 1]
+            if window_peak(window, chosen) > IMPLAUSIBLE_CURVATURE:
+                defects += 1
+        out = output_dir / scenario / "s_star.npz"
+        out.parent.mkdir(parents=True, exist_ok=True)
+        np.savez_compressed(out, s_star=states)
+        written.append({"scenario": scenario, "windows": len(windows),
+                        "savgol_window": chosen,
+                        "archived_peak_1pm": target,
+                        "reconstructed_peak_1pm": achieved,
+                        "windows_over_1pm": defects,
+                        "npz": str(out.relative_to(PROJECT_ROOT))})
+    return written
+
+
 # ``peak_abs_curvature_1pm`` from the archived neupan_global_v1/metrics.json.
 # The yaw reconstruction is validated against these, since it is the only
 # curvature reference the archive still carries.
@@ -155,15 +224,17 @@ def main():
     global_out = ARTIFACTS / "neupan_global_inputs"
     tangent_out = ARTIFACTS / "neupan_global_inputs_tangent"
     local_out = ARTIFACTS / "neupan_local_inputs"
+    sstar_out = ARTIFACTS / "neupan_local_sstar"
     global_rows = rebuild_global(global_out, "savgol")
     tangent_rows = rebuild_global(tangent_out, "tangent")
     local_rows = rebuild_local(local_out)
+    sstar_rows = rebuild_local_sstar(sstar_out)
     manifest = {"global_source": str(GLOBAL_SOURCE.relative_to(PROJECT_ROOT)),
                 "local_source": str(LOCAL_SOURCE_DIR.relative_to(PROJECT_ROOT)),
                 "savgol_window": SAVGOL_WINDOW,
                 "archived_peak_curvature_1pm": ARCHIVED_PEAK_CURVATURE,
                 "global": global_rows, "global_tangent": tangent_rows,
-                "local": local_rows}
+                "local_windows_xy_only": local_rows, "local_sstar": sstar_rows}
     (ARTIFACTS / "neupan_rebuilt_inputs.json").write_text(json.dumps(manifest, indent=2))
 
     tangent_by_name = {row["scenario"]: row for row in tangent_rows}
@@ -176,11 +247,19 @@ def main():
               % (row["scenario"], row["points"], row["length_m"],
                  row["reconstructed_peak_curvature_1pm"], archived,
                  tangent_by_name[row["scenario"]]["reconstructed_peak_curvature_1pm"]))
-    print("rebuilt local S* windows ->", local_out)
+    print("rebuilt local S* windows (xy only) ->", local_out)
     for row in local_rows:
         print("  %-28s %4d windows  padded to %3d pts  len median %5.2f m max %5.2f m"
               % (row["scenario"], row["windows"], row["padded_points"],
                  row["length_m_median"], row["length_m_max"]))
+    print("rebuilt local s_star (x,y,yaw) ->", sstar_out)
+    print("  %-28s %5s %6s %10s %10s %10s" % ("scenario", "win", "W", "recon_k",
+                                                "archived", "defects>1"))
+    for row in sstar_rows:
+        print("  %-28s %5d %6d %10.3f %10.3f %10d"
+              % (row["scenario"], row["windows"], row["savgol_window"],
+                 row["reconstructed_peak_1pm"], row["archived_peak_1pm"],
+                 row["windows_over_1pm"]))
     return 0
 
 

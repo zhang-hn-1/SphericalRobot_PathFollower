@@ -93,7 +93,7 @@
       "csv": "artifacts/path_follower/neupan_global_inputs_tangent/pf_obs_acker_official/executed_path.csv"
     }
   ],
-  "local": [
+  "local_windows_xy_only": [
     {
       "scenario": "convex_obs_acker_official",
       "windows": 138,
@@ -133,6 +133,53 @@
       "length_m_median": 3.949988606948198,
       "length_m_max": 4.7981757400128,
       "npz": "artifacts/path_follower/neupan_local_inputs/pf_obs_acker_official_windows.npz"
+    }
+  ],
+  "local_sstar": [
+    {
+      "scenario": "convex_obs_acker_official",
+      "windows": 138,
+      "savgol_window": 35,
+      "archived_peak_1pm": 0.4766,
+      "reconstructed_peak_1pm": 0.48640795675210247,
+      "windows_over_1pm": 0,
+      "npz": "artifacts/path_follower/neupan_local_sstar/convex_obs_acker_official/s_star.npz"
+    },
+    {
+      "scenario": "corridor_acker_official",
+      "windows": 175,
+      "savgol_window": 17,
+      "archived_peak_1pm": 0.2436,
+      "reconstructed_peak_1pm": 31.338562126191952,
+      "windows_over_1pm": 1,
+      "npz": "artifacts/path_follower/neupan_local_sstar/corridor_acker_official/s_star.npz"
+    },
+    {
+      "scenario": "non_obs_acker_official",
+      "windows": 144,
+      "savgol_window": 37,
+      "archived_peak_1pm": 0.5191,
+      "reconstructed_peak_1pm": 0.5488601809638817,
+      "windows_over_1pm": 0,
+      "npz": "artifacts/path_follower/neupan_local_sstar/non_obs_acker_official/s_star.npz"
+    },
+    {
+      "scenario": "pf_acker_official",
+      "windows": 361,
+      "savgol_window": 31,
+      "archived_peak_1pm": 0.4183,
+      "reconstructed_peak_1pm": 0.41551954881012154,
+      "windows_over_1pm": 0,
+      "npz": "artifacts/path_follower/neupan_local_sstar/pf_acker_official/s_star.npz"
+    },
+    {
+      "scenario": "pf_obs_acker_official",
+      "windows": 343,
+      "savgol_window": 41,
+      "archived_peak_1pm": 0.5195,
+      "reconstructed_peak_1pm": 0.5930236934540711,
+      "windows_over_1pm": 0,
+      "npz": "artifacts/path_follower/neupan_local_sstar/pf_obs_acker_official/s_star.npz"
     }
   ]
 }

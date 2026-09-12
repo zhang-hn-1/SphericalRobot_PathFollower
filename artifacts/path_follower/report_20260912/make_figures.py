@@ -47,15 +47,17 @@ def is_bucket(name, kind):
 def figure_progress():
     probe = load_results("prior_resolution_probe_n2048")[0]
     homing = load_results("endgame_homing")
-    floor_only = pick(homing, "floor_only_reference")
     tuned_fix = pick(homing, "homing_0p25")
     search = max(load_results("prior_search_night"),
                  key=lambda r: (r.get("smoothed_worst_rate", 0), r["success_rate"]))
+    overshoot = max(load_results("prior_search_overshoot"),
+                    key=lambda r: (r.get("smoothed_worst_rate", 0), r["success_rate"]))
 
     stages = [
         ("出厂默认\n(解析先验)", probe["success_rate"], probe["worst_bucket_rate"]),
         ("+ 末端修复\n(保底+归航)", tuned_fix["success_rate"], tuned_fix["worst_bucket_rate"]),
-        ("+ 参数搜索\n(182 次配对评估，minimax)", search["success_rate"], search["worst_bucket_rate"]),
+        ("+ 参数搜索\n(182 次配对评估)", search["success_rate"], search["worst_bucket_rate"]),
+        ("+ 过冲停止\n(113 次重调)", overshoot["success_rate"], overshoot["worst_bucket_rate"]),
     ]
     labels = [s[0] for s in stages]
     overall = [s[1] * 100 for s in stages]
@@ -75,7 +77,10 @@ def figure_progress():
     ax.set_ylim(0, 108)
     ax.set_ylabel("成功率 [%]")
     ax.set_title("固定路径集上的进度（stage 6，2048 envs，配对评估）", fontsize=11)
-    ax.legend(fontsize=9)
+    # Legend below the axes: with four stages reaching 90% there is no free
+    # space inside the plot area.
+    ax.legend(fontsize=9, ncol=2, loc="upper center", bbox_to_anchor=(0.5, -0.13),
+              frameon=False)
     ax.grid(axis="y", alpha=0.25)
     ax.set_axisbelow(True)
     fig.savefig(OUT / "fig1_progress.png")
@@ -86,9 +91,9 @@ def figure_progress():
 
 # ---------------------------------------------------------------- figure 2
 def figure_buckets():
-    rows = load_results("final_test_seed7777")
-    ref = pick(rows, "defaults_reference")["by_type_curvature"]
-    best = pick(rows, "best_smoothed")["by_type_curvature"]
+    rows = load_results("overshoot_verified_test_seed7777")
+    ref = pick(rows, "A_old_best_no_overshoot")["by_type_curvature"]
+    best = pick(rows, "B_new_best_with_overshoot")["by_type_curvature"]
     keys = sorted(ref, key=lambda k: best.get(k, {}).get("success_rate", 0))
     before = [ref[k]["success_rate"] * 100 for k in keys]
     after = [best[k]["success_rate"] * 100 for k in keys]
@@ -97,16 +102,19 @@ def figure_buckets():
     fig, ax = plt.subplots(figsize=(8.4, 5.4))
     y = np.arange(len(keys))
     h = 0.38
-    ax.barh(y - h / 2, before, h, label="修复前（仅末端保底）", color=C_REF)
-    ax.barh(y + h / 2, after, h, label="修复后（+归航+搜索）", color=C_GOOD)
+    ax.barh(y - h / 2, before, h, label="修复前（末端保底+归航+搜索）", color=C_REF)
+    ax.barh(y + h / 2, after, h, label="修复后（+过冲停止并重调）", color=C_GOOD)
     for i, (b, a) in enumerate(zip(before, after)):
         ax.annotate(f"{b:.0f}", (b, i - h / 2), va="center", ha="left", fontsize=7.5, color="#5f6368")
         ax.annotate(f"{a:.0f}", (a, i + h / 2), va="center", ha="left", fontsize=7.5)
     ax.set_yticks(y, [f"{k}  (n={n})" for k, n in zip(keys, counts)], fontsize=8)
     ax.set_xlim(0, 118)
     ax.set_xlabel("成功率 [%]")
-    ax.set_title("逐 (路径类型 × 曲率) 格子对比 —— 未见过的曲率（held-out），seed 7777", fontsize=11)
-    ax.legend(fontsize=9, loc="lower right")
+    ax.set_title("逐 (路径类型 × 曲率) 格子对比 —— 未见过的曲率，seed 7777", fontsize=11)
+    # Below the axes: the longest bars reach the right edge and a legend inside
+    # the plot would sit on top of a row's bars and their value labels.
+    ax.legend(fontsize=9, ncol=2, loc="upper center", bbox_to_anchor=(0.5, -0.09),
+              frameon=False)
     ax.grid(axis="x", alpha=0.25)
     ax.set_axisbelow(True)
     fig.savefig(OUT / "fig2_buckets.png")
@@ -160,26 +168,25 @@ def figure_root_cause():
 
 # ---------------------------------------------------------------- figure 4
 def figure_generalization():
-    seeds = [("seed 7777", "final_test_seed7777"), ("seed 9999", "final_test_seed9999")]
-    fig, ax = plt.subplots(figsize=(7.0, 4.2))
+    seeds = [("seed 7777", "overshoot_verified_test_seed7777"),
+             ("seed 9999", "overshoot_verified_test_seed9999")]
+    fig, ax = plt.subplots(figsize=(7.6, 4.4))
     x = np.arange(len(seeds))
     w = 0.2
     series = [
-        ("对照：仅末端保底 (overall)", C_REF, "success_rate", "defaults_reference"),
-        ("对照：仅末端保底 (最差格)", C_REF, "worst_bucket_rate", "defaults_reference"),
-        ("修复后 (overall)", C_GOOD, "success_rate", "best_smoothed"),
-        ("修复后 (最差格)", C_MID, "worst_bucket_rate", "best_smoothed"),
+        ("修复前 overall", C_REF, "success_rate", "A_old_best_no_overshoot", 0.55),
+        ("修复前 最差格", C_REF, "worst_bucket_rate", "A_old_best_no_overshoot", 0.85),
+        ("修复后 overall", C_GOOD, "success_rate", "B_new_best_with_overshoot", 0.70),
+        ("修复后 最差格", C_MID, "worst_bucket_rate", "B_new_best_with_overshoot", 1.0),
     ]
     offsets = [-1.5 * w, -0.5 * w, 0.5 * w, 1.5 * w]
-    for (label, color, field, key), off in zip(series, offsets):
+    for (label, color, field, key, alpha), off in zip(series, offsets):
         vals = []
         for _, run in seeds:
-            rows = load_results(run)
-            entry = pick(rows, key)
-            value = entry[field] if field != "worst_bucket_rate" else entry["worst_bucket_rate"]
-            vals.append(value * 100)
-        bars = ax.bar(x + off, vals, w, label=label, color=color,
-                      alpha=1.0 if "修复后" in label else 0.55)
+            entry = pick(load_results(run), key)
+            vals.append((entry[field] if field != "worst_bucket_rate"
+                         else entry["worst_bucket_rate"]) * 100)
+        bars = ax.bar(x + off, vals, w, label=label, color=color, alpha=alpha)
         for rect, v in zip(bars, vals):
             ax.annotate(f"{v:.1f}", (rect.get_x() + rect.get_width() / 2, v),
                         ha="center", va="bottom", fontsize=7.5, rotation=90)
@@ -187,14 +194,16 @@ def figure_generalization():
     ax.set_ylim(0, 118)
     ax.set_ylabel("成功率 [%]")
     ax.set_title("样本外验证：换 seed + 换成训练中从未出现的曲率", fontsize=11)
-    ax.legend(fontsize=8, ncol=2, loc="upper left")
+    ax.legend(fontsize=8.5, ncol=2, loc="upper left")
     ax.grid(axis="y", alpha=0.25)
     ax.set_axisbelow(True)
     fig.savefig(OUT / "fig4_generalization.png")
     plt.close(fig)
-    print("fig4: held-out 对照", [f"{pick(load_results(r),'defaults_reference')['success_rate']:.1%}"
-                                 for _, r in seeds],
-          "->", [f"{pick(load_results(r),'best_smoothed')['success_rate']:.1%}" for _, r in seeds])
+    for name, run in seeds:
+        a = pick(load_results(run), "A_old_best_no_overshoot")
+        b = pick(load_results(run), "B_new_best_with_overshoot")
+        print(f"fig4 {name}: 最差格 {a['worst_bucket_rate']:.1%} -> {b['worst_bucket_rate']:.1%}, "
+              f"overall {a['success_rate']:.1%} -> {b['success_rate']:.1%}")
 
 
 # ---------------------------------------------------------------- figure 5
