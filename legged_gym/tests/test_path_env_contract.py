@@ -98,17 +98,30 @@ def test_observation_contract():
         f"path preview changed to {points}x{point_dim}, expected 10x4",
     )
 
-    # num_path_obs = num_path_points * path_point_dim + 3 + optional curvature
-    no_curvature = points * point_dim + 3
+    # num_path_obs = num_path_points * path_point_dim + 3 goal features
+    #               + optional lookahead curvature
+    # The three extras are the endpoint in body frame (x, y, scaled) and
+    # remaining arc length; preview alone is not the whole path observation.
+    path_obs = points * point_dim + 3
     check(
-        no_curvature == 43,
-        f"path observation without lookahead curvature is {no_curvature}, expected 43",
+        path_obs == 43,
+        f"path observation without lookahead curvature is {path_obs}, expected 43 "
+        f"(40 preview + 3 goal features)",
     )
-    # Actor input with the default (no curvature) configuration.
-    actor_input = short * single + 16 + (points * point_dim)
     check(
-        actor_input == 151,
-        f"actor input width is {actor_input}, expected 151 (95 history + 16 latent + 40 preview)",
+        "num_path_points * path_point_dim + 3" in CONFIG.read_text(encoding="utf-8"),
+        "the three goal features were dropped from num_path_obs",
+    )
+    # Actor input = short frames + DWL latent + path observation.
+    actor_input = short * single + 16 + path_obs
+    check(
+        actor_input == 154,
+        f"actor input width is {actor_input}, expected 154 "
+        f"(95 history + 16 latent + 43 path); 155 with PATH_V5_CURVATURE_OBS=1",
+    )
+    check(
+        frames * single + path_obs == 423,
+        f"num_observations should be {frames * single + path_obs}, expected 423",
     )
 
     text = CONFIG.read_text(encoding="utf-8")
