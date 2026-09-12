@@ -1,0 +1,5 @@
+[
+  {"label": "A_stage6_with_offsets"},
+  {"label": "B_no_initial_offsets", "initial_offset_stage": 7},
+  {"label": "C_half_offsets", "initial_lateral_offset": 0.05, "initial_heading_offset": 0.0436}
+]

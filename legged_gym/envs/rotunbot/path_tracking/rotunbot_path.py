@@ -188,8 +188,125 @@ class RotunbotPath(RotunbotVelClean):
             self._curvature_values(),
         )
 
+    def set_external_path(self, env_ids, xy, yaw=None):
+        """Install an externally planned path (NeuPAN, a global planner, ...).
+
+        This is the interface a planner feeds.  Contract:
+
+        * ``xy``   - ``[n, M, 2]`` positions in the **world** frame, ordered along
+          travel direction.  ``n`` must equal ``len(env_ids)``.
+        * ``yaw``  - ``[n, M]`` headings in the world frame.  Optional; derived
+          from finite differences of ``xy`` when omitted, which is what a planner
+          that only emits waypoints can supply.
+        * Spacing may be anything; points are resampled to
+          ``cfg.path.sample_spacing`` before installation, and the curvature is
+          differentiated from the heading over arc length.
+
+        The progress cursor is initialised by a **global** nearest-point search
+        over the whole path.  This matters: ``_update_path_state`` only ever
+        advances the cursor (``candidates = max(candidates, path_index)``), so a
+        cursor installed behind the robot can never be corrected, and one
+        installed ahead makes every later projection wrong.  The existing
+        script-side injection set it to zero unconditionally, which silently
+        assumes the robot is standing on the first sample.
+
+        With ``PATH_PATH_SOURCE=external`` the environment stops generating paths
+        of its own, so the caller must install one after every reset; a missing
+        installation leaves the previous path in place rather than inventing one.
+        """
+        env_ids = torch.as_tensor(env_ids, dtype=torch.long, device=self.device)
+        xy = torch.as_tensor(xy, dtype=self.path_xy.dtype, device=self.device)
+        if xy.dim() != 3 or xy.shape[-1] != 2:
+            raise ValueError(f"xy must be [n, M, 2], got {tuple(xy.shape)}")
+        if xy.shape[0] != env_ids.numel():
+            raise ValueError(
+                f"xy has {xy.shape[0]} paths for {env_ids.numel()} environments")
+        if xy.shape[1] < 2:
+            raise ValueError("an external path needs at least two points")
+
+        ds = float(self.cfg.path.sample_spacing)
+        if yaw is None:
+            delta = xy[:, 1:] - xy[:, :-1]
+            heading = torch.atan2(delta[..., 1], delta[..., 0])
+            yaw = torch.cat((heading[:, :1], heading), dim=1)
+        else:
+            yaw = torch.as_tensor(yaw, dtype=self.path_yaw.dtype, device=self.device)
+            if yaw.shape != xy.shape[:2]:
+                raise ValueError(
+                    f"yaw must be [n, M] matching xy, got {tuple(yaw.shape)}")
+            yaw = torch.cat((yaw[:, :1], yaw), dim=1)  # pad so diffs align with segments
+
+        # Cumulative arc length, then resample onto the environment's spacing.
+        segment = torch.linalg.vector_norm(xy[:, 1:] - xy[:, :-1], dim=-1)
+        arc = torch.cat(
+            (torch.zeros_like(segment[:, :1]), torch.cumsum(segment, dim=1)), dim=1)
+        total = arc[:, -1]
+        count = int(torch.clamp(torch.ceil(total.max() / ds), min=2).item()) + 1
+        count = min(count, self.path_xy.shape[1])
+        grid = torch.arange(count, device=self.device, dtype=arc.dtype) * ds
+        grid = grid[None, :].expand(env_ids.numel(), count)
+        grid = torch.minimum(grid, total[:, None])
+
+        # Linear interpolation in arc length for position, and unwrapped heading.
+        idx = torch.searchsorted(arc.contiguous(), grid.contiguous(), right=True) - 1
+        idx = torch.clamp(idx, min=0, max=arc.shape[1] - 2)
+        span = torch.clamp(arc.gather(1, idx + 1) - arc.gather(1, idx), min=1e-9)
+        frac = ((grid - arc.gather(1, idx)) / span)[..., None]
+        p0 = xy.gather(1, idx[..., None].expand(-1, -1, 2))
+        p1 = xy.gather(1, (idx + 1)[..., None].expand(-1, -1, 2))
+        resampled_xy = p0 + frac * (p1 - p0)
+        unwrapped = torch.cumsum(
+            torch.cat((yaw[:, :1], wrap_to_pi(yaw[:, 1:] - yaw[:, :-1])), dim=1), dim=1)
+        y0 = unwrapped.gather(1, idx)
+        y1 = unwrapped.gather(1, idx + 1)
+        resampled_yaw = y0 + frac[..., 0] * (y1 - y0)
+
+        # Curvature by central differences of heading over arc length.
+        curvature = torch.zeros_like(resampled_yaw)
+        curvature[:, 1:-1] = (
+            resampled_yaw[:, 2:] - resampled_yaw[:, :-2]) / (2.0 * ds)
+
+        self.path_xy[env_ids, :count] = resampled_xy
+        self.path_yaw[env_ids, :count] = resampled_yaw
+        self.path_curvature[env_ids, :count] = curvature
+        self.path_curvature[env_ids, count:] = 0.0
+        self.path_last_index[env_ids] = count - 1
+        self.path_length[env_ids] = (count - 1) * ds
+        self.path_type[env_ids] = self._classify_external_path(curvature)
+        self.path_curvature_value[env_ids] = curvature.abs().amax(dim=1) * torch.sign(
+            curvature.sum(dim=1).clamp(min=-1.0, max=1.0))
+
+        # Explicit global projection: the incremental update cannot move backwards.
+        offset = self.root_states[env_ids, None, :2] - resampled_xy
+        distance2 = offset.square().sum(dim=-1)
+        self.path_index[env_ids] = torch.argmin(distance2, dim=1)
+        self.path_s[env_ids] = self.path_index[env_ids].float() * ds
+        self.last_path_s[env_ids] = self.path_s[env_ids]
+        return count
+
+    @staticmethod
+    def _classify_external_path(curvature):
+        """Label an external path so the regime logic and logging have a type.
+
+        1 left arc, 2 right arc, 3 s_curve (curvature changes sign), 0 straight.
+        """
+        peak = curvature.abs().amax(dim=1)
+        sign_sum = curvature.sum(dim=1)
+        both = (curvature > 1e-3).any(dim=1) & (curvature < -1e-3).any(dim=1)
+        path_type = torch.zeros_like(peak, dtype=torch.long)
+        path_type[(peak > 1e-3) & (sign_sum > 0)] = 1
+        path_type[(peak > 1e-3) & (sign_sum < 0)] = 2
+        path_type[both] = 3
+        return path_type
+
     def _generate_paths(self, env_ids):
         if len(env_ids) == 0:
+            return
+        if str(getattr(self.cfg.path, "path_source", "generated")) == "external":
+            # The caller owns path supply (see set_external_path).  Leaving the
+            # buffers untouched rather than clearing them means a missing
+            # installation fails as "the robot tracks the previous path", which
+            # is visible, instead of "the robot tracks nothing", which is not.
             return
         n = len(env_ids)
         ds = float(self.cfg.path.sample_spacing)
@@ -788,6 +905,40 @@ class RotunbotPath(RotunbotVelClean):
                 (1.0 - endpoint_blend) * curvature_command
                 + endpoint_blend * goal_curvature
             )
+        if bool(getattr(cfg, "prior_drive_from_curvature", False)):
+            # Curvature authority is coupled to drive: the open-loop sweep gave
+            # |k|max ~= prior_gain_offset + prior_gain_slope*|a1|.  The regime
+            # branch sets a fixed drive per regime, so on sharp S-curves the
+            # steering command pins at its limit (measured: |joint-2 command| =
+            # 1.0 for the last 30% of the path at k=0.40, against 0.08-0.67 at
+            # k=0.50) and the ball holds full tilt without progressing.  Raise the
+            # drive to whatever the commanded curvature needs, which is what the
+            # pure-pursuit branch already does.
+            required_drive = (
+                (torch.abs(curvature_command) - float(cfg.prior_gain_offset))
+                / float(cfg.prior_gain_slope)
+            )
+            required_drive = torch.clamp(
+                required_drive,
+                min=0.0,
+                max=float(getattr(cfg, "prior_drive_authority_max", 0.60)),
+            )
+            drive = torch.maximum(drive, required_drive)
+            desired_speed = (1.18 * drive) * distance_scale
+            first = desired_speed / 1.18 + float(cfg.prior_speed_kp) * (
+                desired_speed - forward_speed
+            )
+        if bool(getattr(cfg, "prior_steer_antiwindup", False)):
+            # Do not let the steering command exceed what the current drive can
+            # actually generate.  |k|max ~= offset + slope*|first|, so a command
+            # beyond that only pins joint 2 at full tilt, and full tilt costs
+            # forward propulsion: at k=0.40 the measured |joint-2 command| is 1.0
+            # for the last 30% of the path and 85k steps accumulate in the final
+            # 10% of the path.  Clamping keeps the tilt inside the region where
+            # the ball can still roll, so the error is worked off over time
+            # instead of stalling.
+            achievable = float(cfg.prior_gain_offset) + float(cfg.prior_gain_slope) * torch.abs(first)
+            curvature_command = torch.clamp(curvature_command, -achievable, achievable)
         curvature_gain = torch.clamp(
             float(cfg.prior_gain_offset) + float(cfg.prior_gain_slope) * torch.abs(first),
             float(cfg.prior_gain_min), float(cfg.prior_gain_max),

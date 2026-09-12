@@ -223,6 +223,35 @@ def test_generalisation_split_is_disjoint():
     check(bool(heldout), "heldout_curvature_values is empty")
 
 
+def test_external_path_interface():
+    """The planner-facing contract must stay present and honest.
+
+    A script-private injection of the same paths once scored 0.7% because the
+    exported windows are not in the robot's body frame and the injection only
+    translated them.  The interface is now an environment method with a
+    documented invariant; these checks keep it from rotting back into a script.
+    """
+    env_text = ENV.read_text(encoding="utf-8")
+    check(
+        "def set_external_path" in env_text,
+        "the environment no longer exposes set_external_path, so a planner has "
+        "no documented way to supply a path",
+    )
+    check(
+        "PATH_PATH_SOURCE" in CONFIG.read_text(encoding="utf-8"),
+        "path_source is no longer configurable; external paths cannot be selected",
+    )
+    check(
+        '== "external"' in env_text and "The caller owns path supply" in env_text,
+        "_generate_paths no longer stands down for external path supply",
+    )
+    check(
+        "cannot move backwards" in env_text or "only ever\n        advances" in env_text,
+        "set_external_path no longer documents why the cursor is initialised by a "
+        "global projection rather than set to zero",
+    )
+
+
 def test_failure_taxonomy_is_recorded():
     env_text = ENV.read_text(encoding="utf-8")
     check(

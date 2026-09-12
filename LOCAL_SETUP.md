@@ -162,3 +162,52 @@ do not exist here; only exported artifacts under
 described in the design plan (NeuPAN-supplied paths, online replanning) are not
 implemented in `rotunbot_path.py` either: the environment generates its paths
 internally only.
+
+## Supplying paths from a planner (NeuPAN)
+
+The environment generates its own paths by default.  With
+`PATH_PATH_SOURCE=external` it stands down and the caller installs paths through
+`RotunbotPath.set_external_path(env_ids, xy, yaw=None)`.
+
+Contract:
+
+| item | meaning |
+|---|---|
+| `xy` | `[n, M, 2]` positions in the **world** frame, ordered along travel |
+| `yaw` | `[n, M]` world headings, optional; derived from `xy` when omitted |
+| spacing | arbitrary; points are resampled to `cfg.path.sample_spacing` |
+| curvature | differentiated from heading over arc length, peak recorded with sign |
+| progress cursor | initialised by a **global** nearest-point search |
+
+`PATH_PRIOR_ENDPOINT_FLOOR` / `PATH_ENDPOINT_PP` from the section above apply to
+externally supplied paths too.
+
+Two things to know before wiring a planner to it.
+
+**1. The cursor must not be initialised to zero.**  `_update_path_state` only
+advances the cursor (`candidates = max(candidates, path_index)`), so a cursor
+installed behind the robot can never be corrected and one installed ahead makes
+every later projection wrong.  `set_external_path` therefore projects globally.
+
+**2. The path's first segment must be aligned with the robot's heading.**  This
+is the invariant that the first attempt missed.  The windows exported from the
+official Ackermann reproduction (`non_obs_acker_official_trajectories.npz`, 144
+windows x 201 points x 0.05 m) all start at the origin and run 10 m, but their
+axes are not the robot's body axes: across the windows the first segment points
+anywhere from -140 to +141 degrees, and 118 of 144 differ from the robot's
+heading by more than 30 degrees.  Installing them with a translation alone makes
+the path run sideways, the ball turns hard and trips the 1.5 m cross-track
+termination.  Rotating each window by its own initial tangent before installing
+takes the same paths from 0.7% to 100% on the straight subset.
+
+Measured with `legged_gym/scripts/run_neupan_windows.py` (2048-env harness not
+used; one episode per window, tuned prior):
+
+| subset | windows | success | failures |
+|---|---|---|---|
+| straight (first 48) | 48 | **100%** | - |
+| curved, peak \|k\| >= 0.45 | 22 | **50%** | deviation 11, success 11 |
+
+The curved subset inherits the sharp-curvature weakness documented above; the
+exported set is mostly straight parking-garage segments (median peak \|k\| of
+0.00), so a meaningful check has to filter on curvature.

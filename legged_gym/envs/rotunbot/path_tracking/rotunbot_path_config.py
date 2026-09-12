@@ -187,6 +187,27 @@ class RotunbotPathCfg(RotunbotVelCleanCfg):
         # endpoint is reached.  Default off: historical results stay comparable.
         prior_endpoint_floor = os.environ.get("PATH_PRIOR_ENDPOINT_FLOOR", "0") == "1"
 
+        # The prior's regime branch sets a fixed drive per curvature regime, but
+        # curvature authority is coupled to drive (|k|max ~= offset + slope*|a1|).
+        # On sharp S-curves the steering command pins at its limit and the ball
+        # holds full tilt without progressing.  Enabling this raises the drive to
+        # whatever the commanded curvature requires.  Default off.
+        prior_drive_from_curvature = os.environ.get("PATH_DRIVE_FROM_CURVATURE", "0") == "1"
+        prior_drive_authority_max = float(
+            os.environ.get("PATH_DRIVE_AUTHORITY_MAX", "0.60")
+        )
+
+        # Clamp the steering command to the curvature the current drive can
+        # generate, instead of letting joint 2 pin at full tilt.  Full tilt costs
+        # forward propulsion, which is how sharp S-curves stall.  Default off.
+        prior_steer_antiwindup = os.environ.get("PATH_STEER_ANTIWINDUP", "0") == "1"
+
+        # "generated" (default): the environment synthesises paths from the
+        # curriculum.  "external": paths are supplied by a planner through
+        # RotunbotPath.set_external_path, and the generator stands down.  In
+        # external mode the caller must install a path after every reset.
+        path_source = os.environ.get("PATH_PATH_SOURCE", "generated")
+
         success_endpoint_distance = 0.20
         success_remaining_length = 0.20
         success_speed = 0.10

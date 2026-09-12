@@ -1,0 +1,10 @@
+{
+  "path_type": "s_curve",
+  "curvature": 0.4,
+  "episodes": 128,
+  "steps_considered": 359429,
+  "sign_disagreement_rate": 0.2870428917694172,
+  "correlation_reference_vs_current": 0.36514265128974405,
+  "joint2_saturation_rate": 0.34041215372159733,
+  "abs_joint2_command_median": 0.6769282817840576
+}

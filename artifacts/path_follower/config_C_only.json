@@ -1,0 +1,16 @@
+[
+  {
+    "label": "C_A_plus_s_gains",
+    "prior_endpoint_blend_distance": 0.2,
+    "prior_gain_min": 0.24,
+    "prior_gain_offset": 0.122,
+    "prior_normal_cross_track_kp": 0.3,
+    "prior_normal_drive": 0.25,
+    "prior_normal_heading_kp": 2.0,
+    "prior_tight_curvature": 0.43,
+    "prior_tight_heading_kp": 0.8,
+    "prior_s_heading_kp": 1.0,
+    "prior_s_mid_heading_kp": 1.3,
+    "prior_s_tight_short_cross_track_kp": 0.05
+  }
+]

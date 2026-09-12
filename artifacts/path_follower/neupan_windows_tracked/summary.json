@@ -1,0 +1,17 @@
+{
+  "windows": 22,
+  "completed": 22,
+  "episode_length_s": 150.0,
+  "success_rate": 0.5,
+  "failure_reasons": {
+    "deviation": 11,
+    "success": 11
+  },
+  "cross_track_median_m": 0.8184469789266586,
+  "endpoint_median_m": 2.2523685172200203,
+  "reference_from_earlier_injection": {
+    "success_rate": 0.006944444444444444,
+    "endpoint_median_m": 14.408471584320068,
+    "cross_track_median_m": 0.7460684180259705
+  }
+}

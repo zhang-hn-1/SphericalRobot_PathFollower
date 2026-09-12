@@ -1,0 +1,6 @@
+[
+  {"label": "A_current_best_equivalent"},
+  {"label": "B_drive_from_curvature", "prior_drive_from_curvature": true},
+  {"label": "C_drive_from_curv_0p45", "prior_drive_from_curvature": true, "prior_drive_authority_max": 0.45},
+  {"label": "D_drive_from_curv_0p80", "prior_drive_from_curvature": true, "prior_drive_authority_max": 0.80}
+]
