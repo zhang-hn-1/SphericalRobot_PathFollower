@@ -59,3 +59,8 @@ runs
 __pycache__
 # Regenerable raw traces; metrics.json / episodes.csv hold the data
 artifacts/**/*.npz
+
+# Per-step diagnostic dumps (tens of MB each). The small bins.json /
+# summary.json in the same directories carry the results.
+artifacts/path_follower/diagnose_*/samples.csv
+artifacts/path_follower/prior_endgame_trace_*/samples.csv
