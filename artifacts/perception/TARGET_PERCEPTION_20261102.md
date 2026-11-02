@@ -40,7 +40,9 @@
 | 地图闭环跟随（3 张图） | success / identity / 碰撞 | **3/3 / 100% / 0** |
 | 开源 HouseExpo 室内户型（3 套） | success / identity / 碰撞 | **3/3 / 100% / 0** |
 | ReplicaCAD 复杂环路 40 s（基线） | identity / 碰撞 / 最长遮挡 | **100% / 0 / 8.7 s** |
-| 感知增强 + 预测性跟随 | 可见帧 / lost / 碰撞 | **325 / 58% / 0** |
+| 感知增强 + 预测性跟随（规则） | 可见帧 / lost / 碰撞 | **325 / 58% / 0** |
+| PPO 预测跟随（2D，BC 初始化） | 可见率 / hidden / 碰撞 | **91.9% / 486 / 0** |
+| PPO 零样本迁移到 ReplicaCAD | 可见帧 / lost / 碰撞 | **183 / 81.5% / 0** |
 
 这里的“1 秒位置误差”是预测点到目标真实世界坐标的距离。真实渲染中约
 0.15 m 的误差里，大部分是**固定的单目/深度定位偏差**（看到的是人体前表面，
@@ -56,6 +58,9 @@
 | `perception/test_target_perception.py` | 8 个 CPU 单元测试 |
 | `perception/sim/occlusion_perception.py` | Isaac Gym + YOLO 的真实渲染消失实验，输出 JSON 和视频 |
 | `perception/sim/follow_p0.py` | 新增 `--target-layer` / `--use-depth`，把世界坐标层接进现有闭环跟随 |
+| `perception/research/predictive_follow_env.py` | 15D 观测 / 1D 横移动作的快速 2D 预测跟随环境（目标环路 + 冰箱遮挡） |
+| `perception/research/train_predictive_follow.py` | 规则行为克隆 + PPO，输出可加载的 actor |
+| `perception/sim/stage_follow.py` | 新增可选 `--policy`，把 PPO actor 接进 ReplicaCAD 闭环 |
 
 设计上参考了你给的源码包里的 `recovery_tracker` / `assisted_tracker` 思路：
 **不可变 anchor、外观与运动双门限、歧义时宁可 abstain、memory 窗口内重捕获**。
@@ -484,8 +489,8 @@ source local_env.sh
 
 - “消失前向哪走、下一步就向哪走但减速”这个规则在仿真里是有效的：可见帧从 213
   提升到 325，lost 从 77% 降到 58%，最长遮挡从 8.7 s 降到 3.2 s，仍然零碰撞。
-- 这是一版**规则 baseline**，还没有用 RL 学参数。`velocity_confidence`、预测窗口、
-  衰减曲线、间距阈值都已经显式暴露，后续可以直接作为 RL 的观测/动作参数。
+- 这是一版**规则 baseline**。`velocity_confidence`、预测窗口、衰减曲线、间距阈值
+  都已经显式暴露，随后在 3.10 中用它们作为 RL 的观测/动作参数做了对比。
 - 最小间距从 0.707 m 降到 0.559 m，机器人半径约 0.4 m，仍有约 0.16 m 余量；
   如果要更保守，可以把 `--predict-speed-scale` 从 0.55 降到 0.4。
 
@@ -495,6 +500,89 @@ source local_env.sh
 /home/jason/legged_gym/.venv/bin/python perception/sim/stage_follow.py \
     --out /home/jason/perception_data/runs/stage_predictive_v1 \
     --frames 400 --video
+```
+
+
+### 3.10 强化学习预测跟随：PPO + 行为克隆，以及零样本迁移
+
+为了回答“预测丢失跟随是否值得用 RL 学”，先把问题压缩成一个快速 2D 环境，
+再把训练出的 actor 零样本接到 ReplicaCAD 闭环里。
+
+**2D 环境**（`perception/research/predictive_follow_env.py`）
+
+- 目标沿与舞台相同的 9 m 矩形环路走，速度 0.4 m/s；冰箱在 `(0,-2.2)`，
+  用线段与 OBB 求交判断遮挡。
+- 机器人固定在观察走廊 `y=-4`，动作是 1D 横移速度 `vx ∈ [-0.6,0.6] m/s`；
+  间距规则与舞台一致（`clearance < 0.55` 停车）。
+- 15D 观测：目标相对位置/速度、丢失时长、速度置信度、预测不确定度、
+  是否可见、距离、机器人/探针间距、走廊误差、预测 x、目标 x、环路进度。
+- 奖励：可见、合适跟距、重捕获加分；丢失时奖励靠近预测 x，并按丢失时长
+  和低置信度惩罚；碰撞大幅扣分。
+
+**训练**（`perception/research/train_predictive_follow.py`）
+
+- 先用规则策略采集 40 个 episode、8000 条状态-动作做行为克隆（BC，1500 步，
+  RMSE 0.037），再跑 60 个 PPO iteration（4 episodes × 20 s）。
+- Actor：15→64→64→1，Gaussian 策略；Critic 同结构；GAE、clip PPO、
+  AdamW。最佳 checkpoint 按 20 个固定种子的可见率选。
+
+**2D 结果（20 episodes，seed 9000-9019）**
+
+| 策略 | visible rate | hidden frames | collisions | reacquired | mean distance | mean return |
+|---|---:|---:|---:|---:|---:|---:|
+| 规则 baseline | 90.67% | 560 | 0 | 20/20 | 1.818 m | 26.149 |
+| BC + PPO（best iter 59） | **91.90%** | **486** | 0 | 20/20 | 1.833 m | **26.855** |
+
+在 2D 抽象里，RL 确实超过了规则：可见率 +1.2 个百分点，hidden 少 74 帧，
+零碰撞、全部重捕获。说明“预测丢失跟随”这个动作空间是可学的；BC 初始化
+很关键——没有 BC 的短 PPO 只有 88.6%，会在目标转向时学出保守/反向动作。
+
+**零样本迁移到 ReplicaCAD**
+
+把 `actor.pt` 通过 `stage_follow.py --policy` 接到真实的 YOLO + 世界坐标层闭环，
+策略在可见和丢失阶段都直接输出横移速度；400 帧结果：
+
+| 指标 | 规则 3.9 | PPO 零样本 |
+|---|---:|---:|
+| visible frames | **325** | 183 |
+| hidden frames | **75** | 217 |
+| lost rate | **58.3%** | 81.5% |
+| predictive-follow frames | 30 | 118 |
+| 最长连续遮挡 | **3.2 s** | 17.5 s |
+| identity | 100% | 100% |
+| 几何碰撞帧 | 0 | 0 |
+| 最小墙/冰箱距离 | 0.559 m | 0.550 m |
+| 同轨迹恢复 | 是 | 是 |
+
+结论：
+
+- **2D 里 RL 赢了规则，但零样本迁移没有赢。** 主要差异是舞台的可见性由
+  YOLO + 相机视场 + 布景墙/冰箱共同决定，而 2D 环境只用一个理想线段遮挡模型；
+  actor 在丢失后会选择“在 2D 里能绕过冰箱看到目标”的横移方向，到了真实布景
+  却可能是在远离目标，导致长时间丢失。
+- 因此 **规则 baseline 仍是 `stage_follow.py` 的默认策略**；`--policy` 保留为
+  可复现实验入口，不默认启用。下一步要真正把 RL 用到舞台，需要：
+  1. 在渲染/检测闭环里做 domain randomization（遮挡形状、视场、检测延迟）；
+  2. 用规则策略在舞台采集的观测做 BC，再 PPO 微调，消除分布偏移；
+  3. 或把 RL 限制为规则预测点的“残差/增益”而不是直接替代闭环。
+- 这次 RL 的价值是把问题定义、观测/动作契约和训练管线跑通了；性能结论不能
+  写成“RL 已优于规则”，当前证据只支持“2D 中优于规则，舞台零样本退化”。
+
+运行：
+
+```bash
+# 2D BC + PPO
+/home/jason/.venvs/ultralytics-rice/bin/python \
+    perception/research/train_predictive_follow.py \
+    --out /home/jason/perception_data/runs/predictive_follow_ppo_bc_v2 \
+    --iters 60 --episodes 4 --episode-s 20 \
+    --bc-episodes 40 --bc-steps 1500
+
+# ReplicaCAD 零样本策略评估（可选，不默认启用）
+/home/jason/legged_gym/.venv/bin/python perception/sim/stage_follow.py \
+    --out /home/jason/perception_data/runs/stage_ppo_bc_v3 \
+    --frames 400 --video \
+    --policy /home/jason/perception_data/runs/predictive_follow_ppo_bc_v2/actor.pt
 ```
 
 ## 4. 与“最新机器人模型 / 更真实场景”的关系
@@ -571,11 +659,28 @@ source local_env.sh
     --episodes 1 --frames 300 --target-layer --use-depth --scenario crossing
 ```
 
+
+# 10. PPO 预测跟随：规则 BC 初始化 + PPO（2D 环境）
+/home/jason/.venvs/ultralytics-rice/bin/python \
+    perception/research/train_predictive_follow.py \
+    --out /home/jason/perception_data/runs/predictive_follow_ppo_bc_v2 \
+    --iters 60 --episodes 4 --episode-s 20 \
+    --bc-episodes 40 --bc-steps 1500
+
+# 11. 把 PPO actor 接进 ReplicaCAD（零样本，实验性）
+/home/jason/legged_gym/.venv/bin/python perception/sim/stage_follow.py \
+    --out /home/jason/perception_data/runs/stage_ppo_bc_v3 \
+    --frames 400 --video \
+    --policy /home/jason/perception_data/runs/predictive_follow_ppo_bc_v2/actor.pt
+
 ## 6. 结果文件
 
 | 路径 | 内容 |
 |---|---|
 | `artifacts/perception/target_perception_20261102/synthetic_benchmark.json` | 合成基准全部 episode 指标 |
+| `.../predictive_follow/best.json` | 2D 规则 vs BC+PPO 的 20-episode 对比 |
+| `.../predictive_follow/actor.pt` | BC+PPO actor（15D→1D） |
+| `.../stage_ppo/summary.json` | PPO 零样本接入 ReplicaCAD 的 400 帧指标 |
 | `.../live_depth/summary.json` | 真实渲染 1 s 消失，深度融合 |
 | `.../live_depth/dropout_episode00.mp4` | 真实渲染消失视频 |
 | `.../live_height/summary.json` | 真实渲染 1 s 消失，仅单目 |

@@ -1,0 +1,6 @@
+{
+  "episodes": 40,
+  "steps": 1500,
+  "rmse": 0.03703,
+  "observations": 8000
+}

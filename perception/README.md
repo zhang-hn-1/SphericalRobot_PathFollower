@@ -26,7 +26,9 @@ original design and evidence are in
 | `sim/occlusion_perception.py` | Isaac Gym + YOLO rendered 1 s disappearance experiment |
 | `sim/map_perception.py` | polygon map scenes: wall occlusion, U-turn, re-acquisition |
 | `sim/map_follow.py` | closed-loop map following: target A* route + robot A* stand-off |
-| `sim/stage_follow.py` | ReplicaCAD apartment + refrigerator: 40 s complex loop, multiple occlusions, wall clearance |
+| `sim/stage_follow.py` | ReplicaCAD apartment + refrigerator: 40 s complex loop, multiple occlusions, wall clearance; optional `--policy` |
+| `research/predictive_follow_env.py` | fast 2D predictive-follow environment: 15D observation, 1D lateral action |
+| `research/train_predictive_follow.py` | rule behavior cloning + PPO for the predictive-follow actor |
 | `tools/houseexpo_to_maps.py` | convert MIT HouseExpo floorplans into local map JSON |
 | `test_target_perception.py` | CPU unit tests for the world-frame target layer and geometry |
 | `build_crops.py` | person-crop dataset for appearance models |
@@ -74,6 +76,19 @@ python3 perception/eval_target_perception.py \
     --out /home/jason/perception_data/runs/stage_predictive_v1 \
     --frames 400 --video
 
+# optional PPO actor in the same stage (zero-shot; experimental, not default)
+/home/jason/legged_gym/.venv/bin/python perception/sim/stage_follow.py \
+    --out /home/jason/perception_data/runs/stage_ppo_bc_v3 \
+    --frames 400 --video \
+    --policy /home/jason/perception_data/runs/predictive_follow_ppo_bc_v2/actor.pt
+
+# BC + PPO predictive actor (2D environment, Ultralytics venv)
+/home/jason/.venvs/ultralytics-rice/bin/python \
+    perception/research/train_predictive_follow.py \
+    --out /home/jason/perception_data/runs/predictive_follow_ppo_bc_v2 \
+    --iters 60 --episodes 4 --episode-s 20 \
+    --bc-episodes 40 --bc-steps 1500
+
 # open-source HouseExpo indoor floorplans (MIT, 1.35x scaled for the ball)
 /home/jason/legged_gym/.venv/bin/python perception/sim/map_follow.py \
     --out /home/jason/perception_data/runs/houseexpo_follow_v1 \
@@ -116,7 +131,14 @@ scene (`assets/scenes/`, CC BY-NC 4.0) runs a 40 s, ~9 m rectangular loop.
 With velocity confidence and a predictive lost-follow rule, visible frames rise
 from 213 to 325 and the longest occlusion drops from 8.7 s to 3.2 s while
 identity stays 100% and geometric collisions stay at zero (minimum clearance
-0.559 m). See
+0.559 m).
+
+The predictive policy was also trained with behavior cloning + PPO in a fast 2D
+environment. It beats the rule there (visible 91.9% vs 90.7%, hidden 486 vs 560,
+zero collisions, 20/20 reacquisitions), but **zero-shot transfer to the
+ReplicaCAD YOLO loop is worse** (visible 183 vs 325, longest hidden 17.5 s vs
+3.2 s). The rule baseline therefore remains the stage default; `--policy` is an
+experimental entry point for domain-randomized or stage-BC training. See
 [`../artifacts/perception/TARGET_PERCEPTION_20261102.md`](../artifacts/perception/TARGET_PERCEPTION_20261102.md).
 
 ## Rocketbox avatars (optional, replaces the coloured primitives)

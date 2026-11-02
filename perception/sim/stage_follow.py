@@ -203,6 +203,31 @@ def add_actor(scene, asset, position, name):
     return scene.gym.create_actor(scene.envs[0], asset, pose, name, 0, 0, 0)
 
 
+def target_loop_distance(position):
+    """Arc length from the first waypoint to the closest loop point."""
+    points = TARGET_WAYPOINTS
+    best_distance = 0.0
+    best_error = float("inf")
+    travelled = 0.0
+    for index in range(len(points)):
+        start = points[index]
+        end = points[(index + 1) % len(points)]
+        segment = end - start
+        length = float(np.linalg.norm(segment))
+        if length <= 1e-9:
+            continue
+        unit = segment / length
+        projection = float(np.clip(np.dot(np.asarray(position) - start, unit),
+                                   0.0, length))
+        candidate = start + unit * projection
+        error = float(np.linalg.norm(np.asarray(position) - candidate))
+        if error < best_error:
+            best_error = error
+            best_distance = travelled + projection
+        travelled += length
+    return best_distance
+
+
 def target_at(t: float):
     """Walk a closed rectangular loop around the living area / refrigerator."""
     points = TARGET_WAYPOINTS
@@ -223,6 +248,14 @@ def target_at(t: float):
 def run(args):
     camera = FrontPairCamera()
     worker = DetectionWorker(args.weights, conf=0.25)
+    policy = None
+    if args.policy:
+        sys.path.insert(0, str(REPO / "perception/research"))
+        from train_predictive_follow import Actor as PolicyActor
+        import torch
+        policy = PolicyActor(15)
+        policy.load_state_dict(torch.load(args.policy, map_location="cpu"))
+        policy.eval()
     cfg = front_pair_config(
         num_envs=1, num_people=2, frames=args.frames, episodes=1,
         seed=args.seed,
@@ -404,7 +437,67 @@ def run(args):
             predictive_move = False
             lost_age = (max(0.0, t - lost_since)
                         if lost_since is not None else 0.0)
-            if (belief.lost and lost_age <= args.predict_follow_s
+            policy_action = None
+            if policy is not None:
+                predicted_policy = (belief.position_xy
+                                    if belief.position_xy is not None
+                                    else last_target_point)
+                target_velocity_policy = (belief.velocity_xy
+                                          if belief.velocity_xy is not None
+                                          else last_velocity)
+                delta_policy = (np.asarray(predicted_policy)
+                                - np.array([robot.x, robot.y]))
+                distance_policy = float(np.linalg.norm(delta_policy))
+                probe_policy = np.array([
+                    robot.x + np.clip(delta_policy[0], -1.0, 1.0) * 0.4,
+                    robot.y + np.clip(delta_policy[1], -1.0, 1.0) * 0.4])
+                policy_obs = np.array([
+                    float(np.clip(delta_policy[0] / 5.0, -1.0, 1.0)),
+                    float(np.clip(delta_policy[1] / 5.0, -1.0, 1.0)),
+                    float(np.clip(target_velocity_policy[0] / 1.0, -1.0, 1.0)),
+                    float(np.clip(target_velocity_policy[1] / 1.0, -1.0, 1.0)),
+                    float(np.clip(lost_age / 3.0, 0.0, 1.0)),
+                    float(belief.velocity_confidence),
+                    float(np.clip(belief.prediction_uncertainty_m / 1.0, 0.0, 1.0)),
+                    1.0 if target_visible else 0.0,
+                    float(np.clip(distance_policy / 6.0, 0.0, 1.0)),
+                    float(np.clip(clearance((robot.x, robot.y),
+                                            [FRIDGE_OBB]) / 2.0, 0.0, 1.0)),
+                    float(np.clip(clearance(probe_policy, [FRIDGE_OBB]) / 2.0,
+                                  0.0, 1.0)),
+                    float(np.clip((robot.y - ROBOT_LANE_Y) / 1.0, -1.0, 1.0)),
+                    float(np.clip((predicted_policy[0] - robot.x) / 2.0,
+                                  -1.0, 1.0)),
+                    float(np.clip(predicted_policy[0] / 3.0, -1.0, 1.0)),
+                    float(np.clip(target_loop_distance(target.pos) / 6.0,
+                                  0.0, 1.0)),
+                ], dtype=np.float32)
+                with torch.no_grad():
+                    policy_action = float(policy(torch.from_numpy(
+                        policy_obs).unsqueeze(0)))
+            if (policy_action is not None and target_visible):
+                # The actor was trained while acting at every step, so use it
+                # in the visible phase too instead of switching policies.
+                vx = float(np.clip(0.60 * policy_action, -0.55, 0.55))
+                vy = float(np.clip(0.9 * (ROBOT_LANE_Y - robot.y),
+                                   -0.30, 0.30))
+                probe = np.array([robot.x + vx * 0.4, robot.y + vy * 0.4])
+                if scene_clearance(probe) >= 0.55:
+                    robot.move(vx, vy, look_at(robot, target_point), 0.1)
+                else:
+                    robot.move(0.0, 0.0, look_at(robot, target_point), 0.1)
+            elif (policy_action is not None and belief.lost
+                    and lost_age <= 3.0):
+                vx = float(np.clip(0.60 * policy_action, -0.45, 0.45))
+                vy = float(np.clip(0.9 * (ROBOT_LANE_Y - robot.y),
+                                   -0.25, 0.25))
+                probe = np.array([robot.x + vx * 0.4, robot.y + vy * 0.4])
+                if scene_clearance(probe) >= 0.55:
+                    robot.move(vx, vy, look_at(robot, last_target_point), 0.1)
+                    predictive_move = True
+                else:
+                    robot.move(0.0, 0.0, look_at(robot, last_target_point), 0.1)
+            elif (belief.lost and lost_age <= args.predict_follow_s
                     and belief.velocity_confidence >= args.velocity_confidence_min
                     and float(np.linalg.norm(last_velocity)) > 0.05):
                 # The target disappeared, but its recent velocity is still
@@ -464,6 +557,10 @@ def run(args):
                 identity_correct=bool(identity_correct),
                 target_error=None if target_error is None else round(target_error, 3),
                 predictive_move=bool(predictive_move),
+                policy_action=(None if policy_action is None else
+                               round(policy_action, 3)),
+                policy_obs=(policy_obs.tolist()
+                            if policy is not None else None),
                 distance=round(distance, 3),
                 robot_clearance=round(robot_clearance, 3),
             ))
@@ -594,6 +691,8 @@ def main():
                         help="minimum velocity confidence for predictive movement")
     parser.add_argument("--predict-speed-scale", type=float, default=0.55,
                         help="maximum speed scale while following a prediction")
+    parser.add_argument("--policy", default="",
+                        help="optional PPO actor (.pt) for the lateral action")
     parser.add_argument("--video", action="store_true")
     args = parser.parse_args()
     result = run(args)

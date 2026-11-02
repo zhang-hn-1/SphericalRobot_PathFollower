@@ -1,0 +1,10 @@
+{
+  "obs_dim": 15,
+  "action_dim": 1,
+  "episode_s": 20.0,
+  "iters": 60,
+  "episodes": 4,
+  "seed": 0,
+  "bc_episodes": 40,
+  "bc_steps": 1500
+}
