@@ -39,7 +39,7 @@
 | 地图场景（3 张 polygon 地图） | identity / 跟错人 | **100% / 0** |
 | 地图闭环跟随（3 张图） | success / identity / 碰撞 | **3/3 / 100% / 0** |
 | 开源 HouseExpo 室内户型（3 套） | success / identity / 碰撞 | **3/3 / 100% / 0** |
-| ReplicaCAD 真实公寓 + 1.3 s 遮挡 | identity / 最长遮挡 | **100% / 1.3 s** |
+| ReplicaCAD 复杂环路 40 s | identity / 碰撞 / 最长遮挡 | **100% / 0 / 8.7 s** |
 
 这里的“1 秒位置误差”是预测点到目标真实世界坐标的距离。真实渲染中约
 0.15 m 的误差里，大部分是**固定的单目/深度定位偏差**（看到的是人体前表面，
@@ -388,43 +388,43 @@ predicted_trajectory  # 未来 1 s，每 0.1 s 一个点
     --frames 220 --video
 ```
 
-### 3.8 真实 ReplicaCAD 公寓：冰箱后 1.3 s 遮挡
+### 3.8 真实 ReplicaCAD 公寓：40 s 复杂环路
 
-前面 3.7 是 2D 户型；这一节用真正的 3D 场景：
+前面 3.7 是 2D 户型；这一节用真正的 3D 场景，并把路线加长、加复杂：
 
 - 视觉场景：ReplicaCAD **frl_apartment_stage**（Meta，CC BY-NC 4.0），
-  木地板、墙、门洞、楼梯；用 Blender 转成 OBJ/URDF 后由 Isaac Gym 加载。
-- 遮挡物：ReplicaCAD **refrigerator**，放在客厅中，尺寸 0.70×0.76×1.92 m。
-- 目标：从冰箱右侧 `(1.5,-1.1)` 走到左侧 `(-1.5,-1.1)`，速度 0.35 m/s；
-  从机器人 `(0.5,-4.0)` 的视角看，目标在冰箱后连续消失 **1.3 s**。
-- 机器人：先用简单 holonomic 底座停在观察点、保持相机对准感知层预测的位置；
-  目标重新出现并被 `measured` 后，再驱车跟随。不用 P0 是因为 P0 不能原地转向，
-  这一段主要验证感知预测，而不是底层执行器。
+  木地板、墙、门洞、楼梯；Blender 转 OBJ/URDF 后由 Isaac Gym 加载。
+- 遮挡物：ReplicaCAD **refrigerator**，放在客厅中。
+- 目标路线：客厅里的矩形闭环
+  `(-1.2,-1.1) -> (1.2,-1.1) -> (1.2,-3.2) -> (-1.2,-3.2) -> ...`，
+  一圈约 9 m，速度 0.4 m/s。400 帧 = 40 s，约 1.7 圈。
+- 机器人：在观察走廊 `y=-4.0` 上横向跟随目标的 x，相机独立对准目标/预测；
+  目标进入遮挡时停车，不向冰箱或墙移动。控制器的间距检查同时使用
+  **整张舞台 OBJ 的 5 cm 占据图 + 冰箱 OBB**。
 
 | 指标 | 结果 |
 |---|---:|
+| 帧数 / 时长 | **400 / 40 s** |
+| 目标圈数 | 约 1.7 圈 |
 | identity | **100%** |
-| 最长连续遮挡 | **1.3 s** |
-| 遮挡期 predicted / lost | 23% / 77% |
-| 0.5 s / 1.0 s 预测误差 | 预测窗口内无有效样本（遮挡期内很快转 lost） |
-| 重捕获 | 6.3 s（侧向外观变化，新轨迹） |
-| 最小墙/冰箱距离 / 几何碰撞 | 0.707 m / **0** |
-| 平均跟距 | 2.86 m |
-| success | ✅（无碰撞、identity 100%） |
+| 几何碰撞帧 | **0** |
+| 最小墙/冰箱距离 | **0.707 m** |
+| 平均跟距 | 2.37 m |
+| 遮挡事件数 | 7 |
+| 最长连续遮挡 | 8.7 s |
+| 同轨迹恢复 | `same_track=True` |
+| success | ✅ |
 
 说明：
 
-- **这次修掉了撞墙**：之前只检查冰箱 OBB，机器人最后会穿进 ReplicaCAD 的布景墙；
-  现在把整张 `stage.obj` 的竖直三角面栅格化成 5 cm 占据图，并用距离变换做墙距检查。
-  最小墙/冰箱距离 0.707 m，几何碰撞帧 0。
-- 目标被遮挡时，机器人固定在观察位，不向冰箱/墙移动；预测窗口 1 s 过后进入 lost，
-  目标从另一侧出现后重新检测。侧向外观变化让重识别用了 6.3 s，并且换成了新轨迹；
-  这是当前这一版的代价，但不再发生穿墙/撞墙。
-- 1.3 s 遮挡里 predicted 占 23%；其余 lost 由重新检测恢复。
-- ReplicaCAD 资产是 **CC BY-NC 4.0**，仅用于非商业研究/仿真；`LICENSE.txt` 和
-  `SOURCE.md` 已随资产保留。
-- 这一版把“不碰撞”放在“遮挡期间继续移动”之前：机器人只在观察位跟踪/预测，
-  不会为了追目标而把球开进墙体。
+- **不再撞墙**：之前只检查冰箱，机器人最后会穿进布景墙；现在整张 `stage.obj`
+  的竖直三角面被栅格化成 5 cm 占据图，墙、门、楼梯都参与间距检查。最小墙距
+  0.707 m，几何碰撞帧 0。
+- 复杂环路里目标多次被冰箱/布景遮挡，出现 7 段遮挡，最长 8.7 s；机器人保持
+  观察走廊，不追进遮挡区，因此不会撞墙。代价是：这一段路线下机器人比较保守，
+  遮挡期间以保持位置/跟踪相机为主，不是激进的全自主搜索。
+- 目标身份始终 100%，最后仍是同一条轨迹；`success` 由“identity + 无碰撞 +
+  至少 1 s 遮挡”判定。
 
 视频/关键帧：
 
@@ -438,8 +438,8 @@ predicted_trajectory  # 未来 1 s，每 0.1 s 一个点
 ```bash
 source local_env.sh
 /home/jason/legged_gym/.venv/bin/python perception/sim/stage_follow.py \
-    --out /home/jason/perception_data/runs/stage_follow_v1 \
-    --frames 160 --video
+    --out /home/jason/perception_data/runs/stage_follow_complex_v8 \
+    --frames 400 --video
 ```
 
 ## 4. 与“最新机器人模型 / 更真实场景”的关系
@@ -505,10 +505,10 @@ source local_env.sh
     --plan-inflation 0.42 --replan-inflation 0.40 \
     --frames 220 --video
 
-# 8. ReplicaCAD 真实公寓：冰箱后 1.3 s 遮挡
+# 8. ReplicaCAD 真实公寓：40 s 复杂环路
 /home/jason/legged_gym/.venv/bin/python perception/sim/stage_follow.py \
-    --out /home/jason/perception_data/runs/stage_follow_v1 \
-    --frames 160 --video
+    --out /home/jason/perception_data/runs/stage_follow_complex_v8 \
+    --frames 400 --video
 
 # 9. 闭环跟随：世界坐标层 + 1 秒预测
 /home/jason/legged_gym/.venv/bin/python perception/sim/follow_p0.py \
@@ -534,7 +534,7 @@ source local_env.sh
 | `.../houseexpo/preview_a64a310dfa11.png` | HouseExpo 室内跟随关键帧 |
 | `.../houseexpo/summary.json` | HouseExpo 三套户型闭环汇总 |
 | `.../houseexpo/*.mp4` | HouseExpo 室内跟随视频 |
-| `.../stage_follow/summary.json` | ReplicaCAD 真实公寓 1.3 s 遮挡结果 |
-| `.../stage_follow/stage_follow.mp4` | 真实公寓 + 冰箱遮挡视频 |
+| `.../stage_follow/summary.json` | ReplicaCAD 40 s 复杂环路结果 |
+| `.../stage_follow/stage_follow.mp4` | 真实公寓复杂环路视频 |
 | `.../closed_loop/weave300_summary.json` | 闭环 weave 300 帧 |
 | `.../closed_loop/crossing300_summary.json` | 闭环 crossing 300 帧 |

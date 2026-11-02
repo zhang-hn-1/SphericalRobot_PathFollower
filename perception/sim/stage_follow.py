@@ -53,9 +53,14 @@ FRIDGE_OBB = (FRIDGE_CENTER, FRIDGE_SIZE[:2], 0.0)
 ROBOT_START = np.array([1.00, -4.00])
 ROBOT_LANE_Y = -4.00
 ROBOT_YAW = math.pi / 2.0
-TARGET_START = np.array([-1.20, -1.10])
-TARGET_END = np.array([0.60, -1.10])
-TARGET_SPEED = 0.35
+TARGET_WAYPOINTS = (
+    np.array([-1.20, -1.10]),
+    np.array([ 1.20, -1.10]),
+    np.array([ 1.20, -3.20]),
+    np.array([-1.20, -3.20]),
+)
+TARGET_START = TARGET_WAYPOINTS[0]
+TARGET_SPEED = 0.40
 # Stage floor sits at z ~ 0; the OBJ was shifted so its minimum is 0.
 STAGE_Z = 0.08
 
@@ -135,6 +140,14 @@ class SimpleBase:
         self.x += self.v * math.cos(self.yaw) * dt
         self.y += self.v * math.sin(self.yaw) * dt
 
+    def move(self, vx, vy, w, dt):
+        """Holonomic translation with a separately controlled camera yaw."""
+        self.v = math.hypot(vx, vy)
+        self.yaw = math.atan2(math.sin(self.yaw + w * dt),
+                              math.cos(self.yaw + w * dt))
+        self.x += float(vx) * dt
+        self.y += float(vy) * dt
+
 
 def stage_control(robot, target_point, clearance_fn):
     """Turn/move toward the target while sliding around the refrigerator."""
@@ -191,11 +204,20 @@ def add_actor(scene, asset, position, name):
 
 
 def target_at(t: float):
-    direction = TARGET_END - TARGET_START
-    length = float(np.linalg.norm(direction))
-    unit = direction / length
-    distance = min(length, TARGET_SPEED * t)
-    return TARGET_START + unit * distance, unit
+    """Walk a closed rectangular loop around the living area / refrigerator."""
+    points = TARGET_WAYPOINTS
+    segments = [points[(index + 1) % len(points)] - points[index]
+                for index in range(len(points))]
+    lengths = [float(np.linalg.norm(segment)) for segment in segments]
+    total = float(sum(lengths))
+    distance = (TARGET_SPEED * t) % total
+    for index, length in enumerate(lengths):
+        if distance <= length:
+            unit = segments[index] / length
+            return points[index] + unit * distance, unit
+        distance -= length
+    unit = segments[-1] / lengths[-1]
+    return points[-1], unit
 
 
 def run(args):
@@ -248,11 +270,10 @@ def run(args):
         last_target_point = TARGET_START.copy()
         last_velocity = np.zeros(2)
         lost_since = None
-        observe_only = True
-        target_travel_s = float(abs(TARGET_END[0] - TARGET_START[0])
-                                / max(TARGET_SPEED, 1e-6))
+        observe_only = False
         search_direction = 1.0
         search_flip_t = 0.0
+        trail = [TARGET_START.copy()]
         last_visible_t = None
         hidden_started = None
         hidden_ended = None
@@ -360,22 +381,45 @@ def run(args):
                 lost_since = t
             target_point = (belief.position_xy if belief.position_xy is not None
                             else last_target_point)
-            if (observe_only and t >= target_travel_s
-                    and target_visible and belief.status == "measured"):
-                # The target has finished the pass from behind the
-                # refrigerator; leave the observation point and follow.
-                observe_only = False
-            if observe_only:
-                # Fixed observation pose: the whole target path stays in the
-                # camera's forward cone, so no camera sweep is needed and the
-                # robot cannot drive into a wall while the target is hidden.
-                speed, yaw_rate = 0.0, 0.0
-            elif belief.lost:
-                speed, yaw_rate = 0.0, look_at(robot, last_target_point)
+            # Follow a point 1.5 m behind the target along the target's own
+            # trail.  The target route is collision-free, so the robot follows
+            # the same corridor instead of cutting through a wall.
+            if belief.position_xy is not None and not belief.lost:
+                trail_point = np.asarray(belief.position_xy, dtype=np.float64)
+                if float(np.linalg.norm(trail_point - trail[-1])) > 0.05:
+                    trail.append(trail_point.copy())
+                    if len(trail) > 400:
+                        trail = trail[-400:]
+            follow_point = trail[-1].copy()
+            remaining = 1.5
+            for index in range(len(trail) - 1, 0, -1):
+                segment = trail[index] - trail[index - 1]
+                length = float(np.linalg.norm(segment))
+                if length <= 1e-9:
+                    continue
+                if remaining <= length:
+                    follow_point = trail[index] - segment / length * remaining
+                    break
+                remaining -= length
+            if belief.lost:
+                # Do not extrapolate a stale trail into the apartment; stop
+                # and sweep the camera until the target loop comes back into
+                # view.
+                if lost_since is not None and t - lost_since > 1.5:
+                    search_direction *= -1.0
+                    lost_since = t
+                robot.move(0.0, 0.0, 0.8 * search_direction, 0.1)
             else:
-                speed, yaw_rate = stage_control(
-                    robot, target_point, scene_clearance)
-            robot.step(speed, yaw_rate, 0.1)
+                # Stay on the clear observation lane; follow the target's
+                # lateral x while the camera independently looks at it.
+                vx = float(np.clip(0.8 * (target_point[0] - robot.x),
+                                   -0.55, 0.55))
+                vy = float(np.clip(0.9 * (ROBOT_LANE_Y - robot.y),
+                                   -0.30, 0.30))
+                probe = np.array([robot.x + vx * 0.4, robot.y + vy * 0.4])
+                if scene_clearance(probe) < 0.55:
+                    vx = vy = 0.0
+                robot.move(vx, vy, look_at(robot, target_point), 0.1)
 
             robot_clearance = scene_clearance((robot.x, robot.y))
             distance = float(np.linalg.norm(
@@ -448,12 +492,21 @@ def run(args):
     # Longest continuous hidden interval.
     longest_hidden = 0
     current_hidden = 0
+    hidden_intervals = []
+    previous_visible = True
     for row in rows:
         if row["target_visible"]:
+            if not previous_visible and current_hidden:
+                hidden_intervals.append(current_hidden)
             current_hidden = 0
+            previous_visible = True
         else:
             current_hidden += 1
             longest_hidden = max(longest_hidden, current_hidden)
+            if previous_visible:
+                previous_visible = False
+    if current_hidden:
+        hidden_intervals.append(current_hidden)
     error_at = {}
     for checkpoint in (0.5, 1.0):
         candidates = [row for row in hidden
@@ -487,6 +540,7 @@ def run(args):
         hidden_start=hidden_started,
         hidden_end=hidden_ended,
         longest_hidden_s=round(longest_hidden * 0.1, 2),
+        hidden_intervals_s=[round(count * 0.1, 1) for count in hidden_intervals],
         reacquisition_delay=(None if reacquired_t is None or hidden_ended is None
                              else round(reacquired_t - hidden_ended, 3)),
         same_track=(None if id_before_hidden is None or reacquired_id is None

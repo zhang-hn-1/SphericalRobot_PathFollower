@@ -26,7 +26,7 @@ original design and evidence are in
 | `sim/occlusion_perception.py` | Isaac Gym + YOLO rendered 1 s disappearance experiment |
 | `sim/map_perception.py` | polygon map scenes: wall occlusion, U-turn, re-acquisition |
 | `sim/map_follow.py` | closed-loop map following: target A* route + robot A* stand-off |
-| `sim/stage_follow.py` | ReplicaCAD apartment + refrigerator: 1.3 s real occlusion, prediction and re-acquisition |
+| `sim/stage_follow.py` | ReplicaCAD apartment + refrigerator: 40 s complex loop, multiple occlusions, wall clearance |
 | `tools/houseexpo_to_maps.py` | convert MIT HouseExpo floorplans into local map JSON |
 | `test_target_perception.py` | CPU unit tests for the world-frame target layer and geometry |
 | `build_crops.py` | person-crop dataset for appearance models |
@@ -69,10 +69,10 @@ python3 perception/eval_target_perception.py \
     --out /home/jason/perception_data/runs/map_follow_v1 \
     --map irregular_clutter --frames 320 --video
 
-# realistic ReplicaCAD apartment: target hidden 1.3 s behind a refrigerator
+# realistic ReplicaCAD apartment: 40 s complex loop, multiple occlusions
 /home/jason/legged_gym/.venv/bin/python perception/sim/stage_follow.py \
-    --out /home/jason/perception_data/runs/stage_follow_v1 \
-    --frames 160 --video
+    --out /home/jason/perception_data/runs/stage_follow_complex_v8 \
+    --frames 400 --video
 
 # open-source HouseExpo indoor floorplans (MIT, 1.35x scaled for the ball)
 /home/jason/legged_gym/.venv/bin/python perception/sim/map_follow.py \
@@ -112,9 +112,10 @@ geometric collisions. Open-source **HouseExpo** floorplans (MIT, 12 selected
 apartments, 1.35x scaled for the 0.8 m ball) are in
 `assets/maps/houseexpo/`; three closed-loop runs also keep identity at 100%
 with zero geometric collisions. A real ReplicaCAD apartment + refrigerator
-scene (`assets/scenes/`, CC BY-NC 4.0) gives a 1.3 s physical occlusion with
-100% identity and zero geometric collisions after adding a wall occupancy field
-(the re-acquisition is currently 6.3 s because the target turns side-on). See
+scene (`assets/scenes/`, CC BY-NC 4.0) runs a 40 s, ~9 m rectangular loop with
+7 occlusion events (longest 8.7 s), 100% identity, zero geometric collisions
+and 0.707 m minimum wall/refrigerator clearance after adding a wall occupancy
+field. See
 [`../artifacts/perception/TARGET_PERCEPTION_20261102.md`](../artifacts/perception/TARGET_PERCEPTION_20261102.md).
 
 ## Rocketbox avatars (optional, replaces the coloured primitives)
