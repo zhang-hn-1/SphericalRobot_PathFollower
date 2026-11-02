@@ -28,6 +28,8 @@ import sys
 from pathlib import Path
 
 import numpy as np
+from PIL import Image, ImageDraw
+from scipy.ndimage import distance_transform_edt
 
 REPO = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -48,14 +50,69 @@ from isaacgym import gymapi  # noqa: E402
 FRIDGE_CENTER = np.array([0.0, -2.20])
 FRIDGE_SIZE = (0.75, 0.80, 0.0)
 FRIDGE_OBB = (FRIDGE_CENTER, FRIDGE_SIZE[:2], 0.0)
-ROBOT_START = np.array([0.50, -4.00])
+ROBOT_START = np.array([1.00, -4.00])
 ROBOT_LANE_Y = -4.00
 ROBOT_YAW = math.pi / 2.0
-TARGET_START = np.array([1.50, -1.10])
-TARGET_END = np.array([-1.50, -1.10])
+TARGET_START = np.array([-1.20, -1.10])
+TARGET_END = np.array([0.60, -1.10])
 TARGET_SPEED = 0.35
 # Stage floor sits at z ~ 0; the OBJ was shifted so its minimum is 0.
 STAGE_Z = 0.08
+
+
+class StageMap:
+    """2D wall occupancy / clearance from the ReplicaCAD stage OBJ.
+
+    The visual stage has no collision body in this lightweight loop.  Vertical
+    triangles (walls, doors, stairs) are rasterised into a 5 cm grid and a
+    distance transform gives the robot a conservative clearance field.
+    """
+
+    def __init__(self, obj_path, resolution=0.05, z_min=0.20, z_max=2.60):
+        vertices = []
+        faces = []
+        for line in Path(obj_path).read_text().splitlines():
+            if line.startswith("v "):
+                vertices.append([float(value) for value in line.split()[1:4]])
+            elif line.startswith("f "):
+                indices = [int(token.split("/")[0]) - 1
+                           for token in line.split()[1:]]
+                for index in range(1, len(indices) - 1):
+                    faces.append((indices[0], indices[index], indices[index + 1]))
+        vertices = np.asarray(vertices, dtype=np.float64)
+        faces = np.asarray(faces, dtype=np.int64)
+        self.resolution = float(resolution)
+        self.minimum = vertices[:, :2].min(axis=0) - 1.0
+        maximum = vertices[:, :2].max(axis=0) + 1.0
+        self.width = int(round((maximum[0] - self.minimum[0]) / resolution)) + 1
+        self.height = int(round((maximum[1] - self.minimum[1]) / resolution)) + 1
+        image = Image.new("L", (self.width, self.height), 0)
+        draw = ImageDraw.Draw(image)
+        for triangle in faces:
+            points = vertices[triangle]
+            normal = np.cross(points[1] - points[0], points[2] - points[0])
+            norm = float(np.linalg.norm(normal))
+            if norm < 1e-9:
+                continue
+            if points[:, 2].max() < z_min or points[:, 2].min() > z_max:
+                continue
+            if abs(normal[2]) / norm > 0.5:
+                continue  # floor/ceiling
+            draw.polygon([
+                ((point[0] - self.minimum[0]) / self.resolution,
+                 self.height - 1 - (point[1] - self.minimum[1]) / self.resolution)
+                for point in points[:, :2]
+            ], fill=255)
+        occupied = np.asarray(image) > 0
+        self.distance = distance_transform_edt(~occupied) * self.resolution
+
+    def clearance(self, point):
+        ix = int(round((point[0] - self.minimum[0]) / self.resolution))
+        iy = self.height - 1 - int(round(
+            (point[1] - self.minimum[1]) / self.resolution))
+        if not (0 <= ix < self.width and 0 <= iy < self.height):
+            return 0.0
+        return float(self.distance[iy, ix])
 
 
 class SimpleBase:
@@ -79,7 +136,7 @@ class SimpleBase:
         self.y += self.v * math.sin(self.yaw) * dt
 
 
-def stage_control(robot, target_point, obstacles):
+def stage_control(robot, target_point, clearance_fn):
     """Turn/move toward the target while sliding around the refrigerator."""
     delta = np.asarray(target_point) - np.array([robot.x, robot.y])
     distance = float(np.linalg.norm(delta))
@@ -89,7 +146,7 @@ def stage_control(robot, target_point, obstacles):
         heading = desired + offset
         probe = np.array([robot.x, robot.y]) + 1.0 * np.array(
             [math.cos(heading), math.sin(heading)])
-        probe_clearance = clearance(probe, obstacles)
+        probe_clearance = clearance_fn(probe)
         cost = abs(offset) * 0.8
         if probe_clearance < 0.85:
             cost += 8.0 * (0.85 - probe_clearance)
@@ -107,7 +164,7 @@ def stage_control(robot, target_point, obstacles):
         v = 0.35
     else:
         v = 0.0
-    if clearance((robot.x, robot.y), obstacles) < 0.55:
+    if clearance_fn((robot.x, robot.y)) < 0.55:
         v = 0.0
     return v, w
 
@@ -164,6 +221,8 @@ def run(args):
             "refrigerator.urdf")
         add_actor(scene, fridge_asset,
                   (FRIDGE_CENTER[0], FRIDGE_CENTER[1], STAGE_Z), "refrigerator")
+        stage_map = StageMap(
+            REPO / "perception/assets/scenes/replica_stage/stage.obj")
         scene.reset(0, episode_seed=args.seed)
         people = sorted(scene.people[0], key=lambda person: person.person_id)
         target, bystander = people[0], people[1]
@@ -172,6 +231,10 @@ def run(args):
         target.pos, _ = target_at(0.0)
         target.vel = np.zeros(2)
         robot = SimpleBase(ROBOT_START, ROBOT_YAW)
+
+        def scene_clearance(point):
+            return min(stage_map.clearance(point),
+                       clearance(point, [FRIDGE_OBB]))
 
         if args.video:
             import cv2
@@ -186,7 +249,10 @@ def run(args):
         last_velocity = np.zeros(2)
         lost_since = None
         observe_only = True
-        hidden_seen = False
+        target_travel_s = float(abs(TARGET_END[0] - TARGET_START[0])
+                                / max(TARGET_SPEED, 1e-6))
+        search_direction = 1.0
+        search_flip_t = 0.0
         last_visible_t = None
         hidden_started = None
         hidden_ended = None
@@ -250,8 +316,9 @@ def run(args):
                 layer = TargetPerceptionLayer(
                     init_bbox=best.bbox,
                     init_appearance=best.appearance,
-                    max_prediction_s=2.0,
+                    max_prediction_s=1.0,
                     max_memory_s=5.0,
+                    reacquire_cosine_min=0.55,
                     birth_confidence_min=0.25,
                     init_location_priority=True,
                 )
@@ -293,25 +360,24 @@ def run(args):
                 lost_since = t
             target_point = (belief.position_xy if belief.position_xy is not None
                             else last_target_point)
-            if not target_visible:
-                hidden_seen = True
-            if (observe_only and hidden_seen and target_visible
-                    and belief.status == "measured"):
-                # The target has come out from behind the refrigerator.
+            if (observe_only and t >= target_travel_s
+                    and target_visible and belief.status == "measured"):
+                # The target has finished the pass from behind the
+                # refrigerator; leave the observation point and follow.
                 observe_only = False
             if observe_only:
-                # Hold position and keep the camera on the target/prediction;
-                # the ball does not need to drive into the refrigerator while
-                # its target is hidden.
-                speed, yaw_rate = 0.0, look_at(robot, target_point)
+                # Fixed observation pose: the whole target path stays in the
+                # camera's forward cone, so no camera sweep is needed and the
+                # robot cannot drive into a wall while the target is hidden.
+                speed, yaw_rate = 0.0, 0.0
             elif belief.lost:
                 speed, yaw_rate = 0.0, look_at(robot, last_target_point)
             else:
                 speed, yaw_rate = stage_control(
-                    robot, target_point, [FRIDGE_OBB])
+                    robot, target_point, scene_clearance)
             robot.step(speed, yaw_rate, 0.1)
 
-            robot_clearance = clearance((robot.x, robot.y), [FRIDGE_OBB])
+            robot_clearance = scene_clearance((robot.x, robot.y))
             distance = float(np.linalg.norm(
                 np.array([robot.x, robot.y]) - target.pos))
             hidden_age = (None if last_visible_t is None or target_visible

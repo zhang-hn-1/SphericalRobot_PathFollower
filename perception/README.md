@@ -113,7 +113,8 @@ apartments, 1.35x scaled for the 0.8 m ball) are in
 `assets/maps/houseexpo/`; three closed-loop runs also keep identity at 100%
 with zero geometric collisions. A real ReplicaCAD apartment + refrigerator
 scene (`assets/scenes/`, CC BY-NC 4.0) gives a 1.3 s physical occlusion with
-100% identity, 75% predicted coverage and same-track re-acquisition. See
+100% identity and zero geometric collisions after adding a wall occupancy field
+(the re-acquisition is currently 6.3 s because the target turns side-on). See
 [`../artifacts/perception/TARGET_PERCEPTION_20261102.md`](../artifacts/perception/TARGET_PERCEPTION_20261102.md).
 
 ## Rocketbox avatars (optional, replaces the coloured primitives)
