@@ -1,0 +1,19 @@
+{
+  "scenario": "forced_hairpin",
+  "map": "mb30v4_test_039",
+  "family": "map_004_forced_hairpin",
+  "frames": 180,
+  "target_path_length": 7.05,
+  "identity_accuracy": 1.0,
+  "mean_distance": 2.518,
+  "min_distance": 1.191,
+  "max_distance": 3.301,
+  "min_clearance": 0.69,
+  "mean_clearance": 1.392,
+  "collision_frames": 0,
+  "measured_rate": 0.8111,
+  "predicted_rate": 0.0611,
+  "lost_rate": 0.1278,
+  "final_progress": 1.0,
+  "success": true
+}

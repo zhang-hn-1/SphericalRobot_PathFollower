@@ -1,0 +1,27 @@
+{
+  "scenario": "forced_hairpin_uturn",
+  "map": "mb30v4_test_039",
+  "family": "map_004_forced_hairpin: wall, U-turn, reacquire",
+  "frames": 70,
+  "visible_frames": 53,
+  "hidden_frames": 17,
+  "identity_accuracy": 1.0,
+  "wrong_frames": 0,
+  "measured_rate": 0.6428571428571429,
+  "predicted_rate": 0.14285714285714285,
+  "lost_rate": 0.21428571428571427,
+  "visible_rmse": 0.5626973530336811,
+  "hidden_rmse": 0.7080481040487707,
+  "hidden_prediction_rate": 0.35294117647058826,
+  "hidden_lost_rate": 0.6470588235294118,
+  "detection_gap_frames": 17,
+  "detection_gap_prediction_rate": 0.35294117647058826,
+  "detection_gap_lost_rate": 0.6470588235294118,
+  "prediction_error_at": {
+    "0.5": 0.847
+  },
+  "hidden_start": 1.7,
+  "hidden_end": 3.4,
+  "reacquisition_delay": 0.4,
+  "same_track": true
+}

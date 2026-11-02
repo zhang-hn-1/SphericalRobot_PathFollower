@@ -1,0 +1,280 @@
+# Perception layer: person detection
+
+Status: detector/tracking scaffolding plus a **2026-11-02 world-frame target
+layer** (identity lock, distractor rejection, 1 s prediction; see below). The
+original design and evidence are in
+[`../artifacts/perception/PERCEPTION_PLAN_ZH.md`](../artifacts/perception/PERCEPTION_PLAN_ZH.md).
+
+## What is here
+
+| File | Purpose |
+|---|---|
+| `camera_rig.py` | frozen rig geometry: offsets, optics, frame mapping, projection |
+| `rig_upright.py` | rotate rig frames so people stand up; box/mask mapping |
+| `preprocess.py` | self-occlusion mask, IMU roll correction, low-light enhancement |
+| `person_perception.py` | run a COCO person detector offline, emit JSON/JSONL, benchmark latency |
+| `sim/people_scene.py` | Isaac Gym multi-person scene: stereo RGB, depth, instance seg, GT boxes/IDs/target |
+| `detect_sim_dataset.py` | run a trained detector over a generated dataset |
+| `detect_rig.py` | detect on rig frames (rotate upright first, map boxes back) |
+| `compare_upright.py` | measure the effect of the upright rotation on recall |
+| `target_tracker.py` | single-target tracking on multi-person detections (image space) |
+| `eval_target_tracking.py` | target-tracking metrics on generated sequences |
+| `target_perception.py` | world-frame target layer: identity anchor, distractor rejection, 1 s prediction |
+| `range_bearing.py` | upright front-pair box + depth/height -> metric ground point |
+| `eval_target_perception.py` | synthetic crossing/dropout/re-ID benchmark |
+| `eval_reusable_scenarios.py` | run the layer over existing crossing / avatar / front-pair datasets |
+| `sim/occlusion_perception.py` | Isaac Gym + YOLO rendered 1 s disappearance experiment |
+| `sim/map_perception.py` | polygon map scenes: wall occlusion, U-turn, re-acquisition |
+| `sim/map_follow.py` | closed-loop map following: target A* route + robot A* stand-off |
+| `tools/houseexpo_to_maps.py` | convert MIT HouseExpo floorplans into local map JSON |
+| `test_target_perception.py` | CPU unit tests for the world-frame target layer and geometry |
+| `build_crops.py` | person-crop dataset for appearance models |
+| `train_appearance.py` | ResNet-18/34 identity classifier (embedding for association) |
+| `appearance.py` | HSV vs ResNet appearance descriptors |
+| `eval_appearance.py` | appearance retrieval metrics (target vs distractors) |
+| `make_self_occlusion_mask.py` | fit the 46% self-occlusion mask for each eye |
+| `person_det.yaml`, `person_seg.yaml` | Ultralytics dataset templates |
+| `test_*.py` | CPU-only checks (preprocess, camera rig, rig transform) |
+
+## Target layer (2026-11-02): identity lock + 1 s prediction
+
+`target_perception.TargetPerceptionLayer` keeps all people as tracks, anchors the
+operator-selected target with an immutable appearance vector, rejects ambiguous
+crossings, and runs a constant-velocity Kalman filter in world coordinates.
+A missing target is reported as `predicted` for up to 1.0 s (position,
+covariance and a 1 s trajectory), then as `lost`; the track is retained for
+re-acquisition/re-identification.
+
+```bash
+# CPU unit tests
+python3 -m unittest perception.test_target_perception -v
+
+# synthetic crossing / dropout / re-ID benchmark
+python3 perception/eval_target_perception.py \
+    --out artifacts/perception/target_perception_20261102/synthetic_benchmark.json \
+    --seeds 10
+
+# reusable existing datasets: 4 crossing variants, 24 avatars, front-pair clutter
+/home/jason/.venvs/ultralytics-rice/bin/python perception/eval_reusable_scenarios.py \
+    --out artifacts/perception/target_perception_20261102/reusable_scenarios.json
+
+# polygon map scenes (walls, wall-hidden target, U-turn)
+/home/jason/legged_gym/.venv/bin/python perception/sim/map_perception.py \
+    --out /home/jason/perception_data/runs/map_perception_v3 \
+    --scenario all --frames 70 --video
+
+# closed loop: target walks an A* route through the map; ball follows it
+/home/jason/legged_gym/.venv/bin/python perception/sim/map_follow.py \
+    --out /home/jason/perception_data/runs/map_follow_v1 \
+    --map irregular_clutter --frames 320 --video
+
+# open-source HouseExpo indoor floorplans (MIT, 1.35x scaled for the ball)
+/home/jason/legged_gym/.venv/bin/python perception/sim/map_follow.py \
+    --out /home/jason/perception_data/runs/houseexpo_follow_v1 \
+    --map-json perception/assets/maps/houseexpo/houseexpo_a64a310dfa11.json \
+    --scene-id houseexpo_a64a310dfa11 \
+    --plan-inflation 0.42 --replan-inflation 0.40 \
+    --frames 220 --video
+
+# rendered Isaac Gym + YOLO check: target disappears for 1 s
+/home/jason/legged_gym/.venv/bin/python perception/sim/occlusion_perception.py \
+    --out /home/jason/perception_data/runs/occlusion_perception_depth_v3 \
+    --episodes 2 --frames 40 --use-depth --video
+
+# closed loop through the existing P0 follow controller
+/home/jason/legged_gym/.venv/bin/python perception/sim/follow_p0.py \
+    --out /home/jason/perception_data/runs/follow_p0_target_layer_crossing300 \
+    --episodes 1 --frames 300 --target-layer --use-depth --scenario crossing
+```
+
+The reusable suite uses `l1_crossing_v2` (including the similar-appearance
+variant and three depth gaps), `sim_v4_avatar_dev/test` (24 Rocketbox avatars,
+6 environments) and `l1_front_pair_v1` / `l1_appearance_v1` (four-person
+clutter). Crossing variants use cached YOLO detections; the other datasets use
+GT boxes + GT metric positions to isolate tracker behaviour.
+
+Measured: identity 100% through a similar-appearance distractor in the rendered
+test, 100% of the 1 s disappearance frames stayed in `predicted`, and the 1 s
+position error was 0.155 m (depth) / 0.165 m (monocular). Reusable-scene
+identity is 98-100% (only `crossing/gap100` drops to 98% from monocular-range
+bias; its GT-position diagnostic is 100%). Three polygon map scenes
+(`perception/assets/maps/rl_validation.json`, `rl_test.json`) also keep identity
+at 100% while the target walks behind walls and returns. The closed-loop map
+follower (`sim/map_follow.py`) follows the perceived target through the same
+maps at 2.5-3.1 m distance with 0.63 m minimum wall clearance and zero
+geometric collisions. Open-source **HouseExpo** floorplans (MIT, 12 selected
+apartments, 1.35x scaled for the 0.8 m ball) are in
+`assets/maps/houseexpo/`; three closed-loop runs also keep identity at 100%
+with zero geometric collisions. See
+[`../artifacts/perception/TARGET_PERCEPTION_20261102.md`](../artifacts/perception/TARGET_PERCEPTION_20261102.md).
+
+## Rocketbox avatars (optional, replaces the coloured primitives)
+
+`perception/assets/rocketbox/` holds 115 MIT-licensed, textured, human-proportioned
+avatars baked from Microsoft Rocketbox into one OBJ + URDF each. Enable them with:
+
+```bash
+python -m perception.sim.people_scene --out /tmp/people_avatars \
+    --avatar-dir perception/assets/rocketbox --avatars 12 --save-upright
+```
+
+The scene loads `--avatars` of them (seeded, `0` = all 115), gives every person a
+random one per episode, and keeps their real height (1.43-1.87 m) in
+`Person.height` and in `gt/tracks.jsonl`. Data prep and the Blender pipeline live
+in `sim/avatar/`; `check_avatars.py` and `test_people_scene_avatars.py` run
+without Isaac Gym.
+
+## The rig lies down: rotate before detecting
+
+The frozen rig's optical axis points forward, but its image axes are rotated 90
+degrees relative to the body, so a standing person appears **lying down**.
+That breaks detectors pretrained on upright people.
+
+Measured on COCO samples with `yolo26n-seg`:
+
+| frame | persons |
+|---|---|
+| upright original | 4 (0.91 / 0.87 / 0.87 / 0.41) |
+| rotated so the person lies | 1 (0.31) |
+| lying -> rotated upright | 4 (identical confidences) |
+
+The rotation is lossless. Use it **for both training and inference**; a model
+trained in one space collapses in the other (measured: 3.1% / 21.4%).
+
+```bash
+# generate upright training data
+/home/jason/legged_gym/.venv/bin/python -m perception.sim.people_scene \
+    --out /home/jason/perception_data/sim_up --save-upright \
+    --occlusion-mask /home/jason/perception_data/masks/rig.png \
+    --num-envs 8 --people 5 --frames 40 --episodes 6
+
+# detect on raw rig frames (rotates internally, boxes come back in rig coords)
+/home/jason/.venvs/ultralytics-rice/bin/python perception/detect_rig.py \
+    --weights /path/to/best.pt \
+    --images /home/jason/perception_data/sim_rig_test/all.txt \
+    --out /home/jason/perception_data/sim_rig_test/det.jsonl
+```
+
+## Quick start: the sim perception loop
+
+```bash
+# 1. generate a multi-person dataset (Isaac Gym venv)
+source local_env.sh
+/home/jason/legged_gym/.venv/bin/python -m perception.sim.people_scene \
+    --out /home/jason/perception_data/sim_v2 \
+    --num-envs 8 --people 5 --frames 40 --episodes 6
+
+# 2. train the detector from scratch (Ultralytics venv, no internet needed)
+/home/jason/.venvs/ultralytics-rice/bin/yolo detect train \
+    model=yolov8n.yaml data=/home/jason/perception_data/sim_v2/data.yaml \
+    epochs=40 imgsz=640 batch=16 workers=0 device=0 \
+    project=/home/jason/perception_data/runs name=proxy_v1 exist_ok=True
+
+# 3. export detections
+/home/jason/.venvs/ultralytics-rice/bin/python perception/detect_sim_dataset.py \
+    --weights /home/jason/perception_data/runs/proxy_v1/weights/best.pt \
+    --images /home/jason/perception_data/sim_v2/val.txt \
+    --out /home/jason/perception_data/sim_v2/detections_val.jsonl --conf 0.05
+
+# 4. evaluate target tracking
+python3 perception/eval_target_tracking.py \
+    --dataset /home/jason/perception_data/sim_v2 --split val \
+    --detections /home/jason/perception_data/sim_v2/detections_val.jsonl \
+    --out /home/jason/perception_data/sim_v2/track_det.json
+```
+
+The first result is in
+[`../artifacts/perception/SIM_TARGET_TRACKING_20261020.md`](../artifacts/perception/SIM_TARGET_TRACKING_20261020.md).
+
+## Current best (2026-10-20)
+
+- Detector: **YOLOv8n, 150 epochs** on `sim_v2` (mAP50 0.952, mAP50-95 0.883).
+- Appearance: **ResNet-18** identity classifier embedding (64x128 crops).
+- Tracker: default gates (area 0.40–2.2, centre 1.20).
+- Independent test set (`seed=100`, 48 episodes, 1920 frames):
+  **identity 89.4%, centre hit 90.7%, visible-IoU success 88.4%**.
+- Remaining bottleneck: targets farther than 6 m (identity 84% at 10 m+ vs 100% at 2–6 m).
+
+YOLOv8s has higher detection mAP but did not beat YOLOv8n on tracking; see the
+results document for the full comparison.
+
+## Why there is no *real-data* training yet
+
+The repository has no images of people, and the existing camera frames are not
+usable as training input: 89.9% of pixels are below 30/255 and 46.2% of each
+eye is self-occluded. Real-data training still requires fixing the imaging path
+and collecting labelled frames (see the plan, sections 3.4 and 5).
+
+What *is* available offline is the sim loop above. It trains on **proxy
+actors** (coloured geometric humanoids), so it validates the pipeline and the
+target-tracking logic, not real-person recognition. Swapping in human meshes is
+the next step; the only function that needs to change is
+`PeopleScene._build_assets`.
+
+The machine also has cached COCO segmentation weights, so the zero-shot
+baseline in `person_perception.py` works without network access.
+
+## Run the baseline
+
+Use the `ultralytics-rice` venv (the main `legged_gym` venv has torch 1.10 and
+cannot import ultralytics):
+
+```bash
+/home/jason/.venvs/ultralytics-rice/bin/python perception/person_perception.py \
+    --source /path/to/frames \
+    --out artifacts/perception/baseline.jsonl \
+    --imgsz 640 --conf 0.35 --device 0 --benchmark
+```
+
+With the Rotunbot preprocessing chain:
+
+```bash
+/home/jason/.venvs/ultralytics-rice/bin/python perception/person_perception.py \
+    --source /path/to/frames \
+    --mask /path/to/self_occlusion_mask.png \
+    --roll 12.5 --gamma 0.7 --clahe 3.0 \
+    --out artifacts/perception/baseline.jsonl
+```
+
+`--roll` is the camera roll in degrees, normally supplied by the IMU. The mask
+convention is **non-zero = visible**, zero = self-occluded.
+
+## Output
+
+Each detection follows the shape already consumed by
+`home_robot/.../person_follow_node.py` (`class`, `confidence`, `bbox`) and adds
+`bbox_raw`, `height_px`, `range_m` (only with `--focal-px`) and `has_mask`.
+The wrapper `summary` records model, image size, preprocessing and frame counts
+so two runs can be compared directly.
+
+## Unit checks
+
+```bash
+python3 perception/test_preprocess.py
+```
+
+## Baseline numbers
+
+See [`../artifacts/perception/BASELINE_20261020.md`](../artifacts/perception/BASELINE_20261020.md).
+Short version: `yolo26n-seg` runs at 6.2 ms on the RTX 4070 and detects 4/4 people
+in the bundled sample, but the ball-camera frames contain no people, so **no
+accuracy claim can be made yet**.
+
+## Fine-tuning (once labelled data exists)
+
+Detection weights:
+
+```bash
+/home/jason/.venvs/ultralytics-rice/bin/yolo detect train \
+    model=/path/to/yolo26n.pt data=perception/person_det.yaml \
+    imgsz=640 epochs=100 batch=16 device=0
+```
+
+The cached weights on this machine are **segmentation** models, which expect
+polygon labels; use `perception/person_seg.yaml` with them.  Instance masks are
+also what makes the stereo range estimate robust (background inside the box is
+excluded), so annotating masks is not wasted work.
+
+Do not train until the imaging path is fixed: 89.9% of pixels below 30/255 and
+46.2% self-occlusion are properties of the input, not of the model.
+

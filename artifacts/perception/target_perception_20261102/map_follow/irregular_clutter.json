@@ -1,0 +1,19 @@
+{
+  "scenario": "irregular_clutter",
+  "map": "mb30v4_test_432",
+  "family": "map_013_irregular_clutter",
+  "frames": 320,
+  "target_path_length": 26.86,
+  "identity_accuracy": 1.0,
+  "mean_distance": 3.109,
+  "min_distance": 2.185,
+  "max_distance": 3.344,
+  "min_clearance": 0.63,
+  "mean_clearance": 1.48,
+  "collision_frames": 0,
+  "measured_rate": 0.65,
+  "predicted_rate": 0.2594,
+  "lost_rate": 0.0906,
+  "final_progress": 0.687,
+  "success": true
+}

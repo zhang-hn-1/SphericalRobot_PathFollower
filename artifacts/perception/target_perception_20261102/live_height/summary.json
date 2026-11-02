@@ -1,0 +1,59 @@
+{
+  "weights": "/home/jason/perception_data/runs/l1_front_pair_v1/weights/best.pt",
+  "episodes": [
+    {
+      "episode": 0,
+      "frames": 40,
+      "visible_frames": 30,
+      "hidden_frames": 10,
+      "measured_rate": 0.75,
+      "predicted_rate": 0.25,
+      "lost_rate": 0.0,
+      "identity_accuracy": 1.0,
+      "wrong_frames": 0,
+      "visible_rmse": 0.2908199328335892,
+      "hidden_rmse": 0.2843197144061593,
+      "hidden_prediction_rate": 1.0,
+      "hidden_lost_rate": 0.0,
+      "prediction_error_at": {
+        "0.5": 0.283,
+        "1.0": 0.29
+      },
+      "hidden_start": 2.0,
+      "hidden_end": 3.0,
+      "reacquired_t": 3.0,
+      "reacquisition_delay": 0.0,
+      "same_track": true
+    },
+    {
+      "episode": 1,
+      "frames": 40,
+      "visible_frames": 30,
+      "hidden_frames": 10,
+      "measured_rate": 0.625,
+      "predicted_rate": 0.3,
+      "lost_rate": 0.075,
+      "identity_accuracy": 1.0,
+      "wrong_frames": 0,
+      "visible_rmse": 0.24215251392459256,
+      "hidden_rmse": 0.0755870359254813,
+      "hidden_prediction_rate": 1.0,
+      "hidden_lost_rate": 0.0,
+      "prediction_error_at": {
+        "0.5": 0.073,
+        "1.0": 0.04
+      },
+      "hidden_start": 2.0,
+      "hidden_end": 3.0,
+      "reacquired_t": 3.3,
+      "reacquisition_delay": 0.3,
+      "same_track": true
+    }
+  ],
+  "identity_accuracy": 1.0,
+  "hidden_prediction_rate": 1.0,
+  "prediction_error_at": {
+    "0.5": 0.178,
+    "1.0": 0.16499999999999998
+  }
+}

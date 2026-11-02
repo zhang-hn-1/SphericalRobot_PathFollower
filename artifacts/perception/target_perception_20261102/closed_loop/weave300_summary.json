@@ -1,0 +1,30 @@
+{
+  "kp": 0.6,
+  "kd": 0.8,
+  "cruise": 0.65,
+  "target_speed": 0.4,
+  "episodes": [
+    {
+      "episode": 0,
+      "frames": 300,
+      "scenario": "weave",
+      "relocks": 0,
+      "C": 269,
+      "W": 0,
+      "A": 31,
+      "correct_coverage": 0.8966666666666666,
+      "follow_fraction": 0.8966666666666666,
+      "in_fov_fraction": 1.0,
+      "mean_range": 3.5285133333333336,
+      "max_v": 0.765,
+      "min_range_m": 2.55,
+      "lost_events": 0,
+      "reacquired": 0,
+      "censored": 0,
+      "reacq_ttr": [],
+      "false_relocks": 0,
+      "search_path_m": 0.0,
+      "lost_detail": []
+    }
+  ]
+}

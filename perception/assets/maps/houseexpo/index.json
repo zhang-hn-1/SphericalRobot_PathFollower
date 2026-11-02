@@ -1,0 +1,79 @@
+{
+  "dataset": "HouseExpo",
+  "license": "MIT",
+  "source": "https://github.com/TeaganLi/HouseExpo",
+  "selected": [
+    {
+      "id": "houseexpo_a64a310dfa11",
+      "floorplan": "a64a310dfa11e5f537d3e3b63f17353e.json",
+      "route_length_m": 17.547,
+      "room_num": 15
+    },
+    {
+      "id": "houseexpo_263510f549d3",
+      "floorplan": "263510f549d381997934a3235ec65b10.json",
+      "route_length_m": 17.538,
+      "room_num": 5
+    },
+    {
+      "id": "houseexpo_ee3cfd4c2116",
+      "floorplan": "ee3cfd4c2116ef19c973e5e5df2b4fa6.json",
+      "route_length_m": 17.536,
+      "room_num": 8
+    },
+    {
+      "id": "houseexpo_e4f5cc644798",
+      "floorplan": "e4f5cc6447983b424729297fb07f3b61.json",
+      "route_length_m": 17.523,
+      "room_num": 15
+    },
+    {
+      "id": "houseexpo_1baad84c026f",
+      "floorplan": "1baad84c026f048334c414149285ccdb.json",
+      "route_length_m": 17.504,
+      "room_num": 8
+    },
+    {
+      "id": "houseexpo_7b57bdfec179",
+      "floorplan": "7b57bdfec1796247d71d310dc818269c.json",
+      "route_length_m": 17.504,
+      "room_num": 5
+    },
+    {
+      "id": "houseexpo_953927feed70",
+      "floorplan": "953927feed7079abe49c937896049df1.json",
+      "route_length_m": 17.503,
+      "room_num": 9
+    },
+    {
+      "id": "houseexpo_7e8c1d9d80db",
+      "floorplan": "7e8c1d9d80db33de1d7f3cfc030a8296.json",
+      "route_length_m": 17.499,
+      "room_num": 8
+    },
+    {
+      "id": "houseexpo_ca5e42107f1d",
+      "floorplan": "ca5e42107f1d8842e331f8705c08e423.json",
+      "route_length_m": 17.497,
+      "room_num": 12
+    },
+    {
+      "id": "houseexpo_d2c7c3470b9e",
+      "floorplan": "d2c7c3470b9e67c0c57becff53ee61e6.json",
+      "route_length_m": 17.497,
+      "room_num": 9
+    },
+    {
+      "id": "houseexpo_497a8595576c",
+      "floorplan": "497a8595576cffea7db609593114c41d.json",
+      "route_length_m": 17.476,
+      "room_num": 10
+    },
+    {
+      "id": "houseexpo_4769e72cf173",
+      "floorplan": "4769e72cf17358c6ffc88d7cfdebd56c.json",
+      "route_length_m": 17.463,
+      "room_num": 16
+    }
+  ]
+}

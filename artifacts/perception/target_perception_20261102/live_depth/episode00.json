@@ -1,0 +1,24 @@
+{
+  "episode": 0,
+  "frames": 40,
+  "visible_frames": 30,
+  "hidden_frames": 10,
+  "measured_rate": 0.75,
+  "predicted_rate": 0.25,
+  "lost_rate": 0.0,
+  "identity_accuracy": 1.0,
+  "wrong_frames": 0,
+  "visible_rmse": 0.16900493089453536,
+  "hidden_rmse": 0.16843990026119107,
+  "hidden_prediction_rate": 1.0,
+  "hidden_lost_rate": 0.0,
+  "prediction_error_at": {
+    "0.5": 0.168,
+    "1.0": 0.174
+  },
+  "hidden_start": 2.0,
+  "hidden_end": 3.0,
+  "reacquired_t": 3.0,
+  "reacquisition_delay": 0.0,
+  "same_track": true
+}

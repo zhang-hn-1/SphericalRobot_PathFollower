@@ -1,0 +1,19 @@
+{
+  "scenario": "houseexpo_a64a310dfa11",
+  "map": "houseexpo_a64a310dfa11",
+  "family": "converted open map",
+  "frames": 220,
+  "target_path_length": 17.56,
+  "identity_accuracy": 1.0,
+  "mean_distance": 3.141,
+  "min_distance": 2.511,
+  "max_distance": 3.26,
+  "min_clearance": 0.546,
+  "mean_clearance": 2.317,
+  "collision_frames": 0,
+  "measured_rate": 1.0,
+  "predicted_rate": 0.0,
+  "lost_rate": 0.0,
+  "final_progress": 0.704,
+  "success": true
+}
