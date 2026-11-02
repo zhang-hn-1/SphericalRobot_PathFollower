@@ -69,9 +69,9 @@ python3 perception/eval_target_perception.py \
     --out /home/jason/perception_data/runs/map_follow_v1 \
     --map irregular_clutter --frames 320 --video
 
-# realistic ReplicaCAD apartment: 40 s complex loop, multiple occlusions
+# realistic ReplicaCAD apartment: 40 s complex loop + predictive lost-follow
 /home/jason/legged_gym/.venv/bin/python perception/sim/stage_follow.py \
-    --out /home/jason/perception_data/runs/stage_follow_complex_v8 \
+    --out /home/jason/perception_data/runs/stage_predictive_v1 \
     --frames 400 --video
 
 # open-source HouseExpo indoor floorplans (MIT, 1.35x scaled for the ball)
@@ -112,10 +112,11 @@ geometric collisions. Open-source **HouseExpo** floorplans (MIT, 12 selected
 apartments, 1.35x scaled for the 0.8 m ball) are in
 `assets/maps/houseexpo/`; three closed-loop runs also keep identity at 100%
 with zero geometric collisions. A real ReplicaCAD apartment + refrigerator
-scene (`assets/scenes/`, CC BY-NC 4.0) runs a 40 s, ~9 m rectangular loop with
-7 occlusion events (longest 8.7 s), 100% identity, zero geometric collisions
-and 0.707 m minimum wall/refrigerator clearance after adding a wall occupancy
-field. See
+scene (`assets/scenes/`, CC BY-NC 4.0) runs a 40 s, ~9 m rectangular loop.
+With velocity confidence and a predictive lost-follow rule, visible frames rise
+from 213 to 325 and the longest occlusion drops from 8.7 s to 3.2 s while
+identity stays 100% and geometric collisions stay at zero (minimum clearance
+0.559 m). See
 [`../artifacts/perception/TARGET_PERCEPTION_20261102.md`](../artifacts/perception/TARGET_PERCEPTION_20261102.md).
 
 ## Rocketbox avatars (optional, replaces the coloured primitives)

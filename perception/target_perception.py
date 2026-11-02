@@ -167,6 +167,10 @@ class TargetBelief:
     target_visible: bool = False
     predicted_trajectory: list = field(default_factory=list)
     predicted_horizon_s: float = 0.0
+    velocity_confidence: float = 0.0
+    prediction_uncertainty_m: float = 0.0
+    trajectory_history: list = field(default_factory=list)
+    history_span_s: float = 0.0
 
     @property
     def predicted(self) -> bool:
@@ -258,6 +262,7 @@ class _Track:
     hits: int = 1
     confirmed: bool = False
     identity_score: float = 0.0
+    history: list = field(default_factory=list)
 
     def observe(self, detection: PersonDetection, t: float,
                 appearance_update_cosine: float) -> None:
@@ -271,6 +276,10 @@ class _Track:
             if detection.bbox is not None:
                 self.bbox = np.asarray(detection.bbox, dtype=np.float64).copy()
             self.score = float(detection.score)
+            self.history.append((float(t), position.copy()))
+            cutoff = float(t) - 3.0
+            self.history = [item for item in self.history
+                            if item[0] >= cutoff][-64:]
         self.last_seen_t = t
         self.hits += 1
         self.confirmed = True
@@ -474,6 +483,8 @@ class TargetPerceptionLayer:
                 hits=1,
                 confirmed=self.min_hits <= 1,
                 identity_score=1.0 if detection.appearance is not None else 0.0,
+                history=[(t, np.asarray(detection.position_xy,
+                                       dtype=np.float64).reshape(2).copy())],
             ))
             self.next_id += 1
 
@@ -887,6 +898,44 @@ class TargetPerceptionLayer:
                 return track
         return None
 
+    def _velocity_confidence(self, track: _Track, t: float) -> float:
+        """How much the recent track supports a constant-velocity extrapolation."""
+        history = track.history
+        if len(history) < 3:
+            return 0.0
+        times = np.asarray([item[0] for item in history], dtype=np.float64)
+        positions = np.asarray([item[1] for item in history], dtype=np.float64)
+        span = float(times[-1] - times[0])
+        if span <= 1e-6:
+            return 0.0
+        # Least-squares constant-velocity fit, per axis.
+        centered = times - times.mean()
+        design = np.column_stack([centered, np.ones_like(centered)])
+        fitted = []
+        for axis in range(2):
+            coefficients = np.linalg.lstsq(
+                design, positions[:, axis], rcond=None)[0]
+            fitted.append(design @ coefficients)
+        residual = float(np.sqrt(np.mean(
+            (np.column_stack(fitted) - positions) ** 2)))
+        deltas = np.diff(times)
+        valid = deltas > 1e-6
+        if np.any(valid):
+            speeds = np.diff(positions, axis=0)[valid] / deltas[valid, None]
+            speed_std = float(np.linalg.norm(
+                speeds - speeds.mean(axis=0), axis=1).mean())
+        else:
+            speed_std = 0.0
+        span_score = float(np.clip(span / 1.0, 0.0, 1.0))
+        residual_score = float(np.exp(-residual / 0.25))
+        stability_score = float(np.exp(-speed_std / 0.50))
+        age = max(0.0, t - track.last_measure_t)
+        recency_score = float(np.exp(-age / 2.0))
+        return float(np.clip(
+            0.30 * span_score + 0.30 * residual_score
+            + 0.20 * stability_score + 0.20 * recency_score,
+            0.0, 1.0))
+
     def _belief(self, t: float) -> TargetBelief:
         track = self._target_track()
         if track is None:
@@ -895,6 +944,8 @@ class TargetPerceptionLayer:
                 status="lost", lost=True, track_id=None,
                 measurement_age_s=None, identity_score=0.0,
                 predicted_trajectory=[], predicted_horizon_s=0.0,
+                velocity_confidence=0.0, prediction_uncertainty_m=0.0,
+                trajectory_history=[], history_span_s=0.0,
             )
 
         age = max(0.0, t - track.last_measure_t)
@@ -909,16 +960,29 @@ class TargetPerceptionLayer:
         else:
             status, lost = "lost", True
 
+        velocity_confidence = self._velocity_confidence(track, t)
+        eigenvalues = np.linalg.eigvalsh(covariance)
+        prediction_uncertainty = math.sqrt(max(
+            0.0, float(np.max(eigenvalues))))
+        trajectory_history = [
+            dict(t=float(history_t), position_xy=history_position.copy())
+            for history_t, history_position in track.history
+        ]
+        history_span = (float(track.history[-1][0] - track.history[0][0])
+                        if len(track.history) >= 2 else 0.0)
         trajectory = []
         if not lost:
             steps = int(round(self.max_prediction_s / 0.1))
             for index in range(steps + 1):
+                horizon = index * 0.1
                 future_position, _, future_covariance = track.filter.state_at(
-                    index * 0.1, self.accel_std)
+                    horizon, self.accel_std)
                 trajectory.append(dict(
-                    horizon_s=round(index * 0.1, 3),
+                    horizon_s=round(horizon, 3),
                     position_xy=future_position,
                     covariance_xy=future_covariance,
+                    confidence=float(velocity_confidence * math.exp(
+                        -horizon / 1.5)),
                 ))
 
         return TargetBelief(
@@ -935,4 +999,8 @@ class TargetPerceptionLayer:
             target_visible=visible,
             predicted_trajectory=trajectory,
             predicted_horizon_s=float(self.max_prediction_s),
+            velocity_confidence=velocity_confidence,
+            prediction_uncertainty_m=prediction_uncertainty,
+            trajectory_history=trajectory_history,
+            history_span_s=history_span,
         )

@@ -39,7 +39,8 @@
 | 地图场景（3 张 polygon 地图） | identity / 跟错人 | **100% / 0** |
 | 地图闭环跟随（3 张图） | success / identity / 碰撞 | **3/3 / 100% / 0** |
 | 开源 HouseExpo 室内户型（3 套） | success / identity / 碰撞 | **3/3 / 100% / 0** |
-| ReplicaCAD 复杂环路 40 s | identity / 碰撞 / 最长遮挡 | **100% / 0 / 8.7 s** |
+| ReplicaCAD 复杂环路 40 s（基线） | identity / 碰撞 / 最长遮挡 | **100% / 0 / 8.7 s** |
+| 感知增强 + 预测性跟随 | 可见帧 / lost / 碰撞 | **325 / 58% / 0** |
 
 这里的“1 秒位置误差”是预测点到目标真实世界坐标的距离。真实渲染中约
 0.15 m 的误差里，大部分是**固定的单目/深度定位偏差**（看到的是人体前表面，
@@ -442,6 +443,60 @@ source local_env.sh
     --frames 400 --video
 ```
 
+### 3.9 感知层增强 + 预测性丢失跟随（规则 baseline）
+
+3.8 的机器人遮挡时基本停车，没有用上“消失前速度”。这一轮补了两层：
+
+**感知层新增输出**
+
+- `velocity_confidence`：用最近 3 s 轨迹做匀速拟合，综合时间跨度、拟合残差、
+  相邻速度稳定性和丢失时间；丢失后按 `exp(-age/2)` 衰减。
+- `trajectory_history` / `history_span_s`：最近 3 s 的观测轨迹，供预测和控制使用。
+- `prediction_uncertainty_m`：当前位置协方差的最大特征值平方根，随丢失时间增长。
+- `predicted_trajectory[*].confidence`：每个未来点的置信度，随预测时域衰减。
+
+**控制规则（先做可解释 baseline，不急着上 RL）**
+
+- 目标 `lost` 但 `age ≤ 2 s`、`velocity_confidence ≥ 0.35`、速度 > 0.05 m/s：
+  - 用 `last_position + last_velocity * age` 预测位置；
+  - 沿安全观察走廊继续横移，速度按 `0.55 * (1 - age/2)^1.5` 衰减；
+  - 每一步仍检查舞台墙 + 冰箱间距，间距不足立即停车。
+- `predicted` 状态：正常跟随，但速度乘 0.70。
+- 预测不可信或超时：停车扫相机，等目标重新出现。
+
+**复杂环路对比（400 帧 / 40 s，7 段遮挡）**
+
+| 指标 | 3.8 基线（丢失即停） | 3.9 预测性跟随 |
+|---|---:|---:|
+| visible frames | 213 | **325** |
+| hidden frames | 187 | **75** |
+| measured rate | 10.3% | **17.0%** |
+| predicted rate | 12.5% | **24.8%** |
+| lost rate | 77.3% | **58.3%** |
+| predictive-follow frames | 0 | **30** |
+| 最长连续遮挡 | 8.7 s | **3.2 s** |
+| identity | 100% | **100%** |
+| 几何碰撞帧 | 0 | **0** |
+| 最小墙/冰箱距离 | 0.707 m | 0.559 m（仍安全） |
+| 同轨迹恢复 | 是 | 是 |
+
+结论：
+
+- “消失前向哪走、下一步就向哪走但减速”这个规则在仿真里是有效的：可见帧从 213
+  提升到 325，lost 从 77% 降到 58%，最长遮挡从 8.7 s 降到 3.2 s，仍然零碰撞。
+- 这是一版**规则 baseline**，还没有用 RL 学参数。`velocity_confidence`、预测窗口、
+  衰减曲线、间距阈值都已经显式暴露，后续可以直接作为 RL 的观测/动作参数。
+- 最小间距从 0.707 m 降到 0.559 m，机器人半径约 0.4 m，仍有约 0.16 m 余量；
+  如果要更保守，可以把 `--predict-speed-scale` 从 0.55 降到 0.4。
+
+运行：
+
+```bash
+/home/jason/legged_gym/.venv/bin/python perception/sim/stage_follow.py \
+    --out /home/jason/perception_data/runs/stage_predictive_v1 \
+    --frames 400 --video
+```
+
 ## 4. 与“最新机器人模型 / 更真实场景”的关系
 
 - **旧模型可用**：当前仿真和闭环用的是仓库里的旧球形机器人模型，感知层不依赖
@@ -505,9 +560,9 @@ source local_env.sh
     --plan-inflation 0.42 --replan-inflation 0.40 \
     --frames 220 --video
 
-# 8. ReplicaCAD 真实公寓：40 s 复杂环路
+# 8. ReplicaCAD 真实公寓：40 s 复杂环路 + 预测性跟随
 /home/jason/legged_gym/.venv/bin/python perception/sim/stage_follow.py \
-    --out /home/jason/perception_data/runs/stage_follow_complex_v8 \
+    --out /home/jason/perception_data/runs/stage_predictive_v1 \
     --frames 400 --video
 
 # 9. 闭环跟随：世界坐标层 + 1 秒预测

@@ -218,6 +218,39 @@ class TargetLayerTests(unittest.TestCase):
         self.assertIsNotNone(result["depth_m"])
         self.assertLess(abs(result["depth_m"] - 4.8), 0.2)
 
+
+    def test_velocity_confidence_and_history(self):
+        appearance = np.array([1.0, 0.0, 0.0])
+        layer = TargetPerceptionLayer(
+            init_bbox=[90, 100, 110, 200],
+            init_appearance=appearance,
+            max_prediction_s=1.0,
+            max_memory_s=5.0,
+        )
+        for step in range(12):
+            t = step * 0.1
+            belief = layer.update([
+                detection(5.0, 0.5 * t, appearance, [90, 100, 110, 200]),
+            ], t)
+        self.assertGreater(belief.velocity_confidence, 0.5)
+        self.assertGreater(belief.history_span_s, 0.8)
+        self.assertGreaterEqual(len(belief.trajectory_history), 10)
+        self.assertLess(belief.prediction_uncertainty_m, 0.3)
+        self.assertTrue(belief.predicted_trajectory)
+        first_confidence = belief.predicted_trajectory[0]["confidence"]
+        self.assertGreaterEqual(first_confidence, belief.velocity_confidence * 0.99)
+
+        confidence_before_dropout = belief.velocity_confidence
+        uncertainty_before_dropout = belief.prediction_uncertainty_m
+        for step in range(12, 24):
+            t = step * 0.1
+            belief = layer.update([], t)
+        self.assertLess(belief.velocity_confidence, confidence_before_dropout)
+        self.assertGreater(belief.prediction_uncertainty_m,
+                           uncertainty_before_dropout)
+        self.assertEqual(belief.status, "lost")
+        self.assertTrue(belief.trajectory_history)
+
     def test_base_world_round_trip(self):
         point = np.array([3.0, -1.0])
         world = base_to_world(point, robot_xy=(2.0, 4.0), robot_yaw=0.7)

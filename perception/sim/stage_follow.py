@@ -401,10 +401,31 @@ def run(args):
                     follow_point = trail[index] - segment / length * remaining
                     break
                 remaining -= length
-            if belief.lost:
-                # Do not extrapolate a stale trail into the apartment; stop
-                # and sweep the camera until the target loop comes back into
-                # view.
+            predictive_move = False
+            lost_age = (max(0.0, t - lost_since)
+                        if lost_since is not None else 0.0)
+            if (belief.lost and lost_age <= args.predict_follow_s
+                    and belief.velocity_confidence >= args.velocity_confidence_min
+                    and float(np.linalg.norm(last_velocity)) > 0.05):
+                # The target disappeared, but its recent velocity is still
+                # coherent.  Continue in that direction, on the safe lane,
+                # with a speed that decays over the prediction window.
+                predicted = last_target_point + last_velocity * lost_age
+                decay = max(0.0, 1.0 - lost_age / args.predict_follow_s) ** 1.5
+                vx = float(np.clip(
+                    args.predict_speed_scale * 0.8
+                    * (predicted[0] - robot.x) * decay, -0.40, 0.40))
+                vy = float(np.clip(0.9 * (ROBOT_LANE_Y - robot.y),
+                                   -0.25, 0.25))
+                probe = np.array([robot.x + vx * 0.4, robot.y + vy * 0.4])
+                if scene_clearance(probe) >= 0.55:
+                    robot.move(vx, vy, look_at(robot, predicted), 0.1)
+                    predictive_move = True
+                else:
+                    robot.move(0.0, 0.0, look_at(robot, predicted), 0.1)
+            elif belief.lost:
+                # The prediction is no longer trustworthy; stop and sweep the
+                # camera until the target comes back into view.
                 if lost_since is not None and t - lost_since > 1.5:
                     search_direction *= -1.0
                     lost_since = t
@@ -412,8 +433,9 @@ def run(args):
             else:
                 # Stay on the clear observation lane; follow the target's
                 # lateral x while the camera independently looks at it.
-                vx = float(np.clip(0.8 * (target_point[0] - robot.x),
-                                   -0.55, 0.55))
+                cautious = 0.70 if belief.status == "predicted" else 1.0
+                vx = float(np.clip(0.8 * (target_point[0] - robot.x)
+                                   * cautious, -0.55, 0.55))
                 vy = float(np.clip(0.9 * (ROBOT_LANE_Y - robot.y),
                                    -0.30, 0.30))
                 probe = np.array([robot.x + vx * 0.4, robot.y + vy * 0.4])
@@ -441,6 +463,7 @@ def run(args):
                 track_id=belief.track_id,
                 identity_correct=bool(identity_correct),
                 target_error=None if target_error is None else round(target_error, 3),
+                predictive_move=bool(predictive_move),
                 distance=round(distance, 3),
                 robot_clearance=round(robot_clearance, 3),
             ))
@@ -527,6 +550,10 @@ def run(args):
         measured_rate=sum(1 for row in rows if row["status"] == "measured") / max(1, len(rows)),
         predicted_rate=sum(1 for row in rows if row["status"] == "predicted") / max(1, len(rows)),
         lost_rate=sum(1 for row in rows if row["status"] == "lost") / max(1, len(rows)),
+        predictive_follow_frames=sum(
+            1 for row in rows if row.get("predictive_move")),
+        predictive_follow_rate=sum(
+            1 for row in rows if row.get("predictive_move")) / max(1, len(rows)),
         mean_distance=round(float(np.mean(distances)), 3),
         min_distance=round(float(np.min(distances)), 3),
         max_distance=round(float(np.max(distances)), 3),
@@ -561,6 +588,12 @@ def main():
                                              "l1_front_pair_v1/weights/best.pt")
     parser.add_argument("--search-s", type=float, default=6.0,
                         help="bounded open-loop search after the prediction expires")
+    parser.add_argument("--predict-follow-s", type=float, default=2.0,
+                        help="continue along the last velocity for this long")
+    parser.add_argument("--velocity-confidence-min", type=float, default=0.35,
+                        help="minimum velocity confidence for predictive movement")
+    parser.add_argument("--predict-speed-scale", type=float, default=0.55,
+                        help="maximum speed scale while following a prediction")
     parser.add_argument("--video", action="store_true")
     args = parser.parse_args()
     result = run(args)
