@@ -17,8 +17,14 @@ from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
+
+try:
+    from perception.stage_map import StageMap
+except Exception:  # keep the 2D env importable from a bare script checkout
+    StageMap = None
 
 DT = 0.1
 ROBOT_LANE_Y = -4.0
@@ -86,6 +92,31 @@ def loop_length():
                      for i in range(len(points))))
 
 
+def route_progress(position):
+    """Arc length of the closest point on the target route."""
+    position = np.asarray(position, dtype=np.float64).reshape(2)
+    points = TARGET_WAYPOINTS
+    travelled = 0.0
+    best_error = float("inf")
+    best = 0.0
+    for index in range(len(points)):
+        start = points[index]
+        end = points[(index + 1) % len(points)]
+        segment = end - start
+        length = float(np.linalg.norm(segment))
+        if length <= 1e-9:
+            continue
+        unit = segment / length
+        projection = float(np.clip(np.dot(position - start, unit),
+                                   0.0, length))
+        error = float(np.linalg.norm(position - (start + unit * projection)))
+        if error < best_error:
+            best_error = error
+            best = travelled + projection
+        travelled += length
+    return best
+
+
 @dataclass
 class StepResult:
     observation: np.ndarray
@@ -97,9 +128,18 @@ class StepResult:
 class PredictiveFollowEnv:
     """Single-agent 2D environment with a hidden target and a fridge."""
 
-    def __init__(self, episode_s=30.0, seed=0):
+    def __init__(self, episode_s=30.0, seed=0, stage_visibility=False,
+                 detection_dropout=0.0, measurement_noise=0.03):
         self.episode_s = float(episode_s)
         self.rng = np.random.default_rng(seed)
+        self.detection_dropout = float(np.clip(detection_dropout, 0.0, 0.8))
+        self.measurement_noise = float(max(0.0, measurement_noise))
+        self.stage_map = None
+        if stage_visibility and StageMap is not None:
+            self.stage_map = StageMap(
+                Path(__file__).resolve().parents[1]
+                / "assets/scenes/replica_stage/stage.obj")
+        self.geometric_visible = True
         self.obs_dim = 15
         self.action_dim = 1
         self.reset()
@@ -111,18 +151,39 @@ class PredictiveFollowEnv:
         velocity = tangent * self.target_speed
         return position, velocity
 
+    def set_predictor(self, predictor):
+        """Use a frozen supervised predictor for hidden-target observations."""
+        self.predictor = predictor
+
+    def predicted_position(self, age):
+        """World point used by observations and the rule baseline."""
+        age = max(0.0, float(age))
+        if self.predictor is not None:
+            displacement = self.predictor.predict_at(
+                self.measurement_history, age, self.last_velocity)
+            if displacement is not None:
+                return self.last_position + displacement
+        return self.last_position + self.last_velocity * age
+
     def _visible(self, target):
         if float(np.linalg.norm(target - np.array([self.robot_x,
                                                    self.robot_y]))) > 12.0:
             return False
-        return not line_blocked((self.robot_x, self.robot_y), target)
+        if line_blocked((self.robot_x, self.robot_y), target):
+            return False
+        if self.stage_map is not None and not self.stage_map.line_of_sight(
+                (self.robot_x, self.robot_y), target):
+            return False
+        return True
 
     def _observation(self, target, visible, measurement_age):
         if visible:
-            predicted = target.copy()
-            target_velocity = self.target_velocity.copy()
+            # The policy sees the same measured position/velocity as the
+            # world-frame target layer, not the simulator's clean target.
+            predicted = self.last_position.copy()
+            target_velocity = self.last_velocity.copy()
         else:
-            predicted = self.last_position + self.last_velocity * measurement_age
+            predicted = self.predicted_position(measurement_age)
             target_velocity = self.last_velocity
         delta = predicted - np.array([self.robot_x, self.robot_y])
         distance = float(np.linalg.norm(delta))
@@ -143,7 +204,7 @@ class PredictiveFollowEnv:
             float(np.clip((self.robot_y - ROBOT_LANE_Y) / 1.0, -1.0, 1.0)),
             float(np.clip((predicted[0] - self.robot_x) / 2.0, -1.0, 1.0)),
             float(np.clip(predicted[0] / 3.0, -1.0, 1.0)),
-            float(np.clip(self.target_distance / 6.0, 0.0, 1.0)),
+            float(np.clip(route_progress(predicted) / 6.0, 0.0, 1.0)),
         ], dtype=np.float32)
 
     # -- API --------------------------------------------------------
@@ -155,17 +216,19 @@ class PredictiveFollowEnv:
         self.robot_x = float(self.rng.uniform(-0.5, 1.5))
         self.robot_y = ROBOT_LANE_Y
         self.robot_vx = 0.0
+        self.predictor = None
         self.target_speed = TARGET_SPEED * float(self.rng.uniform(0.85, 1.15))
         self.target_distance = float(self.rng.uniform(0.0, loop_length()))
         target, velocity = self._target_state(self.target_distance)
         self.target = target
         self.target_velocity = velocity
         self.last_position = target.copy()
-        self.last_velocity = velocity.copy()
+        self.last_velocity = np.zeros(2)
         self.last_measurement_t = self.t
         self.velocity_confidence = 0.7
         self.prediction_uncertainty = 0.15
         self.visible = True
+        self.geometric_visible = True
         self.reacquired = False
         self.was_hidden = False
         self.hidden_frames = 0
@@ -199,12 +262,18 @@ class PredictiveFollowEnv:
         current_clearance = clearance((self.robot_x, self.robot_y))
         self.min_clearance = min(self.min_clearance, current_clearance)
 
-        visible = self._visible(target)
+        geometric_visible = self._visible(target)
+        self.geometric_visible = geometric_visible
+        visible = (geometric_visible
+                   and self.rng.random() >= self.detection_dropout)
         self.visible = visible
         if visible:
-            measurement = target + self.rng.normal(0.0, 0.03, 2)
+            previous_measurement = self.last_position.copy()
+            measurement = target + self.rng.normal(
+                0.0, self.measurement_noise, 2)
+            raw_velocity = (measurement - previous_measurement) / DT
+            self.last_velocity = 0.65 * self.last_velocity + 0.35 * raw_velocity
             self.last_position = measurement.copy()
-            self.last_velocity = target_velocity.copy()
             self.last_measurement_t = self.t
             self.measurement_history.append((self.t, measurement.copy()))
             cutoff = self.t - 3.0
@@ -235,7 +304,7 @@ class PredictiveFollowEnv:
                 reward += 1.0
                 self.was_hidden = False
         else:
-            predicted = self.last_position + self.last_velocity * measurement_age
+            predicted = self.predicted_position(measurement_age)
             error = abs(self.robot_x - predicted[0])
             reward += 0.08 * max(0.0, 1.0 - error / 3.0)
             reward -= 0.015 * measurement_age

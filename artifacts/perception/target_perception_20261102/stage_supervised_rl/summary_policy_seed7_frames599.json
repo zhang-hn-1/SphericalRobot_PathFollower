@@ -1,0 +1,37 @@
+{
+  "scene": "ReplicaCAD frl_apartment_stage + refrigerator",
+  "frames": 599,
+  "visible_frames": 569,
+  "hidden_frames": 30,
+  "identity_accuracy": 1.0,
+  "wrong_frames": 0,
+  "measured_rate": 0.22203672787979967,
+  "predicted_rate": 0.2020033388981636,
+  "lost_rate": 0.5759599332220368,
+  "predictive_follow_frames": 177,
+  "predictive_follow_rate": 0.29549248747913187,
+  "learned_prediction_frames": 290,
+  "mean_distance": 2.313,
+  "min_distance": 0.8,
+  "max_distance": 3.677,
+  "min_clearance": 0.559,
+  "collision_frames": 0,
+  "hidden_prediction_rate": 0.2,
+  "hidden_lost_rate": 0.8,
+  "hidden_rmse": 3.955878729980962,
+  "prediction_error_at": {
+    "0.5": 0.75
+  },
+  "hidden_start": 1.5,
+  "hidden_end": 2.0,
+  "longest_hidden_s": 1.1,
+  "hidden_intervals_s": [
+    0.5,
+    0.8,
+    0.6,
+    1.1
+  ],
+  "reacquisition_delay": 0.4,
+  "same_track": true,
+  "success": true
+}

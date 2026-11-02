@@ -1,0 +1,246 @@
+{
+  "runs": [
+    {
+      "seed": "20261102",
+      "mode": "policy",
+      "frames": 600,
+      "visible": 538,
+      "hidden": 62,
+      "identity": 1.0,
+      "longest_hidden_s": 4.7,
+      "collisions": 0,
+      "min_clearance": 0.559,
+      "same_track": true
+    },
+    {
+      "seed": "20261102",
+      "mode": "rule",
+      "frames": 600,
+      "visible": 535,
+      "hidden": 65,
+      "identity": 0.9966666666666667,
+      "longest_hidden_s": 4.3,
+      "collisions": 0,
+      "min_clearance": 0.559,
+      "same_track": true
+    },
+    {
+      "seed": "20261102",
+      "mode": "policy",
+      "frames": 400,
+      "visible": 343,
+      "hidden": 57,
+      "identity": 1.0,
+      "longest_hidden_s": 4.7,
+      "collisions": 0,
+      "min_clearance": 0.559,
+      "same_track": true
+    },
+    {
+      "seed": "20261102",
+      "mode": "rule",
+      "frames": 400,
+      "visible": 343,
+      "hidden": 57,
+      "identity": 0.995,
+      "longest_hidden_s": 4.3,
+      "collisions": 0,
+      "min_clearance": 0.559,
+      "same_track": true
+    },
+    {
+      "seed": "7",
+      "mode": "policy",
+      "frames": 599,
+      "visible": 569,
+      "hidden": 30,
+      "identity": 1.0,
+      "longest_hidden_s": 1.1,
+      "collisions": 0,
+      "min_clearance": 0.559,
+      "same_track": true
+    },
+    {
+      "seed": "7",
+      "mode": "rule",
+      "frames": 599,
+      "visible": 471,
+      "hidden": 128,
+      "identity": 0.9766277128547579,
+      "longest_hidden_s": 7.7,
+      "collisions": 0,
+      "min_clearance": 0.559,
+      "same_track": true
+    },
+    {
+      "seed": "13",
+      "mode": "policy",
+      "frames": 600,
+      "visible": 533,
+      "hidden": 67,
+      "identity": 1.0,
+      "longest_hidden_s": 4.9,
+      "collisions": 0,
+      "min_clearance": 0.559,
+      "same_track": true
+    },
+    {
+      "seed": "13",
+      "mode": "rule",
+      "frames": 600,
+      "visible": 438,
+      "hidden": 162,
+      "identity": 0.9966666666666667,
+      "longest_hidden_s": 15.3,
+      "collisions": 0,
+      "min_clearance": 0.559,
+      "same_track": true
+    }
+  ],
+  "aggregate": {
+    "rule_400": {
+      "seeds": [
+        "20261102"
+      ],
+      "mean_visible": 343.0,
+      "mean_hidden": 57.0,
+      "mean_identity": 0.995,
+      "mean_longest_hidden_s": 4.3,
+      "collisions": 0,
+      "min_clearance": 0.559,
+      "runs": [
+        {
+          "seed": "20261102",
+          "frames": 400,
+          "visible": 343,
+          "hidden": 57,
+          "identity": 0.995,
+          "longest_hidden_s": 4.3,
+          "collisions": 0,
+          "min_clearance": 0.559,
+          "same_track": true
+        }
+      ]
+    },
+    "policy_400": {
+      "seeds": [
+        "20261102"
+      ],
+      "mean_visible": 343.0,
+      "mean_hidden": 57.0,
+      "mean_identity": 1.0,
+      "mean_longest_hidden_s": 4.7,
+      "collisions": 0,
+      "min_clearance": 0.559,
+      "runs": [
+        {
+          "seed": "20261102",
+          "frames": 400,
+          "visible": 343,
+          "hidden": 57,
+          "identity": 1.0,
+          "longest_hidden_s": 4.7,
+          "collisions": 0,
+          "min_clearance": 0.559,
+          "same_track": true
+        }
+      ]
+    },
+    "rule_600": {
+      "seeds": [
+        "20261102",
+        "7",
+        "13"
+      ],
+      "mean_visible": 481.3,
+      "mean_hidden": 118.3,
+      "mean_identity": 0.99,
+      "mean_longest_hidden_s": 9.1,
+      "collisions": 0,
+      "min_clearance": 0.559,
+      "runs": [
+        {
+          "seed": "20261102",
+          "frames": 600,
+          "visible": 535,
+          "hidden": 65,
+          "identity": 0.9966666666666667,
+          "longest_hidden_s": 4.3,
+          "collisions": 0,
+          "min_clearance": 0.559,
+          "same_track": true
+        },
+        {
+          "seed": "7",
+          "frames": 599,
+          "visible": 471,
+          "hidden": 128,
+          "identity": 0.9766277128547579,
+          "longest_hidden_s": 7.7,
+          "collisions": 0,
+          "min_clearance": 0.559,
+          "same_track": true
+        },
+        {
+          "seed": "13",
+          "frames": 600,
+          "visible": 438,
+          "hidden": 162,
+          "identity": 0.9966666666666667,
+          "longest_hidden_s": 15.3,
+          "collisions": 0,
+          "min_clearance": 0.559,
+          "same_track": true
+        }
+      ]
+    },
+    "policy_600": {
+      "seeds": [
+        "20261102",
+        "7",
+        "13"
+      ],
+      "mean_visible": 546.7,
+      "mean_hidden": 53.0,
+      "mean_identity": 1.0,
+      "mean_longest_hidden_s": 3.57,
+      "collisions": 0,
+      "min_clearance": 0.559,
+      "runs": [
+        {
+          "seed": "20261102",
+          "frames": 600,
+          "visible": 538,
+          "hidden": 62,
+          "identity": 1.0,
+          "longest_hidden_s": 4.7,
+          "collisions": 0,
+          "min_clearance": 0.559,
+          "same_track": true
+        },
+        {
+          "seed": "7",
+          "frames": 599,
+          "visible": 569,
+          "hidden": 30,
+          "identity": 1.0,
+          "longest_hidden_s": 1.1,
+          "collisions": 0,
+          "min_clearance": 0.559,
+          "same_track": true
+        },
+        {
+          "seed": "13",
+          "frames": 600,
+          "visible": 533,
+          "hidden": 67,
+          "identity": 1.0,
+          "longest_hidden_s": 4.9,
+          "collisions": 0,
+          "min_clearance": 0.559,
+          "same_track": true
+        }
+      ]
+    }
+  }
+}

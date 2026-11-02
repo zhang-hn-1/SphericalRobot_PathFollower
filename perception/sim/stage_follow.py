@@ -34,6 +34,7 @@ from scipy.ndimage import distance_transform_edt
 REPO = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(REPO))
 
 from l1_front_pair import front_pair_config  # noqa: E402
 from map_follow import clearance  # noqa: E402
@@ -60,6 +61,8 @@ TARGET_WAYPOINTS = (
     np.array([-1.20, -3.20]),
 )
 TARGET_START = TARGET_WAYPOINTS[0]
+ROBOT_YAW = math.atan2(TARGET_START[1] - ROBOT_START[1],
+                        TARGET_START[0] - ROBOT_START[0])
 TARGET_SPEED = 0.40
 # Stage floor sits at z ~ 0; the OBJ was shifted so its minimum is 0.
 STAGE_Z = 0.08
@@ -256,6 +259,10 @@ def run(args):
         policy = PolicyActor(15)
         policy.load_state_dict(torch.load(args.policy, map_location="cpu"))
         policy.eval()
+    predictor = None
+    if args.predictor:
+        from perception.learned_predictor import TrajectoryPredictor
+        predictor = TrajectoryPredictor(args.predictor)
     cfg = front_pair_config(
         num_envs=1, num_people=2, frames=args.frames, episodes=1,
         seed=args.seed,
@@ -326,7 +333,7 @@ def run(args):
             scene._apply_people(0)
             scene.set_cameras(0, roll_deg=0.0, base_yaw=robot.yaw,
                               base_xy=(robot.x, robot.y))
-            views = scene.render(0, save_seg=True)
+            views = scene.render(0, save_seg=True, save_depth=True)
             left = views[0]
             image = np.asarray(left["color"])
             seg = np.asarray(left["seg"])
@@ -344,17 +351,30 @@ def run(args):
                 bbox = np.asarray(detection["bbox"], dtype=np.float64)
                 world = camera.detection_to_world(
                     bbox, robot_xy=(robot.x, robot.y), robot_yaw=robot.yaw,
-                    depth=None, side="left")
+                    depth=left["depth"], side="left")
                 if world is None:
                     continue
+                range_ratio = world.get("range_ratio")
+                # A partial upper-body box makes the height prior say "far
+                # away"; a valid depth that is closer than that prior is the
+                # reliable range in this case.  A depth much farther than the
+                # height prior is more likely a wall/occluder, so drop it.
+                use_position = bool(world.get("consistent", True))
+                if (not use_position and world.get("depth_m") is not None
+                        and range_ratio is not None and range_ratio < 0.67):
+                    use_position = True
                 detections.append(PersonDetection(
                     position_xy=(world["position_world_xy"]
-                                 if world.get("consistent", True) else None),
+                                 if use_position else None),
                     bbox=bbox,
                     appearance=hsv_histogram(image, bbox),
                     score=float(detection.get("conf", 1.0)),
                     covariance_xy=world["covariance_xy"],
-                    meta=dict(range_source=world["range_source"])))
+                    meta=dict(range_source=world["range_source"],
+                              consistent=bool(world.get("consistent", True)),
+                              range_ratio=range_ratio,
+                              depth_m=world.get("depth_m"),
+                              height_range_m=world.get("height_range_m"))))
 
             if layer is None:
                 if not target_visible:
@@ -437,9 +457,18 @@ def run(args):
             predictive_move = False
             lost_age = (max(0.0, t - lost_since)
                         if lost_since is not None else 0.0)
+            prediction_age = (belief.measurement_age_s
+                              if belief.measurement_age_s is not None
+                              else lost_age)
+            learned_prediction = None
+            if predictor is not None and belief.lost:
+                learned_prediction = predictor.predict_belief(
+                    belief, prediction_age)
             policy_action = None
             if policy is not None:
-                predicted_policy = (belief.position_xy
+                predicted_policy = (learned_prediction
+                                    if learned_prediction is not None
+                                    else belief.position_xy
                                     if belief.position_xy is not None
                                     else last_target_point)
                 target_velocity_policy = (belief.velocity_xy
@@ -459,7 +488,7 @@ def run(args):
                     float(np.clip(lost_age / 3.0, 0.0, 1.0)),
                     float(belief.velocity_confidence),
                     float(np.clip(belief.prediction_uncertainty_m / 1.0, 0.0, 1.0)),
-                    1.0 if target_visible else 0.0,
+                    1.0 if belief.target_visible else 0.0,
                     float(np.clip(distance_policy / 6.0, 0.0, 1.0)),
                     float(np.clip(clearance((robot.x, robot.y),
                                             [FRIDGE_OBB]) / 2.0, 0.0, 1.0)),
@@ -469,13 +498,24 @@ def run(args):
                     float(np.clip((predicted_policy[0] - robot.x) / 2.0,
                                   -1.0, 1.0)),
                     float(np.clip(predicted_policy[0] / 3.0, -1.0, 1.0)),
-                    float(np.clip(target_loop_distance(target.pos) / 6.0,
+                    float(np.clip(target_loop_distance(predicted_policy) / 6.0,
                                   0.0, 1.0)),
                 ], dtype=np.float32)
                 with torch.no_grad():
                     policy_action = float(policy(torch.from_numpy(
                         policy_obs).unsqueeze(0)))
-            if (policy_action is not None and target_visible):
+            if policy_action is not None and belief.lost:
+                # The supervised predictor is the local target model.  If the
+                # RL action points away from its prediction, or if the model
+                # has no usable history, fall back to the rule controller.
+                if learned_prediction is None:
+                    policy_action = None
+                else:
+                    delta_x = float(learned_prediction[0] - robot.x)
+                    if (abs(delta_x) > 0.20
+                            and policy_action * delta_x < 0.0):
+                        policy_action = None
+            if (policy_action is not None and belief.target_visible):
                 # The actor was trained while acting at every step, so use it
                 # in the visible phase too instead of switching policies.
                 vx = float(np.clip(0.60 * policy_action, -0.55, 0.55))
@@ -503,7 +543,9 @@ def run(args):
                 # The target disappeared, but its recent velocity is still
                 # coherent.  Continue in that direction, on the safe lane,
                 # with a speed that decays over the prediction window.
-                predicted = last_target_point + last_velocity * lost_age
+                predicted = (learned_prediction if learned_prediction is not None
+                             else last_target_point
+                             + last_velocity * prediction_age)
                 decay = max(0.0, 1.0 - lost_age / args.predict_follow_s) ** 1.5
                 vx = float(np.clip(
                     args.predict_speed_scale * 0.8
@@ -561,6 +603,9 @@ def run(args):
                                round(policy_action, 3)),
                 policy_obs=(policy_obs.tolist()
                             if policy is not None else None),
+                learned_prediction=(None if learned_prediction is None
+                                    else [round(float(learned_prediction[0]), 3),
+                                          round(float(learned_prediction[1]), 3)]),
                 distance=round(distance, 3),
                 robot_clearance=round(robot_clearance, 3),
             ))
@@ -651,6 +696,8 @@ def run(args):
             1 for row in rows if row.get("predictive_move")),
         predictive_follow_rate=sum(
             1 for row in rows if row.get("predictive_move")) / max(1, len(rows)),
+        learned_prediction_frames=sum(
+            1 for row in rows if row.get("learned_prediction") is not None),
         mean_distance=round(float(np.mean(distances)), 3),
         min_distance=round(float(np.min(distances)), 3),
         max_distance=round(float(np.max(distances)), 3),
@@ -693,6 +740,8 @@ def main():
                         help="maximum speed scale while following a prediction")
     parser.add_argument("--policy", default="",
                         help="optional PPO actor (.pt) for the lateral action")
+    parser.add_argument("--predictor", default="",
+                        help="optional supervised trajectory predictor (.pt)")
     parser.add_argument("--video", action="store_true")
     args = parser.parse_args()
     result = run(args)

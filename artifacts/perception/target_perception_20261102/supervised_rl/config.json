@@ -1,0 +1,14 @@
+{
+  "obs_dim": 15,
+  "action_dim": 1,
+  "episode_s": 30.0,
+  "iters": 120,
+  "episodes": 8,
+  "seed": 7,
+  "bc_episodes": 40,
+  "bc_steps": 1500,
+  "predictor": "/home/jason/perception_data/runs/trajectory_predictor_v2/predictor.pt",
+  "stage_visibility": true,
+  "detection_dropout": 0.3,
+  "measurement_noise": 0.05
+}

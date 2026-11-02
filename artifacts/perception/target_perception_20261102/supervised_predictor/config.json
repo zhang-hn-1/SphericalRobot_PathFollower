@@ -1,0 +1,15 @@
+{
+  "input_dim": 9,
+  "context_dim": 4,
+  "hidden": 64,
+  "horizons": [
+    0.5,
+    1.0,
+    2.0
+  ],
+  "history_steps": 12,
+  "position_scale": 2.0,
+  "seed": 20261102,
+  "samples_per_trajectory": 100,
+  "duration": 20.0
+}

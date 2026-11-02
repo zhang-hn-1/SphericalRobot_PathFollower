@@ -25,7 +25,9 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(REPO))
 from predictive_follow_env import (PredictiveFollowEnv,  # noqa: E402
                                    ROBOT_LANE_Y)
 
@@ -113,8 +115,11 @@ def train_bc(actor, observations, actions, steps=1000, lr=1e-3,
     return rmse
 
 
-def evaluate(policy, episodes=20, seed0=9000):
-    env = PredictiveFollowEnv()
+def evaluate(policy, episodes=20, seed0=9000, predictor=None,
+             env_kwargs=None):
+    env = PredictiveFollowEnv(**(env_kwargs or {}))
+    if predictor is not None:
+        env.set_predictor(predictor)
     visible = hidden = collisions = reacquired = 0
     distances = []
     returns = []
@@ -148,8 +153,11 @@ def evaluate(policy, episodes=20, seed0=9000):
     )
 
 
-def evaluate_rule(episodes=20, seed0=9000):
-    env = PredictiveFollowEnv()
+def evaluate_rule(episodes=20, seed0=9000, predictor=None,
+                  env_kwargs=None):
+    env = PredictiveFollowEnv(**(env_kwargs or {}))
+    if predictor is not None:
+        env.set_predictor(predictor)
     visible = hidden = collisions = reacquired = 0
     distances = []
     returns = []
@@ -193,6 +201,14 @@ def main():
     parser.add_argument("--bc-steps", type=int, default=0,
                         help="supervised updates before PPO")
     parser.add_argument("--bc-lr", type=float, default=1e-3)
+    parser.add_argument("--predictor", default="",
+                        help="frozen supervised trajectory predictor checkpoint")
+    parser.add_argument("--stage-visibility", action="store_true",
+                        help="use the ReplicaCAD wall map for line of sight")
+    parser.add_argument("--detection-dropout", type=float, default=0.0,
+                        help="probability a geometrically visible target is missed")
+    parser.add_argument("--measurement-noise", type=float, default=0.03,
+                        help="std of measured target position, metres")
     args = parser.parse_args()
 
     out = Path(args.out)
@@ -200,7 +216,18 @@ def main():
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
 
-    env = PredictiveFollowEnv(episode_s=args.episode_s)
+    env_kwargs = dict(
+        episode_s=args.episode_s,
+        stage_visibility=args.stage_visibility,
+        detection_dropout=args.detection_dropout,
+        measurement_noise=args.measurement_noise,
+    )
+    env = PredictiveFollowEnv(**env_kwargs)
+    predictor = None
+    if args.predictor:
+        from perception.learned_predictor import TrajectoryPredictor
+        predictor = TrajectoryPredictor(args.predictor)
+        env.set_predictor(predictor)
     actor = Actor(env.obs_dim)
     critic = Critic(env.obs_dim)
     if args.bc_episodes > 0 and args.bc_steps > 0:
@@ -283,8 +310,12 @@ def main():
             seconds=round(time.time() - started, 1),
         )
         if iteration % 10 == 0 or iteration == args.iters - 1:
-            rule = evaluate_rule()
-            learned = evaluate(actor)
+            rule = evaluate_rule(
+                predictor=predictor, env_kwargs=env_kwargs)
+            rule_constant = (evaluate_rule(env_kwargs=env_kwargs)
+                             if predictor is not None else None)
+            learned = evaluate(
+                actor, predictor=predictor, env_kwargs=env_kwargs)
             entry["rule"] = rule
             entry["learned"] = learned
             score = learned["visible_rate"] - 0.01 * learned["collisions"]
@@ -294,7 +325,7 @@ def main():
                 torch.save(best, out / "actor.pt")
                 (out / "best.json").write_text(json.dumps(
                     dict(iter=iteration, score=score, learned=learned,
-                         rule=rule), indent=2))
+                         rule=rule, rule_constant=rule_constant), indent=2))
         with metrics_path.open("a") as handle:
             handle.write(json.dumps(entry) + "\n")
         print(json.dumps(entry), flush=True)
@@ -305,7 +336,11 @@ def main():
         obs_dim=env.obs_dim, action_dim=env.action_dim,
         episode_s=args.episode_s, iters=args.iters,
         episodes=args.episodes, seed=args.seed,
-        bc_episodes=args.bc_episodes, bc_steps=args.bc_steps), indent=2))
+        bc_episodes=args.bc_episodes, bc_steps=args.bc_steps,
+        predictor=args.predictor or None,
+        stage_visibility=args.stage_visibility,
+        detection_dropout=args.detection_dropout,
+        measurement_noise=args.measurement_noise), indent=2))
     print(json.dumps(dict(model=str(out / "actor.pt"),
                           best=json.loads((out / "best.json").read_text())
                           if (out / "best.json").exists() else None),

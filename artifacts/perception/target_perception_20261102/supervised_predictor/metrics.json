@@ -1,0 +1,43 @@
+{
+  "train_trajectories": 300,
+  "val_trajectories": 60,
+  "train_samples": 30000,
+  "val_samples": 6000,
+  "best_score": 0.0755,
+  "history": [
+    {
+      "epoch": 29,
+      "train_loss": 0.00126,
+      "val": {
+        "0.5s": {
+          "model_mae_m": 0.0514,
+          "constant_velocity_mae_m": 0.4175,
+          "smoothed_constant_velocity_mae_m": 0.0973,
+          "corner_model_mae_m": 0.0539,
+          "corner_constant_velocity_mae_m": 0.4232,
+          "corner_fraction": 0.66
+        },
+        "1.0s": {
+          "model_mae_m": 0.07,
+          "constant_velocity_mae_m": 0.8009,
+          "smoothed_constant_velocity_mae_m": 0.1734,
+          "corner_model_mae_m": 0.0716,
+          "corner_constant_velocity_mae_m": 0.8155,
+          "corner_fraction": 0.66
+        },
+        "2.0s": {
+          "model_mae_m": 0.1116,
+          "constant_velocity_mae_m": 1.5844,
+          "smoothed_constant_velocity_mae_m": 0.3945,
+          "corner_model_mae_m": 0.1133,
+          "corner_constant_velocity_mae_m": 1.6258,
+          "corner_fraction": 0.66
+        },
+        "overall_model_mae_m": 0.0777,
+        "overall_constant_velocity_mae_m": 0.9343,
+        "overall_smoothed_constant_velocity_mae_m": 0.2217
+      },
+      "seconds": 0.2
+    }
+  ]
+}
