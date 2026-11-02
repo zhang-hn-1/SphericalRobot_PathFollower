@@ -39,6 +39,7 @@
 | 地图场景（3 张 polygon 地图） | identity / 跟错人 | **100% / 0** |
 | 地图闭环跟随（3 张图） | success / identity / 碰撞 | **3/3 / 100% / 0** |
 | 开源 HouseExpo 室内户型（3 套） | success / identity / 碰撞 | **3/3 / 100% / 0** |
+| ReplicaCAD 真实公寓 + 1.3 s 遮挡 | identity / 最长遮挡 | **100% / 1.3 s** |
 
 这里的“1 秒位置误差”是预测点到目标真实世界坐标的距离。真实渲染中约
 0.15 m 的误差里，大部分是**固定的单目/深度定位偏差**（看到的是人体前表面，
@@ -387,6 +388,56 @@ predicted_trajectory  # 未来 1 s，每 0.1 s 一个点
     --frames 220 --video
 ```
 
+### 3.8 真实 ReplicaCAD 公寓：冰箱后 1.3 s 遮挡
+
+前面 3.7 是 2D 户型；这一节用真正的 3D 场景：
+
+- 视觉场景：ReplicaCAD **frl_apartment_stage**（Meta，CC BY-NC 4.0），
+  木地板、墙、门洞、楼梯；用 Blender 转成 OBJ/URDF 后由 Isaac Gym 加载。
+- 遮挡物：ReplicaCAD **refrigerator**，放在客厅中，尺寸 0.70×0.76×1.92 m。
+- 目标：从冰箱右侧 `(1.5,-1.1)` 走到左侧 `(-1.5,-1.1)`，速度 0.35 m/s；
+  从机器人 `(0.5,-4.0)` 的视角看，目标在冰箱后连续消失 **1.3 s**。
+- 机器人：先用简单 holonomic 底座停在观察点、保持相机对准感知层预测的位置；
+  目标重新出现并被 `measured` 后，再驱车跟随。不用 P0 是因为 P0 不能原地转向，
+  这一段主要验证感知预测，而不是底层执行器。
+
+| 指标 | 结果 |
+|---|---:|
+| identity | **100%** |
+| 最长连续遮挡 | **1.3 s** |
+| 遮挡期 predicted / lost | 75% / 25% |
+| 0.5 s / 1.0 s 预测误差 | 0.374 m / 0.467 m |
+| 重捕获 | 1.5 s，`same_track=True` |
+| 最小冰箱距离 / 几何碰撞 | 0.624 m / **0** |
+| 平均跟距 | 2.27 m |
+| success | ✅ |
+
+说明：
+
+- 目标被遮挡时，机器人**没有继续往冰箱上撞**，而是保持观察位并持续把相机转向
+  Kalman 预测方向；目标从另一侧出现后立刻恢复 `measured`，再继续跟随。
+- 1.3 s 遮挡里前 1.0 s 由 2 s 预测窗口覆盖（本场景把窗口放宽到 2 s，以便覆盖
+  1.3 s 真实遮挡）；predicted 占遮挡期的 75%，其余 25% 进入 `lost` 后由重新检测恢复。
+- 最小冰箱距离 0.624 m，机器人半径约 0.4 m，没有几何碰撞。
+- ReplicaCAD 资产是 **CC BY-NC 4.0**，仅用于非商业研究/仿真；`LICENSE.txt` 和
+  `SOURCE.md` 已随资产保留。
+
+视频/关键帧：
+
+- `artifacts/perception/target_perception_20261102/stage_follow/stage_follow.mp4`
+- `.../preview_start.png`
+- `.../preview_hidden.png`
+- `.../preview_reacq.png`
+
+运行：
+
+```bash
+source local_env.sh
+/home/jason/legged_gym/.venv/bin/python perception/sim/stage_follow.py \
+    --out /home/jason/perception_data/runs/stage_follow_v1 \
+    --frames 160 --video
+```
+
 ## 4. 与“最新机器人模型 / 更真实场景”的关系
 
 - **旧模型可用**：当前仿真和闭环用的是仓库里的旧球形机器人模型，感知层不依赖
@@ -450,7 +501,12 @@ source local_env.sh
     --plan-inflation 0.42 --replan-inflation 0.40 \
     --frames 220 --video
 
-# 8. 闭环跟随：世界坐标层 + 1 秒预测
+# 8. ReplicaCAD 真实公寓：冰箱后 1.3 s 遮挡
+/home/jason/legged_gym/.venv/bin/python perception/sim/stage_follow.py \
+    --out /home/jason/perception_data/runs/stage_follow_v1 \
+    --frames 160 --video
+
+# 9. 闭环跟随：世界坐标层 + 1 秒预测
 /home/jason/legged_gym/.venv/bin/python perception/sim/follow_p0.py \
     --out /home/jason/perception_data/runs/follow_p0_target_layer_crossing300 \
     --episodes 1 --frames 300 --target-layer --use-depth --scenario crossing
@@ -474,5 +530,7 @@ source local_env.sh
 | `.../houseexpo/preview_a64a310dfa11.png` | HouseExpo 室内跟随关键帧 |
 | `.../houseexpo/summary.json` | HouseExpo 三套户型闭环汇总 |
 | `.../houseexpo/*.mp4` | HouseExpo 室内跟随视频 |
+| `.../stage_follow/summary.json` | ReplicaCAD 真实公寓 1.3 s 遮挡结果 |
+| `.../stage_follow/stage_follow.mp4` | 真实公寓 + 冰箱遮挡视频 |
 | `.../closed_loop/weave300_summary.json` | 闭环 weave 300 帧 |
 | `.../closed_loop/crossing300_summary.json` | 闭环 crossing 300 帧 |

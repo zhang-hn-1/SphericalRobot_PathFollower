@@ -26,6 +26,7 @@ original design and evidence are in
 | `sim/occlusion_perception.py` | Isaac Gym + YOLO rendered 1 s disappearance experiment |
 | `sim/map_perception.py` | polygon map scenes: wall occlusion, U-turn, re-acquisition |
 | `sim/map_follow.py` | closed-loop map following: target A* route + robot A* stand-off |
+| `sim/stage_follow.py` | ReplicaCAD apartment + refrigerator: 1.3 s real occlusion, prediction and re-acquisition |
 | `tools/houseexpo_to_maps.py` | convert MIT HouseExpo floorplans into local map JSON |
 | `test_target_perception.py` | CPU unit tests for the world-frame target layer and geometry |
 | `build_crops.py` | person-crop dataset for appearance models |
@@ -68,6 +69,11 @@ python3 perception/eval_target_perception.py \
     --out /home/jason/perception_data/runs/map_follow_v1 \
     --map irregular_clutter --frames 320 --video
 
+# realistic ReplicaCAD apartment: target hidden 1.3 s behind a refrigerator
+/home/jason/legged_gym/.venv/bin/python perception/sim/stage_follow.py \
+    --out /home/jason/perception_data/runs/stage_follow_v1 \
+    --frames 160 --video
+
 # open-source HouseExpo indoor floorplans (MIT, 1.35x scaled for the ball)
 /home/jason/legged_gym/.venv/bin/python perception/sim/map_follow.py \
     --out /home/jason/perception_data/runs/houseexpo_follow_v1 \
@@ -105,7 +111,9 @@ maps at 2.5-3.1 m distance with 0.63 m minimum wall clearance and zero
 geometric collisions. Open-source **HouseExpo** floorplans (MIT, 12 selected
 apartments, 1.35x scaled for the 0.8 m ball) are in
 `assets/maps/houseexpo/`; three closed-loop runs also keep identity at 100%
-with zero geometric collisions. See
+with zero geometric collisions. A real ReplicaCAD apartment + refrigerator
+scene (`assets/scenes/`, CC BY-NC 4.0) gives a 1.3 s physical occlusion with
+100% identity, 75% predicted coverage and same-track re-acquisition. See
 [`../artifacts/perception/TARGET_PERCEPTION_20261102.md`](../artifacts/perception/TARGET_PERCEPTION_20261102.md).
 
 ## Rocketbox avatars (optional, replaces the coloured primitives)

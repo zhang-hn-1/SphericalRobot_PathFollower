@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<robot name="replica_refrigerator">
+  <link name="body">
+    <visual>
+      <geometry>
+        <mesh filename="refrigerator.obj"/>
+      </geometry>
+    </visual>
+  </link>
+</robot>

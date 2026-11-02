@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<robot name="replica_stage">
+  <link name="stage">
+    <visual>
+      <geometry>
+        <mesh filename="stage.obj"/>
+      </geometry>
+    </visual>
+  </link>
+</robot>
