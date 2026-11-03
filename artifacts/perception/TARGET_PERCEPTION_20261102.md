@@ -43,7 +43,7 @@
 | 感知增强 + 预测性跟随（规则，旧舞台坐标） | 可见帧 / lost / 碰撞 | 325 / 58% / 0 |
 | 舞台深度/初始朝向修正 + 规则预测 | 可见帧 / hidden / 最长遮挡 | **343 / 57 / 4.3 s** |
 | 监督预测器 + RL + 安全回退（600 帧 3 seeds） | visible / hidden / 最长遮挡 | 547 / 53 / 3.6 s |
-| Teacher-student DAgger + PPO（600 帧 3 seeds） | visible / hidden / 最长遮挡 | **566 / 34 / 1.6 s** |
+| Teacher-student DAgger + PPO（600 帧 5 seeds） | visible / hidden / 最长遮挡 | **563 / 36 / 1.7 s** |
 | 消融：route-blind 预测器 + RL（600 帧 3 seeds） | visible / hidden / 最长遮挡 | 500 / 100 / 4.9 s |
 
 这里的“1 秒位置误差”是预测点到目标真实世界坐标的距离。真实渲染中约
@@ -742,21 +742,23 @@ teacher 用真值目标、无检测 dropout；student 只用可部署的测量�
 
 **结果**
 
-| 配置 | 2D visible | ReplicaCAD 600 帧 ×3 seeds |
+| 配置 | 2D visible | ReplicaCAD 600 帧 ×5 seeds |
 |---|---:|---:|
 | Teacher（特权观测） | 92.4% | 不可直接部署 |
 | Student BC（DAgger） | 64.8% | — |
-| Student BC + PPO | 65.2% | **565.7 visible / 34 hidden / 1.6 s** |
-| 直接 PPO + shield | 64.7% | 547 / 53 / 3.6 s |
-| 规则 + 监督预测器 | 63.0% | 481 / 118 / 9.1 s |
+| Student BC + PPO | 65.2% | **563.2 visible / 36.4 hidden / 1.72 s** |
+| 直接 PPO + shield | 64.7% | 547 / 53 / 3.6 s（3 seeds） |
+| 规则 + 监督预测器 | 63.0% | 437.4 / 162.2 / 11.0 s（5 seeds） |
 
-Teacher-student 的 3 个种子舞台结果：
+Teacher-student 的 5 个种子舞台结果：
 
 | seed | visible | hidden | 最长遮挡 | identity |
 |---|---:|---:|---:|---:|
 | 20261102 | 563 | 37 | 1.8 s | 100% |
 | 7 | 571 | 28 | 1.2 s | 99.83% |
 | 13 | 563 | 37 | 1.8 s | 100% |
+| 21 | 553 | 46 | 2.0 s | 100% |
+| 42 | 566 | 34 | 1.8 s | 100% |
 
 零碰撞，最小间距 0.559 m，同轨迹恢复。结论：
 
@@ -841,6 +843,99 @@ Teacher-student 的 3 个种子舞台结果：
   复现 VideoJev 的收益，需要共享的短时视觉前缀/多候选交互，而不是再加一个
   MLP。
 - 因此它保留为可选 hook，不替换现有跟踪器，也不进默认舞台策略。
+
+### 3.16 多路线 benchmark、标准指标与端到端延迟
+
+这一节专门回答“单场景/单路线、只有工程指标”的问题。新增
+`research/benchmark_following.py`，所有策略在同一套 episode 上跑：
+
+- 固定路线（原始舞台矩形）；
+- 随机路线：矩形宽高/朝向/中心随机，1–3 个随机遮挡物，遮挡物限制在目标活动带，不放到机器人观察走廊上；
+- 随机目标速度、检测 dropout 0.30、测量噪声 0.05 m；
+- 50 episodes ×30 s，固定随机种子，所有策略共享同一批场景。
+
+**标准指标**
+
+| 指标 | 定义 |
+|---|---|
+| success rate | 无碰撞，且 visible rate ≥ 0.5 |
+| visible rate | 目标测量可用的步数 / 总步数 |
+| geometric visible rate | 几何上无遮挡的步数 / 总步数 |
+| reacquired rate | 至少一次遮挡后重新测量到目标 |
+| collision episodes | 至少一帧 clearance < 0.42 m 的 episode |
+| longest hidden | 单 episode 最长连续无测量时间 |
+| path length / control effort | 机器人路径长度 / 累计控制量 |
+| latency | policy 与 env.step 的 CPU 时间 |
+
+**固定路线 vs 随机路线（50 episodes）**
+
+| 策略 | 固定 visible / success | 随机 visible / success | 随机 longest hidden | 随机 collisions |
+|---|---:|---:|---:|---:|
+| 规则 | 0.627 / 0.98 | **0.574 / 0.84** | 3.42 s | 0/50 |
+| PPO | 0.642 / 1.00 | 0.548 / 0.70 | 4.48 s | 0/50 |
+| Teacher-student | **0.644 / 1.00** | 0.565 / 0.78 | 4.28 s | 0/50 |
+| SAC | 0.572 / 0.94 | 0.508 / 0.60 | 5.31 s | 0/50 |
+| 残差 PPO | 0.629 / 0.98 | 0.575 / 0.84 | 3.42 s | 0/50 |
+| PPO + route-blind 预测器 | 0.642 / 1.00 | 0.526 / 0.64 | 5.22 s | 0/50 |
+
+结论很直接：**固定路线上 teacher-student/PPO 最好；随机路线换成规则最好，所有学习策略都退化。** 这证明当前的 teacher-student 优势依赖训练路线/场景，跨场景泛化仍是未解决问题；不能把固定路线数字当成通用能力。
+
+**随机化训练是否能补回 OOD**
+
+只评估 OOD 不够，还要看“在随机场景上训练”是否有效。用 `--randomize`
+重新训练 privileged teacher、DAgger student 和 PPO（route-blind 预测器）：
+
+| 2D 随机环境（20 episodes） | visible | hidden |
+|---|---:|---:|
+| 随机 teacher | 81.7% | 1096 |
+| 随机 student BC | 57.3% | 2564 |
+| 随机 student + PPO | **59.5%** | **2430** |
+| 同环境规则 | 57.8% | 2532 |
+
+接回同一批 50 个随机路线 episode：
+
+| 策略 | visible | success | 最长 hidden | 碰撞 |
+|---|---:|---:|---:|---:|
+| 规则 | 0.574 | 0.84 | 3.42 s | 0/50 |
+| 固定路线 teacher | 0.565 | 0.78 | 4.28 s | 0/50 |
+| **随机化 teacher-student** | **0.591** | **0.90** | **3.05 s** | **0/50** |
+
+这说明随机化训练确实能补回一部分 OOD 退化，而且小胜规则；但幅度不大，
+固定路线上的 teacher-student 优势仍然更高，所以目前没有把随机化策略
+作为默认，而是作为“跨场景版本”的实验分支。
+
+**多人 / 相机域偏移（初步）**
+
+| 条件 | 可用帧 | visible / hidden | identity | measured rate | 最长 hidden |
+|---|---:|---:|---:|---:|---:|
+| 2 人，正常图像 | 600 | 563 / 37 | 99.97% | 37% | 1.7 s |
+| 4 人，正常图像 | 400 | 331 / 69 | 98.75% | 32% | 5.8 s |
+| 2 人，gain 0.7 + noise 0.02 | 284 | 260 / 24 | 100% | 24.6% | 1.3 s |
+| 4 人 + 上述域偏移 | 484 | 72 / 412 | 97.7% | **0.6%** | 40.6 s |
+
+结论：**预训练 YOLO 对低亮度和噪声很敏感**；4 个静止干扰人本身还能接受，
+但“多人 + 变暗/噪声”会让检测几乎失效，跟踪层再强也救不回来。这是目前
+真实域迁移最大的风险，必须在检测端做域随机化/微调，而不是继续调跟踪器。
+
+**端到端延迟（ReplicaCAD，600 帧，teacher-student）**
+
+| 模块 | mean | p95 |
+|---|---:|---:|
+| Isaac Gym 渲染 | 7.62 ms | 8.53 ms |
+| YOLO 检测进程（含图像 IPC） | **109.16 ms** | 127.87 ms |
+| 目标层 update | 0.88 ms | 1.31 ms |
+| 监督预测器 | 0.20 ms | 1.29 ms |
+| 策略推理 | 0.15 ms | 0.17 ms |
+| 总帧 | **123.12 ms** | 141.74 ms |
+
+也就是桌面 GPU + 独立 YOLO 进程下约 **8.1 Hz**，瓶颈是检测；目标层/预测器/策略合计不到 1.5 ms。真实机器人端需要先做检测模型量化/输入分辨率优化，而不是优化跟踪器。
+
+**仍未覆盖**
+
+- 随机人数/多人干扰：目前只有固定 bystander；多人场景和 social navigation baseline 还没做。
+- 真实相机域偏移：当前是 ReplicaCAD RGB + 预训练检测器，没有真实相机、光照、噪声、鱼眼/滚转数据。
+- 已发表方法的严格复现：目前是规则/PPO/SAC/teacher-student 这些强基线，不是 CrowdNav/RMA 原论文的逐项复现。
+- 真实机器人：仍是 Isaac Gym + 2D 抽象，没有真机延迟/安全验证。
 
 ## 4. 与“最新机器人模型 / 更真实场景”的关系
 
@@ -1004,6 +1099,11 @@ source local_env.sh
 | `.../conformal_safety/` | conformal 半径与安全帽舞台结果 |
 | `.../multimodal_predictor/` | 3-mode MDN 的 checkpoint 与离线指标 |
 | `.../videojev_lite/` | 8 维候选打分器与 hard-case 对比结果 |
+| `.../benchmarks/benchmark_fixed_50.json` | 固定路线 50-episode 多策略指标 |
+| `.../benchmarks/benchmark_random_50_v2.json` | 随机路线/遮挡 50-episode 多策略指标 |
+| `.../benchmarks/stage_latency_teacher_600.json` | ReplicaCAD 端到端延迟拆解 |
+| `.../benchmarks/benchmark_random_50_v3.json` | 随机化训练的 teacher-student OOD 对比 |
+| `.../stage_domain_shift/` | 4 人 / 低亮度 / 噪声测试结果 |
 | `.../stage_ppo/summary.json` | 早期 PPO 零样本实验（已被 3.10 取代） |
 | `.../live_depth/summary.json` | 真实渲染 1 s 消失，深度融合 |
 | `.../live_depth/dropout_episode00.mp4` | 真实渲染消失视频 |

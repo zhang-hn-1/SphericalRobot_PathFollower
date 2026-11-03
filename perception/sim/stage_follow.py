@@ -25,6 +25,7 @@ import argparse
 import json
 import math
 import sys
+import time
 from pathlib import Path
 
 import numpy as np
@@ -281,11 +282,13 @@ def run(args):
                 return low_r * (1.0 - alpha) + high_r * alpha
         return points[-1][1]
     cfg = front_pair_config(
-        num_envs=1, num_people=2, frames=args.frames, episodes=1,
+        num_envs=1, num_people=max(2, min(4, args.num_people)),
+        frames=args.frames, episodes=1,
         seed=args.seed,
         avatar_dir=str(REPO / "perception/assets/rocketbox"),
         avatar_count=4,
-        avatar_list="Business_Male_01,Business_Male_02",
+        avatar_list="Business_Male_01,Business_Male_02,"
+                    "Business_Female_01,Business_Female_02",
         num_walls=0, num_pillars=0, save_seg_every=1, keep_in_fan=False)
     scene = PeopleScene(cfg)
     out = Path(args.out)
@@ -307,6 +310,12 @@ def run(args):
         target, bystander = people[0], people[1]
         bystander.pos = np.array([2.30, -3.60])
         bystander.vel = np.zeros(2)
+        extra_positions = [np.array([-2.20, -3.75]),
+                           np.array([2.70, -1.45])]
+        extras = people[2:]
+        for person, position in zip(extras, extra_positions):
+            person.pos = position.copy()
+            person.vel = np.zeros(2)
         target.pos, _ = target_at(0.0)
         target.vel = np.zeros(2)
         robot = SimpleBase(ROBOT_START, ROBOT_YAW)
@@ -341,18 +350,29 @@ def run(args):
                 np.array([TARGET_START[0], ROBOT_LANE_Y])]
 
         for frame in range(args.frames):
+            frame_started = time.perf_counter()
             t = round(frame * 0.1, 6)
             target_pos, tangent = target_at(t)
             target.pos = target_pos.copy()
             target.vel = np.zeros(2)
             target.yaw = float(math.atan2(tangent[1], tangent[0]))
             bystander.pos = np.array([2.30, -3.60])
+            for person, position in zip(extras, extra_positions):
+                person.pos = position.copy()
             scene._apply_people(0)
             scene.set_cameras(0, roll_deg=0.0, base_yaw=robot.yaw,
                               base_xy=(robot.x, robot.y))
+            render_started = time.perf_counter()
             views = scene.render(0, save_seg=True, save_depth=True)
+            render_ms = (time.perf_counter() - render_started) * 1000.0
             left = views[0]
             image = np.asarray(left["color"])
+            if args.image_gain != 1.0 or args.image_noise > 0.0:
+                image_rng = np.random.default_rng(args.seed + frame)
+                image = image.astype(np.float32) * args.image_gain
+                image += image_rng.normal(
+                    0.0, args.image_noise * 255.0, image.shape)
+                image = np.clip(image, 0.0, 255.0).astype(np.uint8)
             seg = np.asarray(left["seg"])
 
             target_mask = seg == target.person_id
@@ -362,7 +382,9 @@ def run(args):
             bystander_box, _ = _bbox_from_mask(bystander_mask, 30)
             target_visible = target_pixels >= 30 and target_box is not None
 
+            detect_started = time.perf_counter()
             raw_detections = deduplicate(worker.detect(image))
+            detect_ms = (time.perf_counter() - detect_started) * 1000.0
             detections = []
             for detection in raw_detections:
                 bbox = np.asarray(detection["bbox"], dtype=np.float64)
@@ -413,7 +435,9 @@ def run(args):
                     birth_confidence_min=0.25,
                     init_location_priority=True,
                 )
+            track_started = time.perf_counter()
             belief = layer.update(detections, t)
+            track_ms = (time.perf_counter() - track_started) * 1000.0
 
             identity_correct = False
             target_error = None
@@ -478,9 +502,11 @@ def run(args):
                               if belief.measurement_age_s is not None
                               else lost_age)
             learned_prediction = None
+            predictor_started = time.perf_counter()
             if predictor is not None and belief.lost:
                 learned_prediction = predictor.predict_belief(
                     belief, prediction_age)
+            predictor_ms = (time.perf_counter() - predictor_started) * 1000.0
             prediction_radius = (conformal_radius(prediction_age)
                                  if conformal is not None and belief.lost
                                  else None)
@@ -488,6 +514,7 @@ def run(args):
             if prediction_radius is not None:
                 conformal_scale = max(0.25, 1.0 - prediction_radius / 0.50)
             policy_action = None
+            policy_ms = 0.0
             if policy is not None:
                 predicted_policy = (learned_prediction
                                     if learned_prediction is not None
@@ -524,9 +551,11 @@ def run(args):
                     float(np.clip(target_loop_distance(predicted_policy) / 6.0,
                                   0.0, 1.0)),
                 ], dtype=np.float32)
+                policy_started = time.perf_counter()
                 with torch.no_grad():
                     policy_action = float(policy(torch.from_numpy(
                         policy_obs).unsqueeze(0)))
+                policy_ms = (time.perf_counter() - policy_started) * 1000.0
                 if args.residual:
                     base_target = (target_point if belief.target_visible
                                    else learned_prediction
@@ -619,6 +648,7 @@ def run(args):
                 np.array([robot.x, robot.y]) - target.pos))
             hidden_age = (None if last_visible_t is None or target_visible
                           else t - last_visible_t)
+            total_ms = (time.perf_counter() - frame_started) * 1000.0
             rows.append(dict(
                 t=t,
                 robot_xy=[round(robot.x, 3), round(robot.y, 3)],
@@ -646,6 +676,12 @@ def run(args):
                                   else round(float(prediction_radius), 3)),
                 distance=round(distance, 3),
                 robot_clearance=round(robot_clearance, 3),
+                latency_ms=dict(render=round(render_ms, 3),
+                                detect=round(detect_ms, 3),
+                                track=round(track_ms, 3),
+                                predictor=round(predictor_ms, 3),
+                                policy=round(policy_ms, 3),
+                                total=round(total_ms, 3)),
             ))
 
             if video is not None:
@@ -692,6 +728,14 @@ def run(args):
              if not row["identity_correct"] and row["status"] != "lost"]
     distances = [row["distance"] for row in rows]
     clearances = [row["robot_clearance"] for row in rows]
+    latency = {}
+    for key in ("render", "detect", "track", "predictor", "policy", "total"):
+        values = [row["latency_ms"][key] for row in rows]
+        latency[key] = dict(
+            mean_ms=round(float(np.mean(values)), 3),
+            p95_ms=round(float(np.percentile(values, 95)), 3),
+            max_ms=round(float(np.max(values)), 3),
+        )
     # Longest continuous hidden interval.
     longest_hidden = 0
     current_hidden = 0
@@ -741,6 +785,7 @@ def run(args):
         max_distance=round(float(np.max(distances)), 3),
         min_clearance=round(float(np.min(clearances)), 3),
         collision_frames=sum(1 for value in clearances if value < 0.42),
+        latency_ms=latency,
         hidden_prediction_rate=len(predicted_hidden) / max(1, len(hidden)),
         hidden_lost_rate=len(lost_hidden) / max(1, len(hidden)),
         hidden_rmse=(float(np.sqrt(np.mean(np.square(hidden_errors))))
@@ -788,6 +833,12 @@ def main():
                         help="split-conformal radii JSON for a safety speed cap")
     parser.add_argument("--conformal-level", default="0.95",
                         help="calibration level key, e.g. 0.90 or 0.95")
+    parser.add_argument("--num-people", type=int, default=2,
+                        help="scene people count (2-4; extras are static distractors)")
+    parser.add_argument("--image-gain", type=float, default=1.0,
+                        help="camera brightness gain for domain-shift tests")
+    parser.add_argument("--image-noise", type=float, default=0.0,
+                        help="camera Gaussian noise std in [0,1] for domain-shift tests")
     parser.add_argument("--video", action="store_true")
     args = parser.parse_args()
     result = run(args)

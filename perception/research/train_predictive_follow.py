@@ -228,6 +228,8 @@ def main():
                         help="maximum residual correction in normalized action units")
     parser.add_argument("--privileged", action="store_true",
                         help="teacher observation with clean target state")
+    parser.add_argument("--randomize", action="store_true",
+                        help="randomize route/occluders for each episode")
     parser.add_argument("--init-actor", default="",
                         help="initialize the actor from a BC/teacher checkpoint")
     args = parser.parse_args()
@@ -242,7 +244,7 @@ def main():
         stage_visibility=args.stage_visibility,
         detection_dropout=args.detection_dropout,
         measurement_noise=args.measurement_noise,
-        privileged_obs=args.privileged,
+        privileged_obs=args.privileged, randomize=args.randomize,
     )
     env = PredictiveFollowEnv(**env_kwargs)
     predictor = None
@@ -372,7 +374,7 @@ def main():
         stage_visibility=args.stage_visibility,
         detection_dropout=args.detection_dropout,
         measurement_noise=args.measurement_noise,
-        privileged_obs=args.privileged,
+        privileged_obs=args.privileged, randomize=args.randomize,
         residual=args.residual, residual_scale=args.residual_scale), indent=2))
     print(json.dumps(dict(model=str(out / "actor.pt"),
                           best=json.loads((out / "best.json").read_text())

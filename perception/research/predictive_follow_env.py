@@ -55,24 +55,39 @@ def _point_inside(point, center, size, yaw=0.0):
     return abs(local[0]) <= size[0] / 2.0 and abs(local[1]) <= size[1] / 2.0
 
 
-def clearance(point):
-    delta = np.asarray(point) - FRIDGE_CENTER
-    dx = max(abs(delta[0]) - FRIDGE_SIZE[0] / 2.0, 0.0)
-    dy = max(abs(delta[1]) - FRIDGE_SIZE[1] / 2.0, 0.0)
+def _obstacle_clearance(point, obstacle):
+    center, size, yaw = obstacle
+    delta = np.asarray(point) - np.asarray(center)
+    c, s = math.cos(yaw), math.sin(yaw)
+    local = np.array([c * delta[0] + s * delta[1],
+                      -s * delta[0] + c * delta[1]])
+    dx = max(abs(local[0]) - size[0] / 2.0, 0.0)
+    dy = max(abs(local[1]) - size[1] / 2.0, 0.0)
     return math.hypot(dx, dy)
 
 
-def line_blocked(a, b, samples=40):
+def clearance(point, obstacles=None):
+    if obstacles is None:
+        return _obstacle_clearance(
+            point, (FRIDGE_CENTER, FRIDGE_SIZE, 0.0))
+    return min(_obstacle_clearance(point, obstacle) for obstacle in obstacles)
+
+
+def line_blocked(a, b, samples=40, obstacles=None):
     a = np.asarray(a, dtype=np.float64)
     b = np.asarray(b, dtype=np.float64)
+    obstacles = ([(FRIDGE_CENTER, FRIDGE_SIZE, 0.0)]
+                 if obstacles is None else obstacles)
     for alpha in np.linspace(0.05, 0.95, samples):
-        if _point_inside(a + alpha * (b - a), FRIDGE_CENTER, FRIDGE_SIZE):
+        point = a + alpha * (b - a)
+        if any(_point_inside(point, center, size, yaw)
+               for center, size, yaw in obstacles):
             return True
     return False
 
 
-def point_at_loop_distance(distance):
-    points = TARGET_WAYPOINTS
+def point_at_loop_distance(distance, route=None):
+    points = TARGET_WAYPOINTS if route is None else np.asarray(route)
     segments = [points[(i + 1) % len(points)] - points[i]
                 for i in range(len(points))]
     lengths = [float(np.linalg.norm(segment)) for segment in segments]
@@ -86,16 +101,16 @@ def point_at_loop_distance(distance):
     return points[0], segments[0] / lengths[0]
 
 
-def loop_length():
-    points = TARGET_WAYPOINTS
+def loop_length(route=None):
+    points = TARGET_WAYPOINTS if route is None else np.asarray(route)
     return float(sum(np.linalg.norm(points[(i + 1) % len(points)] - points[i])
                      for i in range(len(points))))
 
 
-def route_progress(position):
+def route_progress(position, route=None):
     """Arc length of the closest point on the target route."""
     position = np.asarray(position, dtype=np.float64).reshape(2)
-    points = TARGET_WAYPOINTS
+    points = TARGET_WAYPOINTS if route is None else np.asarray(route)
     travelled = 0.0
     best_error = float("inf")
     best = 0.0
@@ -130,10 +145,16 @@ class PredictiveFollowEnv:
 
     def __init__(self, episode_s=30.0, seed=0, stage_visibility=False,
                  detection_dropout=0.0, measurement_noise=0.03,
-                 privileged_obs=False):
+                 privileged_obs=False, randomize=False, route=None,
+                 obstacles=None):
         self.episode_s = float(episode_s)
         self.rng = np.random.default_rng(seed)
         self.privileged_obs = bool(privileged_obs)
+        self.randomize = bool(randomize)
+        self.route = (TARGET_WAYPOINTS if route is None
+                      else np.asarray(route, dtype=np.float64))
+        self.obstacles = ([(FRIDGE_CENTER, FRIDGE_SIZE, 0.0)]
+                          if obstacles is None else obstacles)
         self.detection_dropout = float(np.clip(detection_dropout, 0.0, 0.8))
         self.measurement_noise = float(max(0.0, measurement_noise))
         self.stage_map = None
@@ -141,6 +162,7 @@ class PredictiveFollowEnv:
             self.stage_map = StageMap(
                 Path(__file__).resolve().parents[1]
                 / "assets/scenes/replica_stage/stage.obj")
+        self.predictor = None
         self.geometric_visible = True
         self.obs_dim = 15
         self.action_dim = 1
@@ -148,8 +170,36 @@ class PredictiveFollowEnv:
 
     # -- helpers ----------------------------------------------------
 
+    def _random_scene(self):
+        """Generate a route and 1-3 occluders for an OOD episode."""
+        angle = float(self.rng.uniform(-0.25, 0.25))
+        width = float(self.rng.uniform(1.8, 2.8))
+        height = float(self.rng.uniform(1.4, 2.1))
+        center = np.array([self.rng.uniform(-0.4, 0.4),
+                           self.rng.uniform(-2.3, -2.0)])
+        c, s = math.cos(angle), math.sin(angle)
+        local = np.array([[-width / 2, -height / 2],
+                          [width / 2, -height / 2],
+                          [width / 2, height / 2],
+                          [-width / 2, height / 2]])
+        self.route = (local @ np.array([[c, s], [-s, c]])) + center
+        self.obstacles = []
+        count = int(self.rng.integers(1, 4))
+        for _ in range(count):
+            # Keep occluders in the route band, not on the robot observation
+            # lane at y=-4; otherwise a random episode starts in collision
+            # and the policy comparison is invalid.
+            occluder_center = np.array([
+                center[0] + float(self.rng.uniform(-0.8, 0.8)),
+                float(self.rng.uniform(-2.7, -1.7)),
+            ])
+            occluder_size = (float(self.rng.uniform(0.45, 0.8)),
+                             float(self.rng.uniform(0.45, 0.8)))
+            self.obstacles.append((occluder_center, occluder_size,
+                                   float(self.rng.uniform(-0.6, 0.6))))
+
     def _target_state(self, distance):
-        position, tangent = point_at_loop_distance(distance)
+        position, tangent = point_at_loop_distance(distance, self.route)
         velocity = tangent * self.target_speed
         return position, velocity
 
@@ -171,7 +221,8 @@ class PredictiveFollowEnv:
         if float(np.linalg.norm(target - np.array([self.robot_x,
                                                    self.robot_y]))) > 12.0:
             return False
-        if line_blocked((self.robot_x, self.robot_y), target):
+        if line_blocked((self.robot_x, self.robot_y), target,
+                        obstacles=self.obstacles):
             return False
         if self.stage_map is not None and not self.stage_map.line_of_sight(
                 (self.robot_x, self.robot_y), target):
@@ -196,12 +247,14 @@ class PredictiveFollowEnv:
             0.0,
             1.0,
             float(np.clip(distance / 6.0, 0.0, 1.0)),
-            float(np.clip(clearance((self.robot_x, self.robot_y)) / 2.0, 0.0, 1.0)),
-            float(np.clip(clearance(probe) / 2.0, 0.0, 1.0)),
+            float(np.clip(clearance((self.robot_x, self.robot_y),
+                                     self.obstacles) / 2.0, 0.0, 1.0)),
+            float(np.clip(clearance(probe, self.obstacles) / 2.0, 0.0, 1.0)),
             float(np.clip((self.robot_y - ROBOT_LANE_Y) / 1.0, -1.0, 1.0)),
             float(np.clip((target[0] - self.robot_x) / 2.0, -1.0, 1.0)),
             float(np.clip(target[0] / 3.0, -1.0, 1.0)),
-            float(np.clip(route_progress(target) / 6.0, 0.0, 1.0)),
+            float(np.clip(route_progress(target, self.route) / 6.0,
+                          0.0, 1.0)),
         ], dtype=np.float32)
 
     def _observation(self, target, visible, measurement_age):
@@ -229,12 +282,14 @@ class PredictiveFollowEnv:
             float(np.clip(self.prediction_uncertainty / 1.0, 0.0, 1.0)),
             1.0 if visible else 0.0,
             float(np.clip(distance / 6.0, 0.0, 1.0)),
-            float(np.clip(clearance((self.robot_x, self.robot_y)) / 2.0, 0.0, 1.0)),
-            float(np.clip(clearance(probe) / 2.0, 0.0, 1.0)),
+            float(np.clip(clearance((self.robot_x, self.robot_y),
+                                     self.obstacles) / 2.0, 0.0, 1.0)),
+            float(np.clip(clearance(probe, self.obstacles) / 2.0, 0.0, 1.0)),
             float(np.clip((self.robot_y - ROBOT_LANE_Y) / 1.0, -1.0, 1.0)),
             float(np.clip((predicted[0] - self.robot_x) / 2.0, -1.0, 1.0)),
             float(np.clip(predicted[0] / 3.0, -1.0, 1.0)),
-            float(np.clip(route_progress(predicted) / 6.0, 0.0, 1.0)),
+            float(np.clip(route_progress(predicted, self.route) / 6.0,
+                          0.0, 1.0)),
         ], dtype=np.float32)
 
     # -- API --------------------------------------------------------
@@ -243,12 +298,13 @@ class PredictiveFollowEnv:
         if seed is not None:
             self.rng = np.random.default_rng(seed)
         self.t = 0.0
+        if self.randomize:
+            self._random_scene()
         self.robot_x = float(self.rng.uniform(-0.5, 1.5))
         self.robot_y = ROBOT_LANE_Y
         self.robot_vx = 0.0
-        self.predictor = None
-        self.target_speed = TARGET_SPEED * float(self.rng.uniform(0.85, 1.15))
-        self.target_distance = float(self.rng.uniform(0.0, loop_length()))
+        self.target_speed = TARGET_SPEED * float(self.rng.uniform(0.65, 1.35))
+        self.target_distance = float(self.rng.uniform(0.0, loop_length(self.route)))
         target, velocity = self._target_state(self.target_distance)
         self.target = target
         self.target_velocity = velocity
@@ -262,7 +318,10 @@ class PredictiveFollowEnv:
         self.reacquired = False
         self.was_hidden = False
         self.hidden_frames = 0
-        self.min_clearance = clearance((self.robot_x, self.robot_y))
+        self.min_clearance = clearance(
+            (self.robot_x, self.robot_y), self.obstacles)
+        self.path_length = 0.0
+        self.control_effort = 0.0
         self.collisions = 0
         self.visible_frames = 0
         self.distance_sum = 0.0
@@ -284,12 +343,17 @@ class PredictiveFollowEnv:
         vy = float(np.clip(0.9 * (ROBOT_LANE_Y - self.robot_y), -0.30, 0.30))
         probe = np.array([self.robot_x + vx * 0.4,
                           self.robot_y + vy * 0.4])
-        if clearance(probe) < 0.55:
+        if clearance(probe, self.obstacles) < 0.55:
             vx = vy = 0.0
+        previous_x, previous_y = self.robot_x, self.robot_y
         self.robot_x += vx * DT
         self.robot_y += vy * DT
         self.robot_vx = vx
-        current_clearance = clearance((self.robot_x, self.robot_y))
+        self.path_length += math.hypot(self.robot_x - previous_x,
+                                       self.robot_y - previous_y)
+        self.control_effort += abs(vx) + abs(vy)
+        current_clearance = clearance((self.robot_x, self.robot_y),
+                                      self.obstacles)
         self.min_clearance = min(self.min_clearance, current_clearance)
 
         geometric_visible = self._visible(target)

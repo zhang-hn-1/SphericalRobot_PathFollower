@@ -101,6 +101,7 @@ def main():
     parser.add_argument("--detection-dropout", type=float, default=0.30)
     parser.add_argument("--measurement-noise", type=float, default=0.05)
     parser.add_argument("--no-stage-visibility", action="store_true")
+    parser.add_argument("--randomize", action="store_true")
     args = parser.parse_args()
 
     out = Path(args.out)
@@ -110,7 +111,7 @@ def main():
         episode_s=args.episode_s,
         stage_visibility=not args.no_stage_visibility,
         detection_dropout=args.detection_dropout,
-        measurement_noise=args.measurement_noise,
+        measurement_noise=args.measurement_noise, randomize=args.randomize,
     )
     env = PredictiveFollowEnv(**env_kwargs)
     predictor = None

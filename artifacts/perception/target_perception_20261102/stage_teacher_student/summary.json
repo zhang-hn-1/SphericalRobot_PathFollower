@@ -26,18 +26,38 @@
       "longest": 1.8,
       "collisions": 0,
       "min_clearance": 0.608
+    },
+    {
+      "seed": "21",
+      "visible": 553,
+      "hidden": 46,
+      "identity": 1.0,
+      "longest": 2.0,
+      "collisions": 0,
+      "min_clearance": 0.559
+    },
+    {
+      "seed": "42",
+      "visible": 566,
+      "hidden": 34,
+      "identity": 1.0,
+      "longest": 1.8,
+      "collisions": 0,
+      "min_clearance": 0.608
     }
   ],
   "aggregate": {
     "seeds": [
       "20261102",
       "7",
-      "13"
+      "13",
+      "21",
+      "42"
     ],
-    "mean_visible": 565.7,
-    "mean_hidden": 34.0,
-    "mean_identity": 0.9994,
-    "mean_longest": 1.6,
+    "mean_visible": 563.2,
+    "mean_hidden": 36.4,
+    "mean_identity": 0.9997,
+    "mean_longest": 1.72,
     "collisions": 0,
     "min_clearance": 0.559
   }

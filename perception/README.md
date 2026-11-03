@@ -35,6 +35,7 @@ original design and evidence are in
 | `research/train_multimodal_predictor.py` | GRU + K-mode MDN (Trajectron++-lite) |
 | `candidate_scorer.py` | 8-feature linear candidate scorer (VideoJev-lite) |
 | `research/train_candidate_scorer.py` | train the candidate scorer |
+| `research/benchmark_following.py` | fixed/random-route multi-policy benchmark with standard metrics and latency |
 | `research/eval_candidate_scorer.py` | with/without scorer stress comparison |
 | `learned_predictor.py` | supervised future-position predictor (0.5/1/2 s displacement) |
 | `research/train_trajectory_predictor.py` | train/validate the trajectory predictor; `--no-absolute` is the route-blind ablation |
@@ -170,6 +171,19 @@ python3 perception/eval_target_perception.py \
     --predictor /home/jason/perception_data/runs/trajectory_predictor_v2/predictor.pt \
     --stage-visibility --detection-dropout 0.30 --measurement-noise 0.05
 
+# multi-route benchmark: fixed vs randomized routes/occluders, standard metrics
+/home/jason/.venvs/ultralytics-rice/bin/python \
+    perception/research/benchmark_following.py \
+    --out /home/jason/perception_data/runs/benchmark_random_50_v2.json \
+    --randomize --episodes 50 --episode-s 30 --seed 1000 \
+    --absolute-predictor /home/jason/perception_data/runs/trajectory_predictor_v2/predictor.pt \
+    --relative-predictor /home/jason/perception_data/runs/trajectory_predictor_relative_v1/predictor.pt \
+    --ppo /home/jason/perception_data/runs/predictive_follow_ppo_stage_v9/actor.pt \
+    --teacher /home/jason/perception_data/runs/teacher_student_ppo_v1/actor.pt \
+    --sac /home/jason/perception_data/runs/predictive_follow_sac_v2/actor.pt \
+    --residual /home/jason/perception_data/runs/predictive_follow_ppo_residual_v1/actor.pt \
+    --relative-ppo /home/jason/perception_data/runs/predictive_follow_ppo_stage_relative_v1/actor.pt
+
 # open-source HouseExpo indoor floorplans (MIT, 1.35x scaled for the ball)
 /home/jason/legged_gym/.venv/bin/python perception/sim/map_follow.py \
     --out /home/jason/perception_data/runs/houseexpo_follow_v1 \
@@ -220,10 +234,18 @@ a GRU predictor maps the target history to 0.5/1/2 s displacement (1 s MAE
 a BC+PPO actor chooses the lateral speed from that prediction. The current best
 variant is **teacher-student / DAgger**: a privileged teacher PPO sees the clean
 target state, and the student sees only measured history plus the frozen
-predictor. On the ReplicaCAD stage, 600-frame runs across three seeds give
-**566 vs 481 visible frames, 34 vs 118 hidden frames, and 1.6 s vs 9.1 s
-longest occlusion** (mean; identity 99.9%, zero collisions, minimum clearance
-0.559 m). The predictor intentionally uses absolute world position as a route
+predictor. On the ReplicaCAD stage, 600-frame runs across five seeds give
+**563 vs 437 visible frames, 36 vs 162 hidden frames, and 1.7 s vs 11.0 s
+longest occlusion** (mean; identity 99.97%, zero collisions, minimum clearance
+0.559 m). A 50-episode randomized-route benchmark shows the learned policies
+degrade out of distribution (teacher 0.565 vs rule 0.574 visible; PPO 0.548),
+so cross-route generalization is still open. A randomized-trained
+teacher-student recovers to **0.591 visible / 0.90 success** vs rule
+0.574/0.84, but is not yet the fixed-route best. A preliminary camera
+domain-shift test (4 people, gain 0.7, noise 0.02) collapses YOLO measured rate
+to 0.6%; detection-side domain randomization is the next bottleneck. End-to-end latency is about
+123 ms per frame, dominated by the 109 ms YOLO pass; tracking, predictor and
+policy together are under 1.5 ms. The predictor intentionally uses absolute world position as a route
 prior, so cross-map generalization is not claimed.
 
 Ablation (same data/architecture, absolute position removed): the route-aware
