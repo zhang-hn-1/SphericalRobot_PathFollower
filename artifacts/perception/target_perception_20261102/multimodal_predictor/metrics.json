@@ -1,0 +1,50 @@
+{
+  "same": {
+    "0.5s": {
+      "min_ade_m": 0.1848,
+      "chosen_mode_ade_m": 0.1923
+    },
+    "1.0s": {
+      "min_ade_m": 0.3723,
+      "chosen_mode_ade_m": 0.3832
+    },
+    "2.0s": {
+      "min_ade_m": 0.6118,
+      "chosen_mode_ade_m": 0.7406
+    },
+    "min_ade_overall_m": 0.3896,
+    "chosen_mode_ade_overall_m": 0.4387
+  },
+  "rotated": {
+    "0.5s": {
+      "min_ade_m": 0.2387,
+      "chosen_mode_ade_m": 0.2822
+    },
+    "1.0s": {
+      "min_ade_m": 0.413,
+      "chosen_mode_ade_m": 0.4613
+    },
+    "2.0s": {
+      "min_ade_m": 0.6771,
+      "chosen_mode_ade_m": 0.8105
+    },
+    "min_ade_overall_m": 0.4429,
+    "chosen_mode_ade_overall_m": 0.518
+  },
+  "narrow": {
+    "0.5s": {
+      "min_ade_m": 0.2297,
+      "chosen_mode_ade_m": 0.2363
+    },
+    "1.0s": {
+      "min_ade_m": 0.441,
+      "chosen_mode_ade_m": 0.4493
+    },
+    "2.0s": {
+      "min_ade_m": 0.6615,
+      "chosen_mode_ade_m": 0.7934
+    },
+    "min_ade_overall_m": 0.4441,
+    "chosen_mode_ade_overall_m": 0.493
+  }
+}

@@ -263,6 +263,23 @@ def run(args):
     if args.predictor:
         from perception.learned_predictor import TrajectoryPredictor
         predictor = TrajectoryPredictor(args.predictor)
+    conformal = None
+    if args.conformal_json:
+        raw = json.loads(Path(args.conformal_json).read_text())
+        conformal = raw.get("radii", {}).get(args.conformal_level, {})
+
+    def conformal_radius(age):
+        if not conformal:
+            return 0.0
+        points = sorted((float(key.rstrip("s")), float(value))
+                        for key, value in conformal.items())
+        if age <= points[0][0]:
+            return points[0][1]
+        for (low_t, low_r), (high_t, high_r) in zip(points, points[1:]):
+            if low_t <= age <= high_t:
+                alpha = (age - low_t) / (high_t - low_t)
+                return low_r * (1.0 - alpha) + high_r * alpha
+        return points[-1][1]
     cfg = front_pair_config(
         num_envs=1, num_people=2, frames=args.frames, episodes=1,
         seed=args.seed,
@@ -464,6 +481,12 @@ def run(args):
             if predictor is not None and belief.lost:
                 learned_prediction = predictor.predict_belief(
                     belief, prediction_age)
+            prediction_radius = (conformal_radius(prediction_age)
+                                 if conformal is not None and belief.lost
+                                 else None)
+            conformal_scale = 1.0
+            if prediction_radius is not None:
+                conformal_scale = max(0.25, 1.0 - prediction_radius / 0.50)
             policy_action = None
             if policy is not None:
                 predicted_policy = (learned_prediction
@@ -539,7 +562,8 @@ def run(args):
                     robot.move(0.0, 0.0, look_at(robot, target_point), 0.1)
             elif (policy_action is not None and belief.lost
                     and lost_age <= 3.0):
-                vx = float(np.clip(0.60 * policy_action, -0.45, 0.45))
+                vx = float(np.clip(0.60 * policy_action * conformal_scale,
+                                   -0.45, 0.45))
                 vy = float(np.clip(0.9 * (ROBOT_LANE_Y - robot.y),
                                    -0.25, 0.25))
                 probe = np.array([robot.x + vx * 0.4, robot.y + vy * 0.4])
@@ -557,7 +581,8 @@ def run(args):
                 predicted = (learned_prediction if learned_prediction is not None
                              else last_target_point
                              + last_velocity * prediction_age)
-                decay = max(0.0, 1.0 - lost_age / args.predict_follow_s) ** 1.5
+                decay = (max(0.0, 1.0 - lost_age / args.predict_follow_s)
+                         ** 1.5 * conformal_scale)
                 vx = float(np.clip(
                     args.predict_speed_scale * 0.8
                     * (predicted[0] - robot.x) * decay, -0.40, 0.40))
@@ -617,6 +642,8 @@ def run(args):
                 learned_prediction=(None if learned_prediction is None
                                     else [round(float(learned_prediction[0]), 3),
                                           round(float(learned_prediction[1]), 3)]),
+                conformal_radius=(None if prediction_radius is None
+                                  else round(float(prediction_radius), 3)),
                 distance=round(distance, 3),
                 robot_clearance=round(robot_clearance, 3),
             ))
@@ -757,6 +784,10 @@ def main():
                         help="treat --policy as a correction on the rule action")
     parser.add_argument("--residual-scale", type=float, default=0.4,
                         help="maximum residual correction in normalized action units")
+    parser.add_argument("--conformal-json", default="",
+                        help="split-conformal radii JSON for a safety speed cap")
+    parser.add_argument("--conformal-level", default="0.95",
+                        help="calibration level key, e.g. 0.90 or 0.95")
     parser.add_argument("--video", action="store_true")
     args = parser.parse_args()
     result = run(args)

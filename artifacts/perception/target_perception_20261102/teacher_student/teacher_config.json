@@ -1,0 +1,17 @@
+{
+  "obs_dim": 15,
+  "action_dim": 1,
+  "episode_s": 30.0,
+  "iters": 120,
+  "episodes": 8,
+  "seed": 7,
+  "bc_episodes": 0,
+  "bc_steps": 0,
+  "predictor": null,
+  "stage_visibility": false,
+  "detection_dropout": 0.0,
+  "measurement_noise": 0.03,
+  "privileged_obs": true,
+  "residual": false,
+  "residual_scale": 0.4
+}

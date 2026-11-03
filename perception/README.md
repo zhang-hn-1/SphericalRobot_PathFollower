@@ -30,6 +30,9 @@ original design and evidence are in
 | `research/predictive_follow_env.py` | fast predictive-follow environment: stage visibility, detection dropout, 15D obs / 1D action |
 | `research/train_predictive_follow.py` | rule behavior cloning + PPO; `--residual` is the residual-RL variant |
 | `research/train_predictive_follow_sac.py` | SAC baseline on the same env/predictor/eval protocol |
+| `research/train_teacher_student.py` | privileged teacher PPO + DAgger student distillation |
+| `research/calibrate_conformal.py` | split-conformal prediction-radius calibration |
+| `research/train_multimodal_predictor.py` | GRU + K-mode MDN (Trajectron++-lite) |
 | `learned_predictor.py` | supervised future-position predictor (0.5/1/2 s displacement) |
 | `research/train_trajectory_predictor.py` | train/validate the trajectory predictor; `--no-absolute` is the route-blind ablation |
 | `research/eval_trajectory_predictor.py` | score a predictor on the training route and unseen routes |
@@ -142,6 +145,28 @@ python3 perception/eval_target_perception.py \
     --policy /home/jason/perception_data/runs/predictive_follow_ppo_residual_v1/actor.pt \
     --residual --residual-scale 0.4
 
+# teacher-student: privileged teacher, DAgger student, PPO fine-tune
+/home/jason/.venvs/ultralytics-rice/bin/python \
+    perception/research/train_predictive_follow.py \
+    --out /home/jason/perception_data/runs/teacher_privileged_ppo_v1 \
+    --iters 120 --episodes 8 --episode-s 30 --seed 7 --privileged
+
+/home/jason/.venvs/ultralytics-rice/bin/python \
+    perception/research/train_teacher_student.py \
+    --teacher /home/jason/perception_data/runs/teacher_privileged_ppo_v1/actor.pt \
+    --predictor /home/jason/perception_data/runs/trajectory_predictor_v2/predictor.pt \
+    --out /home/jason/perception_data/runs/teacher_student_v1 \
+    --dagger-iters 2 --episodes 10 --bc-steps 1500 \
+    --detection-dropout 0.30 --measurement-noise 0.05
+
+/home/jason/.venvs/ultralytics-rice/bin/python \
+    perception/research/train_predictive_follow.py \
+    --out /home/jason/perception_data/runs/teacher_student_ppo_v1 \
+    --iters 120 --episodes 8 --episode-s 30 --seed 7 \
+    --init-actor /home/jason/perception_data/runs/teacher_student_v1/student.pt \
+    --predictor /home/jason/perception_data/runs/trajectory_predictor_v2/predictor.pt \
+    --stage-visibility --detection-dropout 0.30 --measurement-noise 0.05
+
 # open-source HouseExpo indoor floorplans (MIT, 1.35x scaled for the ball)
 /home/jason/legged_gym/.venv/bin/python perception/sim/map_follow.py \
     --out /home/jason/perception_data/runs/houseexpo_follow_v1 \
@@ -189,13 +214,14 @@ identity stays 100% and geometric collisions stay at zero (minimum clearance
 The follow layer is now **supervised prediction + RL with a safety shield**:
 a GRU predictor maps the target history to 0.5/1/2 s displacement (1 s MAE
 0.068 m vs 0.173 m for smoothed constant velocity on held-out route seeds), and
-a BC+PPO actor chooses the lateral speed from that prediction. On the
-ReplicaCAD stage, 600-frame runs across three seeds give **547 vs 481 visible
-frames, 53 vs 118 hidden frames, and 3.6 s vs 9.1 s longest occlusion**
-(mean; identity 100%, zero collisions, minimum clearance 0.559 m). The policy
-falls back to the rule whenever its action points away from the supervised
-prediction. The predictor intentionally uses absolute world position as a
-route prior, so cross-map generalization is not claimed.
+a BC+PPO actor chooses the lateral speed from that prediction. The current best
+variant is **teacher-student / DAgger**: a privileged teacher PPO sees the clean
+target state, and the student sees only measured history plus the frozen
+predictor. On the ReplicaCAD stage, 600-frame runs across three seeds give
+**566 vs 481 visible frames, 34 vs 118 hidden frames, and 1.6 s vs 9.1 s
+longest occlusion** (mean; identity 99.9%, zero collisions, minimum clearance
+0.559 m). The predictor intentionally uses absolute world position as a route
+prior, so cross-map generalization is not claimed.
 
 Ablation (same data/architecture, absolute position removed): the route-aware
 model's 1 s error rises from 7.1 cm on the training route to **27.7 cm** on an
@@ -209,9 +235,12 @@ Two further RL baselines were tested and are **not selected**: residual PPO
 (rule action + learned correction) reached 63.2% vs 63.0% in the 2D env but
 degraded in the stage (393/121/335 visible across three seeds, identity
 94–99%); SAC was unstable without tuning and reached 58.1% visible in 2D.
-The literature survey and next-step recommendation (privileged teacher-student,
-TD3+BC/AWAC offline-to-online, SoNIC-style conformal safety) are in report
-section 3.12. See
+The teacher-student follow-up is implemented (report section 3.13); the
+conformal speed-cap and 3-mode MDN prototypes are documented in section 3.14.
+The conformal cap was too conservative (503/97 vs 563/37) and the MDN's 1 s
+minADE was 0.372 m vs 0.071 m for the single-mode predictor, so neither is
+selected. The remaining recommendations are TD3+BC/AWAC offline-to-online and
+CrowdNav-style attention / model-based RL. See
 [`../artifacts/perception/TARGET_PERCEPTION_20261102.md`](../artifacts/perception/TARGET_PERCEPTION_20261102.md).
 
 ## Rocketbox avatars (optional, replaces the coloured primitives)

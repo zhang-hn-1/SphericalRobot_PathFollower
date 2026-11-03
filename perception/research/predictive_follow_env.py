@@ -129,9 +129,11 @@ class PredictiveFollowEnv:
     """Single-agent 2D environment with a hidden target and a fridge."""
 
     def __init__(self, episode_s=30.0, seed=0, stage_visibility=False,
-                 detection_dropout=0.0, measurement_noise=0.03):
+                 detection_dropout=0.0, measurement_noise=0.03,
+                 privileged_obs=False):
         self.episode_s = float(episode_s)
         self.rng = np.random.default_rng(seed)
+        self.privileged_obs = bool(privileged_obs)
         self.detection_dropout = float(np.clip(detection_dropout, 0.0, 0.8))
         self.measurement_noise = float(max(0.0, measurement_noise))
         self.stage_map = None
@@ -176,7 +178,35 @@ class PredictiveFollowEnv:
             return False
         return True
 
+    def privileged_observation(self):
+        """Teacher view: clean target state, no detection dropout."""
+        target = self.target
+        velocity = self.target_velocity
+        delta = target - np.array([self.robot_x, self.robot_y])
+        distance = float(np.linalg.norm(delta))
+        probe = np.array([self.robot_x + np.clip(delta[0], -1.0, 1.0) * 0.4,
+                          self.robot_y + np.clip(delta[1], -1.0, 1.0) * 0.4])
+        return np.array([
+            float(np.clip(delta[0] / 5.0, -1.0, 1.0)),
+            float(np.clip(delta[1] / 5.0, -1.0, 1.0)),
+            float(np.clip(velocity[0] / 1.0, -1.0, 1.0)),
+            float(np.clip(velocity[1] / 1.0, -1.0, 1.0)),
+            0.0,
+            1.0,
+            0.0,
+            1.0,
+            float(np.clip(distance / 6.0, 0.0, 1.0)),
+            float(np.clip(clearance((self.robot_x, self.robot_y)) / 2.0, 0.0, 1.0)),
+            float(np.clip(clearance(probe) / 2.0, 0.0, 1.0)),
+            float(np.clip((self.robot_y - ROBOT_LANE_Y) / 1.0, -1.0, 1.0)),
+            float(np.clip((target[0] - self.robot_x) / 2.0, -1.0, 1.0)),
+            float(np.clip(target[0] / 3.0, -1.0, 1.0)),
+            float(np.clip(route_progress(target) / 6.0, 0.0, 1.0)),
+        ], dtype=np.float32)
+
     def _observation(self, target, visible, measurement_age):
+        if self.privileged_obs:
+            return self.privileged_observation()
         if visible:
             # The policy sees the same measured position/velocity as the
             # world-frame target layer, not the simulator's clean target.

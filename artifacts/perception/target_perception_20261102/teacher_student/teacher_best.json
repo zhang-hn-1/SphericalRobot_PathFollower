@@ -1,0 +1,25 @@
+{
+  "iter": 110,
+  "score": 0.924,
+  "learned": {
+    "visible_rate": 0.924,
+    "hidden_frames": 456,
+    "collisions": 0,
+    "reacquired_episodes": 20,
+    "episodes": 20,
+    "mean_distance": 2.533,
+    "min_clearance": 1.4,
+    "mean_return": 38.798
+  },
+  "rule": {
+    "visible_rate": 0.8941666666666667,
+    "hidden_frames": 635,
+    "collisions": 0,
+    "reacquired_episodes": 20,
+    "episodes": 20,
+    "mean_distance": 1.829,
+    "min_clearance": 1.4,
+    "mean_return": 25.614
+  },
+  "rule_constant": null
+}

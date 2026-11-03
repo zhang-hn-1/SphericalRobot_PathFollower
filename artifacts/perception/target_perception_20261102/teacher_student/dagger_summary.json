@@ -1,0 +1,34 @@
+{
+  "history": [
+    {
+      "iteration": 0,
+      "samples": 3000,
+      "bc_rmse": 0.09186,
+      "student": {
+        "visible_rate": 0.6516666666666666,
+        "hidden_frames": 2090,
+        "collisions": 0,
+        "reacquired_episodes": 20,
+        "episodes": 20,
+        "mean_distance": 2.408,
+        "min_clearance": 1.4,
+        "mean_return": 31.401
+      }
+    },
+    {
+      "iteration": 1,
+      "samples": 6000,
+      "bc_rmse": 0.10167,
+      "student": {
+        "visible_rate": 0.6483333333333333,
+        "hidden_frames": 2110,
+        "collisions": 0,
+        "reacquired_episodes": 20,
+        "episodes": 20,
+        "mean_distance": 2.489,
+        "min_clearance": 1.4,
+        "mean_return": 30.926
+      }
+    }
+  ]
+}

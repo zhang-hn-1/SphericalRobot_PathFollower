@@ -1,0 +1,44 @@
+{
+  "runs": [
+    {
+      "seed": "20261102",
+      "visible": 563,
+      "hidden": 37,
+      "identity": 1.0,
+      "longest": 1.8,
+      "collisions": 0,
+      "min_clearance": 0.559
+    },
+    {
+      "seed": "7",
+      "visible": 571,
+      "hidden": 28,
+      "identity": 0.998330550918197,
+      "longest": 1.2,
+      "collisions": 0,
+      "min_clearance": 0.559
+    },
+    {
+      "seed": "13",
+      "visible": 563,
+      "hidden": 37,
+      "identity": 1.0,
+      "longest": 1.8,
+      "collisions": 0,
+      "min_clearance": 0.608
+    }
+  ],
+  "aggregate": {
+    "seeds": [
+      "20261102",
+      "7",
+      "13"
+    ],
+    "mean_visible": 565.7,
+    "mean_hidden": 34.0,
+    "mean_identity": 0.9994,
+    "mean_longest": 1.6,
+    "collisions": 0,
+    "min_clearance": 0.559
+  }
+}

@@ -42,7 +42,8 @@
 | ReplicaCAD 复杂环路 40 s（基线） | identity / 碰撞 / 最长遮挡 | **100% / 0 / 8.7 s** |
 | 感知增强 + 预测性跟随（规则，旧舞台坐标） | 可见帧 / lost / 碰撞 | 325 / 58% / 0 |
 | 舞台深度/初始朝向修正 + 规则预测 | 可见帧 / hidden / 最长遮挡 | **343 / 57 / 4.3 s** |
-| 监督预测器 + RL + 安全回退（600 帧 3 seeds） | visible / hidden / 最长遮挡 | **547 / 53 / 3.6 s** |
+| 监督预测器 + RL + 安全回退（600 帧 3 seeds） | visible / hidden / 最长遮挡 | 547 / 53 / 3.6 s |
+| Teacher-student DAgger + PPO（600 帧 3 seeds） | visible / hidden / 最长遮挡 | **566 / 34 / 1.6 s** |
 | 消融：route-blind 预测器 + RL（600 帧 3 seeds） | visible / hidden / 最长遮挡 | 500 / 100 / 4.9 s |
 
 这里的“1 秒位置误差”是预测点到目标真实世界坐标的距离。真实渲染中约
@@ -65,6 +66,9 @@
 | `perception/research/train_trajectory_predictor.py` | 生成轨迹窗口并训练/验证预测器；`--no-absolute` 做 route-blind 消融 |
 | `perception/research/eval_trajectory_predictor.py` | 在训练路线和未见路线上评估预测器 |
 | `perception/research/train_predictive_follow_sac.py` | SAC 对照实验 |
+| `perception/research/train_teacher_student.py` | 特权 teacher PPO + DAgger student 蒸馏 |
+| `perception/research/calibrate_conformal.py` | split-conformal 预测半径校准 |
+| `perception/research/train_multimodal_predictor.py` | GRU + K-mode MDN（Trajectron++-lite） |
 | `perception/sim/stage_follow.py --residual` | 残差 PPO 对照实验（当前未选用） |
 | `perception/stage_map.py` | 舞台墙占据图 + 2D 线段可见性（无 Isaac Gym 依赖） |
 | `perception/sim/stage_follow.py` | 可选 `--policy/--predictor`，并把监督+RL 接入舞台闭环 |
@@ -716,6 +720,81 @@ teacher-student / offline-to-online 结构：
 4. 最后再考虑 DreamerV3/TD-MPC2；当前监督预测器已经提供了很好的低维接口，
    先做模型-based 的收益不明显。
 
+### 3.13 Teacher-student / DAgger 特权蒸馏
+
+这是目前最强的一版，也是把“监督预测器”和“RL”结合得最自然的方式：
+teacher 用真值目标、无检测 dropout；student 只用可部署的测量历史和冻结的
+监督预测器；用 DAgger 在 student 自己的状态上重标注。
+
+**训练流程**
+
+1. **Teacher PPO**：观测 15D，但目标位置/速度用真值，`visible=1`、
+   `age=0`、`uncertainty=0`；2D 可见率 **92.4%**（规则 89.4%）。
+2. **Student 观测**：正常 `TargetBelief` 历史 + 冻结监督预测器，带
+   stage 可见性、0.30 检测 dropout、0.05 m 测量噪声。
+3. **DAgger**：第一轮 student 用规则动作行动，teacher 在每个 student 状态
+   上给动作标签；训练 student BC；第二轮用 student 自己行动，再让 teacher
+   标注并合并训练。
+4. **PPO 微调**：student BC 初始化后，在同一个 stage-like 环境里 PPO 微调。
+
+**结果**
+
+| 配置 | 2D visible | ReplicaCAD 600 帧 ×3 seeds |
+|---|---:|---:|
+| Teacher（特权观测） | 92.4% | 不可直接部署 |
+| Student BC（DAgger） | 64.8% | — |
+| Student BC + PPO | 65.2% | **565.7 visible / 34 hidden / 1.6 s** |
+| 直接 PPO + shield | 64.7% | 547 / 53 / 3.6 s |
+| 规则 + 监督预测器 | 63.0% | 481 / 118 / 9.1 s |
+
+Teacher-student 的 3 个种子舞台结果：
+
+| seed | visible | hidden | 最长遮挡 | identity |
+|---|---:|---:|---:|---:|
+| 20261102 | 563 | 37 | 1.8 s | 100% |
+| 7 | 571 | 28 | 1.2 s | 99.83% |
+| 13 | 563 | 37 | 1.8 s | 100% |
+
+零碰撞，最小间距 0.559 m，同轨迹恢复。结论：
+
+- teacher 的特权信息只用于训练，student 部署时没有 GT；这是标准的
+  Learning-by-Cheating / RMA 风格蒸馏。
+- 相比直接 PPO，teacher-student 的 hidden 帧再降 36%、最长遮挡从 3.6 s
+  降到 1.6 s，且种子方差更小。
+- 仍然依赖当前路线的监督预测器先验；换地图需要用 3.11 的 route-blind
+  版本重做蒸馏。
+
+### 3.14 Conformal safety 与多模态预测：两个原型
+
+**Conformal safety**
+
+用 split-conformal 在 6000 个 held-out 窗口上校准预测误差半径：
+
+| 水平 | 0.5 s | 1.0 s | 2.0 s |
+|---|---:|---:|---:|
+| 90% | 0.094 m | 0.132 m | 0.218 m |
+| 95% | 0.115 m | 0.155 m | 0.257 m |
+
+把 95% 半径接成丢失阶段的速度上限（半径越大越慢）后，teacher-student 的
+600 帧结果反而从 563/37/1.8 s 退到 **503/97/1.9 s**。原因是我们的策略本来
+已经通过预测器和安全回退处理了不确定性，再乘一个速度帽过于保守。这个原型
+说明 SoNIC 式的关键不是“有半径就减速”，而是把半径放进 constrained RL/规划
+的约束里；当前版本只作为负面结果，不默认启用。
+
+**多模态预测器**
+
+实现了一个 GRU + K=3 模式的 MDN（Trajectron++-lite），训练数据/输入与单模态
+相同：
+
+| 指标（同路线，1 s） | 单模态 GRU | 3-mode MDN |
+|---|---:|---:|
+| minADE | **0.071 m** | 0.372 m |
+| 选择概率最高模式 | — | 0.383 m |
+
+多模态版本在训练预算内明显不如单模态，说明在这条确定性矩形路线上增加模式
+没有收益，反而增加了优化难度；不接规划，也不替换当前预测器。真正需要多模态
+时（人群、岔路、未知意图）再重做，而不是为了形式上的 Trajectron++。
+
 ## 4. 与“最新机器人模型 / 更真实场景”的关系
 
 - **旧模型可用**：当前仿真和闭环用的是仓库里的旧球形机器人模型，感知层不依赖
@@ -873,6 +952,10 @@ source local_env.sh
 | `.../stage_supervised_rl_relative/summary.json` | route-blind 预测器接回舞台的 600 帧结果 |
 | `.../alternate_rl/` | 残差 PPO / SAC 的 checkpoint 与 config |
 | `.../stage_alternate_rl/summary.json` | 残差 PPO 的 3-seed 舞台结果 |
+| `.../teacher_student/` | teacher、DAgger student、PPO 微调 checkpoint |
+| `.../stage_teacher_student/summary.json` | teacher-student 600 帧 3-seed 结果 |
+| `.../conformal_safety/` | conformal 半径与安全帽舞台结果 |
+| `.../multimodal_predictor/` | 3-mode MDN 的 checkpoint 与离线指标 |
 | `.../stage_ppo/summary.json` | 早期 PPO 零样本实验（已被 3.10 取代） |
 | `.../live_depth/summary.json` | 真实渲染 1 s 消失，深度融合 |
 | `.../live_depth/dropout_episode00.mp4` | 真实渲染消失视频 |

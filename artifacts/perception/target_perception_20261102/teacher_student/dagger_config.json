@@ -1,0 +1,14 @@
+{
+  "teacher": "/home/jason/perception_data/runs/teacher_privileged_ppo_v1/actor.pt",
+  "predictor": "/home/jason/perception_data/runs/trajectory_predictor_v2/predictor.pt",
+  "dagger_iters": 2,
+  "episodes": 10,
+  "bc_steps": 1500,
+  "seed": 7,
+  "env": {
+    "episode_s": 30.0,
+    "stage_visibility": true,
+    "detection_dropout": 0.3,
+    "measurement_noise": 0.05
+  }
+}

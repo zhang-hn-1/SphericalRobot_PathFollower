@@ -1,0 +1,21 @@
+{
+  "checkpoint": "/home/jason/perception_data/runs/trajectory_predictor_v2/predictor.pt",
+  "use_absolute": true,
+  "samples": 6000,
+  "alphas": [
+    0.1,
+    0.05
+  ],
+  "radii": {
+    "0.90": {
+      "0.5s": 0.0942,
+      "1.0s": 0.1324,
+      "2.0s": 0.2181
+    },
+    "0.95": {
+      "0.5s": 0.1147,
+      "1.0s": 0.1548,
+      "2.0s": 0.2565
+    }
+  }
+}

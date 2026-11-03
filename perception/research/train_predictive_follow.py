@@ -226,6 +226,10 @@ def main():
                         help="policy output is a small correction on the rule action")
     parser.add_argument("--residual-scale", type=float, default=0.4,
                         help="maximum residual correction in normalized action units")
+    parser.add_argument("--privileged", action="store_true",
+                        help="teacher observation with clean target state")
+    parser.add_argument("--init-actor", default="",
+                        help="initialize the actor from a BC/teacher checkpoint")
     args = parser.parse_args()
 
     out = Path(args.out)
@@ -238,6 +242,7 @@ def main():
         stage_visibility=args.stage_visibility,
         detection_dropout=args.detection_dropout,
         measurement_noise=args.measurement_noise,
+        privileged_obs=args.privileged,
     )
     env = PredictiveFollowEnv(**env_kwargs)
     predictor = None
@@ -246,6 +251,8 @@ def main():
         predictor = TrajectoryPredictor(args.predictor)
         env.set_predictor(predictor)
     actor = Actor(env.obs_dim, zero_output=args.residual)
+    if args.init_actor:
+        actor.load_state_dict(torch.load(args.init_actor, map_location="cpu"))
     critic = Critic(env.obs_dim)
     if args.bc_episodes > 0 and args.bc_steps > 0:
         bc_obs, bc_act = collect_bc_data(
@@ -365,6 +372,7 @@ def main():
         stage_visibility=args.stage_visibility,
         detection_dropout=args.detection_dropout,
         measurement_noise=args.measurement_noise,
+        privileged_obs=args.privileged,
         residual=args.residual, residual_scale=args.residual_scale), indent=2))
     print(json.dumps(dict(model=str(out / "actor.pt"),
                           best=json.loads((out / "best.json").read_text())
