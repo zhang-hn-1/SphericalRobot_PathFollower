@@ -1,6 +1,6 @@
 # 行人跟随感知层：目标锁定、干扰拒识与 1 秒预测
 
-日期：2026-11-02  
+日期：2026-11-02（2026-11-03 增加监督预测 + RL 与 route-blind 消融）
 状态：仿真中可运行；真实渲染 + YOLO + 闭环均已跑通  
 机器人模型：沿用仓库里的旧球形机器人模型；感知层不依赖动量轮
 
@@ -43,6 +43,7 @@
 | 感知增强 + 预测性跟随（规则，旧舞台坐标） | 可见帧 / lost / 碰撞 | 325 / 58% / 0 |
 | 舞台深度/初始朝向修正 + 规则预测 | 可见帧 / hidden / 最长遮挡 | **343 / 57 / 4.3 s** |
 | 监督预测器 + RL + 安全回退（600 帧 3 seeds） | visible / hidden / 最长遮挡 | **547 / 53 / 3.6 s** |
+| 消融：route-blind 预测器 + RL（600 帧 3 seeds） | visible / hidden / 最长遮挡 | 500 / 100 / 4.9 s |
 
 这里的“1 秒位置误差”是预测点到目标真实世界坐标的距离。真实渲染中约
 0.15 m 的误差里，大部分是**固定的单目/深度定位偏差**（看到的是人体前表面，
@@ -61,7 +62,8 @@
 | `perception/research/predictive_follow_env.py` | 15D 观测 / 1D 横移动作的快速 2D 预测跟随环境（目标环路 + 冰箱遮挡） |
 | `perception/research/train_predictive_follow.py` | 规则行为克隆 + PPO，输出可加载的 actor |
 | `perception/learned_predictor.py` | 监督式未来位置预测器：历史 -> 0.5/1/2 s 位移 |
-| `perception/research/train_trajectory_predictor.py` | 生成轨迹窗口并训练/验证预测器 |
+| `perception/research/train_trajectory_predictor.py` | 生成轨迹窗口并训练/验证预测器；`--no-absolute` 做 route-blind 消融 |
+| `perception/research/eval_trajectory_predictor.py` | 在训练路线和未见路线上评估预测器 |
 | `perception/stage_map.py` | 舞台墙占据图 + 2D 线段可见性（无 Isaac Gym 依赖） |
 | `perception/sim/stage_follow.py` | 可选 `--policy/--predictor`，并把监督+RL 接入舞台闭环 |
 
@@ -611,6 +613,53 @@ RL 动作不是无条件执行：
 - 当前模型的路线先验较强；下一步应做路线/遮挡随机化和跨地图验证，
   否则它更像“这张舞台的跟随专家”，不是通用行人跟随策略。
 
+### 3.11 消融：绝对位置是“路线记忆”还是动力学？
+
+为了验证 3.10 中监督预测器的 6.8 cm 是否来自当前舞台路线，做了一个干净的
+route-blind 消融：**保持数据、标签、网络和训练超参不变，只删掉输入中的
+绝对世界坐标和绝对锚点上下文**，只保留相对历史、速度、时间间隔和有效位。
+
+**离线误差（1 s，held-out 轨迹种子）**
+
+| 路线 | route-aware | route-blind | 平滑常数速度 |
+|---|---:|---:|---:|
+| 训练同路线 | **0.071 m** | 0.143 m | 0.181 m |
+| 未见：旋转矩形 | 0.277 m | **0.197 m** | 0.168 m |
+| 未见：窄矩形 | **0.155 m** | 0.159 m | 0.204 m |
+
+对应 0.5 / 2 s 的趋势相同：route-aware 在同路线最好，但旋转路线退化到
+0.163/0.449 m；route-blind 是 0.122/0.399 m，退化明显更小。结论很直接：
+
+- 绝对位置让模型记住了“这张图的转角”，同路线 7.1 cm 不是通用动力学；
+- 去掉绝对位置后，跨路线退化从 +20.6 cm 降到 +5.4 cm（1 s，旋转路线），
+  但**仍然没有在所有未见路线上超过平滑常数速度**；
+- 所以它学到的是一部分历史动力学 + 较弱的路网先验，不是“通用行人模型”。
+
+**接回舞台闭环（600 帧）**
+
+| 配置 | visible | hidden | 最长遮挡 | identity |
+|---|---:|---:|---:|---:|
+| 规则 + route-aware 预测器 | 535 | 65 | 4.3 s | 99.7% |
+| 规则 + route-blind 预测器 | 340 | 260 | 16.9 s | 97.8% |
+| RL + route-aware 预测器（3 seeds 均值） | **547** | **53** | **3.6 s** | **100%** |
+| RL + route-blind 预测器（3 seeds 均值） | 500 | 100 | 4.9 s | 100% |
+
+Route-blind RL 的逐种子里程碑波动很大：默认种子 580/20/1.0 s，seed 7
+390/209/8.9 s，seed 13 529/71/4.8 s。它说明两件事：
+
+- 去掉路线记忆后，策略有时能靠 RL 和相对历史补回来，甚至单次跑得更好；
+- 但稳定性不够，不能用“单次 580 帧”替代多种子均值。
+
+**结论**
+
+- 之前 6.8 cm 的提升确实**部分来自路线记忆**；用户的怀疑是合理的。
+- 这不是数据泄漏：推理只用在线估计位置，没有用 GT 或未来；问题在于
+  **评估只在同一路线**，以及模型把绝对位置当成了捷径。
+- 当前最诚实的定位：route-aware 版本是“已知地图/固定路线下的专用预测器”；
+  route-blind 版本更泛化，但还没有稳定超过平滑常数速度或路线专用版本。
+- 下一步必须做**路线/遮挡/速度随机化训练**，并同时报告 route-aware 和
+  route-blind 的同路线、跨路线结果；否则不能声称通用行人跟随。
+
 ## 4. 与“最新机器人模型 / 更真实场景”的关系
 
 - **旧模型可用**：当前仿真和闭环用的是仓库里的旧球形机器人模型，感知层不依赖
@@ -728,6 +777,32 @@ source local_env.sh
     --predictor /home/jason/perception_data/runs/trajectory_predictor_v2/predictor.pt \
     --policy /home/jason/perception_data/runs/predictive_follow_ppo_stage_v9/actor.pt
 
+
+# 15. 消融：route-blind 监督预测器（去掉绝对位置）
+/home/jason/.venvs/ultralytics-rice/bin/python \
+    perception/research/train_trajectory_predictor.py \
+    --out /home/jason/perception_data/runs/trajectory_predictor_relative_v1 \
+    --epochs 30 --train-trajectories 300 --val-trajectories 60 \
+    --samples-per-trajectory 100 --duration 20 --no-absolute
+
+# 16. 同路线 / 未见路线评估（route-aware vs route-blind）
+/home/jason/.venvs/ultralytics-rice/bin/python \
+    perception/research/eval_trajectory_predictor.py \
+    --checkpoint /home/jason/perception_data/runs/trajectory_predictor_v2/predictor.pt \
+    --out /home/jason/perception_data/runs/eval_predictor_absolute_v2.json
+
+/home/jason/.venvs/ultralytics-rice/bin/python \
+    perception/research/eval_trajectory_predictor.py \
+    --checkpoint /home/jason/perception_data/runs/trajectory_predictor_relative_v1/predictor.pt \
+    --out /home/jason/perception_data/runs/eval_predictor_relative_v1.json
+
+# 17. route-blind 预测器接回舞台
+/home/jason/legged_gym/.venv/bin/python perception/sim/stage_follow.py \
+    --out /home/jason/perception_data/runs/stage_relative_policy_600 \
+    --frames 600 --video \
+    --predictor /home/jason/perception_data/runs/trajectory_predictor_relative_v1/predictor.pt \
+    --policy /home/jason/perception_data/runs/predictive_follow_ppo_stage_relative_v1/actor.pt
+
 ## 6. 结果文件
 
 | 路径 | 内容 |
@@ -738,6 +813,8 @@ source local_env.sh
 | `.../supervised_predictor/predictor.pt` | 监督未来位置预测器（0.5/1/2 s） |
 | `.../supervised_rl/actor.pt` | 监督预测器输入的 BC+PPO actor |
 | `.../stage_supervised_rl/summary.json` | 600 帧 3 seeds 规则 vs 监督+RL 汇总 |
+| `.../supervised_predictor_relative/eval_seen_unseen.json` | route-blind 的同路线/未见路线误差 |
+| `.../stage_supervised_rl_relative/summary.json` | route-blind 预测器接回舞台的 600 帧结果 |
 | `.../stage_ppo/summary.json` | 早期 PPO 零样本实验（已被 3.10 取代） |
 | `.../live_depth/summary.json` | 真实渲染 1 s 消失，深度融合 |
 | `.../live_depth/dropout_episode00.mp4` | 真实渲染消失视频 |

@@ -25,6 +25,8 @@ HORIZONS = (0.5, 1.0, 2.0)
 HISTORY_STEPS = 12
 INPUT_DIM = 9
 CONTEXT_DIM = 4
+RELATIVE_INPUT_DIM = 6
+RELATIVE_CONTEXT_DIM = 2
 POSITION_SCALE = 2.0
 
 
@@ -60,12 +62,16 @@ def _history_arrays(history):
     return np.asarray(times)[order], np.asarray(positions)[order]
 
 
-def make_sequence(history, last_velocity=None):
+def make_sequence(history, last_velocity=None, use_absolute=True):
     """Build the fixed-length GRU input and the last-step context.
 
     Missing history is padded with the last measured point.  The last input
     row has valid=1 and zero relative displacement.  Features are bounded so
     the network cannot be dominated by a single noisy detection.
+
+    ``use_absolute=False`` removes the world-position features and the
+    absolute anchor from the context.  The resulting model is the
+    route-blind ablation: it can only use relative history and velocity.
     """
     times, positions = _history_arrays(history)
     if len(times) == 0:
@@ -74,7 +80,8 @@ def make_sequence(history, last_velocity=None):
     positions = positions[-HISTORY_STEPS:]
     anchor_time = float(times[-1])
     anchor = positions[-1]
-    steps = np.zeros((HISTORY_STEPS, INPUT_DIM), dtype=np.float32)
+    input_dim = INPUT_DIM if use_absolute else RELATIVE_INPUT_DIM
+    steps = np.zeros((HISTORY_STEPS, input_dim), dtype=np.float32)
     start = HISTORY_STEPS - len(times)
     for index in range(len(times)):
         relative_t = float(times[index] - anchor_time)
@@ -86,28 +93,37 @@ def make_sequence(history, last_velocity=None):
             velocity = np.zeros(2)
         if last_velocity is not None and index == len(times) - 1:
             velocity = np.asarray(last_velocity, dtype=np.float64).reshape(2)
-        steps[start + index] = np.array([
+        features = [
             float(np.clip(delta[0], -2.0, 2.0)),
             float(np.clip(delta[1], -2.0, 2.0)),
             float(np.clip(velocity[0], -2.0, 2.0)),
             float(np.clip(velocity[1], -2.0, 2.0)),
             float(np.clip(relative_t, -2.0, 2.0)),
-            float(np.clip(positions[index, 0] / 3.0, -2.0, 2.0)),
-            float(np.clip(positions[index, 1] / 3.0, -2.0, 2.0)),
-            1.0,
-            float(1.0 if index == len(times) - 1 else 0.0),
-        ])
+        ]
+        if use_absolute:
+            features.extend([
+                float(np.clip(positions[index, 0] / 3.0, -2.0, 2.0)),
+                float(np.clip(positions[index, 1] / 3.0, -2.0, 2.0)),
+                1.0,
+            ])
+        features.append(float(1.0 if index == len(times) - 1 else 0.0))
+        steps[start + index] = np.asarray(features, dtype=np.float32)
     del start
     if last_velocity is None:
         velocity = np.zeros(2)
     else:
         velocity = np.asarray(last_velocity, dtype=np.float64).reshape(2)
-    context = np.array([
-        float(np.clip(anchor[0] / 3.0, -2.0, 2.0)),
-        float(np.clip(anchor[1] / 3.0, -2.0, 2.0)),
+    context_values = []
+    if use_absolute:
+        context_values.extend([
+            float(np.clip(anchor[0] / 3.0, -2.0, 2.0)),
+            float(np.clip(anchor[1] / 3.0, -2.0, 2.0)),
+        ])
+    context_values.extend([
         float(np.clip(velocity[0], -2.0, 2.0)),
         float(np.clip(velocity[1], -2.0, 2.0)),
-    ], dtype=np.float32)
+    ])
+    context = np.asarray(context_values, dtype=np.float32)
     return steps, context
 
 
@@ -142,9 +158,14 @@ class TrajectoryPredictor:
                 config = payload.get("config", {})
             else:
                 state = payload
+        self.use_absolute = bool(config.get("use_absolute", True))
         self.model = HistoryPredictor(
-            input_dim=int(config.get("input_dim", INPUT_DIM)),
-            context_dim=int(config.get("context_dim", CONTEXT_DIM)),
+            input_dim=int(config.get(
+                "input_dim", INPUT_DIM if self.use_absolute
+                else RELATIVE_INPUT_DIM)),
+            context_dim=int(config.get(
+                "context_dim", CONTEXT_DIM if self.use_absolute
+                else RELATIVE_CONTEXT_DIM)),
             hidden=int(config.get("hidden", 64)),
             horizons=int(config.get("horizons", len(HORIZONS))),
         )
@@ -152,7 +173,8 @@ class TrajectoryPredictor:
         self.model.to(self.device).eval()
 
     def predict_displacements(self, history, last_velocity=None):
-        sequence, context = make_sequence(history, last_velocity)
+        sequence, context = make_sequence(
+            history, last_velocity, use_absolute=self.use_absolute)
         if sequence is None:
             return None
         with torch.no_grad():

@@ -30,7 +30,8 @@ original design and evidence are in
 | `research/predictive_follow_env.py` | fast predictive-follow environment: stage visibility, detection dropout, 15D obs / 1D action |
 | `research/train_predictive_follow.py` | rule behavior cloning + PPO for the predictive-follow actor |
 | `learned_predictor.py` | supervised future-position predictor (0.5/1/2 s displacement) |
-| `research/train_trajectory_predictor.py` | train/validate the trajectory predictor on generated routes |
+| `research/train_trajectory_predictor.py` | train/validate the trajectory predictor; `--no-absolute` is the route-blind ablation |
+| `research/eval_trajectory_predictor.py` | score a predictor on the training route and unseen routes |
 | `stage_map.py` | ReplicaCAD wall occupancy + 2D line-of-sight without Isaac Gym |
 | `tools/houseexpo_to_maps.py` | convert MIT HouseExpo floorplans into local map JSON |
 | `test_target_perception.py` | CPU unit tests for the world-frame target layer and geometry |
@@ -107,6 +108,24 @@ python3 perception/eval_target_perception.py \
     --predictor /home/jason/perception_data/runs/trajectory_predictor_v2/predictor.pt \
     --policy /home/jason/perception_data/runs/predictive_follow_ppo_stage_v9/actor.pt
 
+# route-blind ablation: train, evaluate on seen/unseen routes, run in the stage
+/home/jason/.venvs/ultralytics-rice/bin/python \
+    perception/research/train_trajectory_predictor.py \
+    --out /home/jason/perception_data/runs/trajectory_predictor_relative_v1 \
+    --epochs 30 --train-trajectories 300 --val-trajectories 60 \
+    --samples-per-trajectory 100 --duration 20 --no-absolute
+
+/home/jason/.venvs/ultralytics-rice/bin/python \
+    perception/research/eval_trajectory_predictor.py \
+    --checkpoint /home/jason/perception_data/runs/trajectory_predictor_relative_v1/predictor.pt \
+    --out /home/jason/perception_data/runs/eval_predictor_relative_v1.json
+
+/home/jason/legged_gym/.venv/bin/python perception/sim/stage_follow.py \
+    --out /home/jason/perception_data/runs/stage_relative_policy_600 \
+    --frames 600 --video \
+    --predictor /home/jason/perception_data/runs/trajectory_predictor_relative_v1/predictor.pt \
+    --policy /home/jason/perception_data/runs/predictive_follow_ppo_stage_relative_v1/actor.pt
+
 # open-source HouseExpo indoor floorplans (MIT, 1.35x scaled for the ball)
 /home/jason/legged_gym/.venv/bin/python perception/sim/map_follow.py \
     --out /home/jason/perception_data/runs/houseexpo_follow_v1 \
@@ -160,7 +179,15 @@ frames, 53 vs 118 hidden frames, and 3.6 s vs 9.1 s longest occlusion**
 (mean; identity 100%, zero collisions, minimum clearance 0.559 m). The policy
 falls back to the rule whenever its action points away from the supervised
 prediction. The predictor intentionally uses absolute world position as a
-route prior, so cross-map generalization is not claimed. See
+route prior, so cross-map generalization is not claimed.
+
+Ablation (same data/architecture, absolute position removed): the route-aware
+model's 1 s error rises from 7.1 cm on the training route to **27.7 cm** on an
+unseen rotated route; the route-blind model goes from 14.3 cm to **19.7 cm**
+(smoothed constant velocity: 18.1 / 16.8 cm). So the 7.1 cm result is partly
+route memory, not a general dynamics model. In the stage, route-blind + RL is
+highly seed-dependent (580/20/1.0 s, 390/209/8.9 s, 529/71/4.8 s visible /
+hidden / longest), so it does not replace the route-aware policy yet. See
 [`../artifacts/perception/TARGET_PERCEPTION_20261102.md`](../artifacts/perception/TARGET_PERCEPTION_20261102.md).
 
 ## Rocketbox avatars (optional, replaces the coloured primitives)

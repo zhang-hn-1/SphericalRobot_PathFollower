@@ -1,0 +1,156 @@
+{
+  "checkpoint": "/home/jason/perception_data/runs/trajectory_predictor_v2/predictor.pt",
+  "use_absolute": true,
+  "config": {
+    "input_dim": 9,
+    "context_dim": 4,
+    "hidden": 64,
+    "horizons": 3
+  },
+  "routes": {
+    "same": {
+      "0.5s": {
+        "model_mae_m": 0.0518,
+        "constant_velocity_mae_m": 0.4456,
+        "smoothed_constant_velocity_mae_m": 0.1024,
+        "corner_model_mae_m": 0.0542,
+        "corner_constant_velocity_mae_m": 0.4413,
+        "corner_fraction": 0.6773
+      },
+      "1.0s": {
+        "model_mae_m": 0.0711,
+        "constant_velocity_mae_m": 0.8528,
+        "smoothed_constant_velocity_mae_m": 0.1806,
+        "corner_model_mae_m": 0.0732,
+        "corner_constant_velocity_mae_m": 0.8475,
+        "corner_fraction": 0.6773
+      },
+      "2.0s": {
+        "model_mae_m": 0.114,
+        "constant_velocity_mae_m": 1.6878,
+        "smoothed_constant_velocity_mae_m": 0.4157,
+        "corner_model_mae_m": 0.1159,
+        "corner_constant_velocity_mae_m": 1.6892,
+        "corner_fraction": 0.6773
+      },
+      "overall_model_mae_m": 0.079,
+      "overall_constant_velocity_mae_m": 0.9954,
+      "overall_smoothed_constant_velocity_mae_m": 0.2329,
+      "samples": 6000,
+      "route_waypoints": [
+        [
+          -1.2,
+          -1.1
+        ],
+        [
+          1.2,
+          -1.1
+        ],
+        [
+          1.2,
+          -3.2
+        ],
+        [
+          -1.2,
+          -3.2
+        ]
+      ]
+    },
+    "rotated": {
+      "0.5s": {
+        "model_mae_m": 0.163,
+        "constant_velocity_mae_m": 0.4455,
+        "smoothed_constant_velocity_mae_m": 0.0979,
+        "corner_model_mae_m": 0.1963,
+        "corner_constant_velocity_mae_m": 0.449,
+        "corner_fraction": 0.6015
+      },
+      "1.0s": {
+        "model_mae_m": 0.2774,
+        "constant_velocity_mae_m": 0.8523,
+        "smoothed_constant_velocity_mae_m": 0.1683,
+        "corner_model_mae_m": 0.3367,
+        "corner_constant_velocity_mae_m": 0.8629,
+        "corner_fraction": 0.6015
+      },
+      "2.0s": {
+        "model_mae_m": 0.4494,
+        "constant_velocity_mae_m": 1.6832,
+        "smoothed_constant_velocity_mae_m": 0.3778,
+        "corner_model_mae_m": 0.4909,
+        "corner_constant_velocity_mae_m": 1.7187,
+        "corner_fraction": 0.6015
+      },
+      "overall_model_mae_m": 0.2966,
+      "overall_constant_velocity_mae_m": 0.9937,
+      "overall_smoothed_constant_velocity_mae_m": 0.2147,
+      "samples": 6000,
+      "route_waypoints": [
+        [
+          -1.6,
+          -1.0
+        ],
+        [
+          1.1,
+          -0.2
+        ],
+        [
+          0.5,
+          -3.1
+        ],
+        [
+          -2.2,
+          -2.3
+        ]
+      ]
+    },
+    "narrow": {
+      "0.5s": {
+        "model_mae_m": 0.0882,
+        "constant_velocity_mae_m": 0.4467,
+        "smoothed_constant_velocity_mae_m": 0.1099,
+        "corner_model_mae_m": 0.0941,
+        "corner_constant_velocity_mae_m": 0.4482,
+        "corner_fraction": 0.873
+      },
+      "1.0s": {
+        "model_mae_m": 0.1546,
+        "constant_velocity_mae_m": 0.8563,
+        "smoothed_constant_velocity_mae_m": 0.2035,
+        "corner_model_mae_m": 0.1666,
+        "corner_constant_velocity_mae_m": 0.8606,
+        "corner_fraction": 0.873
+      },
+      "2.0s": {
+        "model_mae_m": 0.2727,
+        "constant_velocity_mae_m": 1.6961,
+        "smoothed_constant_velocity_mae_m": 0.4862,
+        "corner_model_mae_m": 0.2936,
+        "corner_constant_velocity_mae_m": 1.7092,
+        "corner_fraction": 0.873
+      },
+      "overall_model_mae_m": 0.1718,
+      "overall_constant_velocity_mae_m": 0.9997,
+      "overall_smoothed_constant_velocity_mae_m": 0.2666,
+      "samples": 6000,
+      "route_waypoints": [
+        [
+          -0.9,
+          -1.35
+        ],
+        [
+          0.9,
+          -1.35
+        ],
+        [
+          0.9,
+          -3.0
+        ],
+        [
+          -0.9,
+          -3.0
+        ]
+      ]
+    }
+  }
+}

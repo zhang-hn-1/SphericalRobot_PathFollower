@@ -1,0 +1,74 @@
+{
+  "runs": [
+    {
+      "seed": "20261102",
+      "mode": "rule",
+      "frames": 600,
+      "visible": 340,
+      "hidden": 260,
+      "identity": 0.9783333333333333,
+      "longest": 16.9,
+      "collisions": 0,
+      "min_clearance": 0.608
+    },
+    {
+      "seed": "20261102",
+      "mode": "policy",
+      "frames": 600,
+      "visible": 580,
+      "hidden": 20,
+      "identity": 1.0,
+      "longest": 1.0,
+      "collisions": 0,
+      "min_clearance": 0.559
+    },
+    {
+      "seed": "7",
+      "mode": "policy",
+      "frames": 599,
+      "visible": 390,
+      "hidden": 209,
+      "identity": 1.0,
+      "longest": 8.9,
+      "collisions": 0,
+      "min_clearance": 0.559
+    },
+    {
+      "seed": "13",
+      "mode": "policy",
+      "frames": 600,
+      "visible": 529,
+      "hidden": 71,
+      "identity": 1.0,
+      "longest": 4.8,
+      "collisions": 0,
+      "min_clearance": 0.559
+    }
+  ],
+  "aggregate": {
+    "rule": {
+      "seeds": [
+        "20261102"
+      ],
+      "mean_visible": 340.0,
+      "mean_hidden": 260.0,
+      "mean_identity": 0.9783,
+      "mean_longest": 16.9,
+      "collisions": 0,
+      "min_clearance": 0.608
+    },
+    "policy": {
+      "seeds": [
+        "20261102",
+        "7",
+        "13"
+      ],
+      "mean_visible": 499.7,
+      "mean_hidden": 100.0,
+      "mean_identity": 1.0,
+      "mean_longest": 4.9,
+      "collisions": 0,
+      "min_clearance": 0.559
+    }
+  }
+}

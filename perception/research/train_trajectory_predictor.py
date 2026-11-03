@@ -30,7 +30,8 @@ REPO = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(REPO))
 from perception.learned_predictor import (  # noqa: E402
     CONTEXT_DIM, HORIZONS, HISTORY_STEPS, INPUT_DIM, HistoryPredictor,
-    POSITION_SCALE, make_sequence, _history_arrays)
+    POSITION_SCALE, RELATIVE_CONTEXT_DIM, RELATIVE_INPUT_DIM,
+    make_sequence, _history_arrays)
 
 WAYPOINTS = np.array([
     [-1.20, -1.10],
@@ -38,19 +39,35 @@ WAYPOINTS = np.array([
     [1.20, -3.20],
     [-1.20, -3.20],
 ], dtype=np.float64)
+UNSEEN_ROUTES = {
+    # A rotated, wider rectangle with a different centre.
+    "rotated": np.array([
+        [-1.60, -1.00],
+        [1.10, -0.20],
+        [0.50, -3.10],
+        [-2.20, -2.30],
+    ], dtype=np.float64),
+    # A narrow rectangle, never seen during training.
+    "narrow": np.array([
+        [-0.90, -1.35],
+        [0.90, -1.35],
+        [0.90, -3.00],
+        [-0.90, -3.00],
+    ], dtype=np.float64),
+}
 DT = 0.1
 TARGET_SPEED = 0.40
 
 
-def route_length():
+def route_length(route=WAYPOINTS):
     return float(sum(
-        np.linalg.norm(WAYPOINTS[(i + 1) % len(WAYPOINTS)] - WAYPOINTS[i])
-        for i in range(len(WAYPOINTS))))
+        np.linalg.norm(route[(i + 1) % len(route)] - route[i])
+        for i in range(len(route))))
 
 
-def route_point(distance):
-    points = WAYPOINTS
-    total = route_length()
+def route_point(distance, route=WAYPOINTS):
+    points = route
+    total = route_length(route)
     distance = float(distance) % total
     for index in range(len(points)):
         start = points[index]
@@ -63,13 +80,13 @@ def route_point(distance):
     return points[0].copy()
 
 
-def make_trajectory(seed, duration=20.0):
+def make_trajectory(seed, duration=20.0, route=WAYPOINTS):
     """Return clean positions and a measured/noisy version at 10 Hz."""
     rng = np.random.default_rng(seed)
     times = np.arange(0.0, duration, DT)
     direction = 1.0 if rng.random() < 0.5 else -1.0
     base_speed = TARGET_SPEED * float(rng.uniform(0.70, 1.25))
-    phase = float(rng.uniform(0.0, route_length()))
+    phase = float(rng.uniform(0.0, route_length(route)))
     # Smooth speed modulation: enough variation that a single last velocity is
     # not always the best predictor, but the route corners remain dominant.
     speed = base_speed * (
@@ -77,7 +94,7 @@ def make_trajectory(seed, duration=20.0):
     speed = np.clip(speed, 0.18, 0.80)
     travelled = np.cumsum(speed) * DT
     clean = np.asarray([
-        route_point(phase + direction * value) for value in travelled])
+        route_point(phase + direction * value, route) for value in travelled])
     noise = float(rng.uniform(0.015, 0.075))
     measured = clean + rng.normal(0.0, noise, clean.shape)
     keep = rng.random(len(times)) > float(rng.uniform(0.0, 0.12))
@@ -99,8 +116,10 @@ def interpolate(clean_times, clean, query):
     return clean[low] * (1.0 - alpha) + clean[high] * alpha
 
 
-def sample_windows(seed, count, duration=20.0):
-    times, clean, measured_times, measured = make_trajectory(seed, duration)
+def sample_windows(seed, count, duration=20.0, route=WAYPOINTS,
+                   use_absolute=True):
+    times, clean, measured_times, measured = make_trajectory(
+        seed, duration, route)
     samples = []
     if len(measured_times) < HISTORY_STEPS + 2:
         return samples
@@ -144,7 +163,8 @@ def sample_windows(seed, count, duration=20.0):
                     design, history_positions[:, axis], rcond=None)[0][0]
                 for axis in range(2)
             ])
-        sequence, context = make_sequence(history, anchor_velocity)
+        sequence, context = make_sequence(
+            history, anchor_velocity, use_absolute=use_absolute)
         if sequence is None:
             continue
         samples.append(dict(
@@ -158,7 +178,7 @@ def sample_windows(seed, count, duration=20.0):
                 smoothed_velocity * horizon for horizon in HORIZONS
             ], dtype=np.float32),
             corner=bool(min(
-                np.linalg.norm(anchor - point) for point in WAYPOINTS) < 0.75),
+                np.linalg.norm(anchor - point) for point in route) < 0.75),
         ))
     return samples
 
@@ -218,6 +238,8 @@ def main():
     parser.add_argument("--hidden", type=int, default=64)
     parser.add_argument("--lr", type=float, default=1e-3)
     parser.add_argument("--seed", type=int, default=20261102)
+    parser.add_argument("--no-absolute", action="store_true",
+                        help="remove absolute world-position features (route-blind ablation)")
     args = parser.parse_args()
 
     out = Path(args.out)
@@ -226,15 +248,17 @@ def main():
     torch.manual_seed(args.seed)
     np.random.seed(args.seed)
 
+    use_absolute = not args.no_absolute
     train_samples = []
     for index in range(args.train_trajectories):
         train_samples.extend(sample_windows(
-            args.seed + index, args.samples_per_trajectory, args.duration))
+            args.seed + index, args.samples_per_trajectory, args.duration,
+            use_absolute=use_absolute))
     val_samples = []
     for index in range(args.val_trajectories):
         val_samples.extend(sample_windows(
             args.seed + 100000 + index, args.samples_per_trajectory,
-            args.duration))
+            args.duration, use_absolute=use_absolute))
     if not train_samples or not val_samples:
         raise SystemExit("no samples generated")
     train = stack(train_samples)
@@ -246,7 +270,11 @@ def main():
                   if item.dtype != bool else torch.from_numpy(item).to(device)
                   for item in val)
 
-    model = HistoryPredictor(hidden=args.hidden).to(device)
+    input_dim = INPUT_DIM if use_absolute else RELATIVE_INPUT_DIM
+    context_dim = CONTEXT_DIM if use_absolute else RELATIVE_CONTEXT_DIM
+    model = HistoryPredictor(
+        input_dim=input_dim, context_dim=context_dim,
+        hidden=args.hidden).to(device)
     optimizer = torch.optim.AdamW(model.parameters(), lr=args.lr)
     best = None
     best_score = float("inf")
@@ -282,8 +310,9 @@ def main():
             best_score = score
             best = dict(
                 model=model.state_dict(),
-                config=dict(input_dim=INPUT_DIM, context_dim=CONTEXT_DIM,
-                            hidden=args.hidden, horizons=len(HORIZONS)),
+                config=dict(input_dim=input_dim, context_dim=context_dim,
+                            hidden=args.hidden, horizons=len(HORIZONS),
+                            use_absolute=use_absolute),
             )
             torch.save(best, out / "predictor.pt")
             (out / "best_metrics.json").write_text(json.dumps(
@@ -298,9 +327,10 @@ def main():
              best_score=best_score,
              history=history[-1:]), indent=2))
     (out / "config.json").write_text(json.dumps(dict(
-        input_dim=INPUT_DIM, context_dim=CONTEXT_DIM, hidden=args.hidden,
+        input_dim=input_dim, context_dim=context_dim, hidden=args.hidden,
         horizons=HORIZONS, history_steps=HISTORY_STEPS,
         position_scale=POSITION_SCALE, seed=args.seed,
+        use_absolute=use_absolute,
         samples_per_trajectory=args.samples_per_trajectory,
         duration=args.duration), indent=2))
     print(json.dumps(dict(model=str(out / "predictor.pt"),

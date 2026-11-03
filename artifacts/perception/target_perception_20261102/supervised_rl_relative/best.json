@@ -1,0 +1,34 @@
+{
+  "iter": 100,
+  "score": 0.6441666666666667,
+  "learned": {
+    "visible_rate": 0.6441666666666667,
+    "hidden_frames": 2135,
+    "collisions": 0,
+    "reacquired_episodes": 20,
+    "episodes": 20,
+    "mean_distance": 1.84,
+    "min_clearance": 1.4,
+    "mean_return": 24.543
+  },
+  "rule": {
+    "visible_rate": 0.6301666666666667,
+    "hidden_frames": 2219,
+    "collisions": 0,
+    "reacquired_episodes": 20,
+    "episodes": 20,
+    "mean_distance": 1.828,
+    "min_clearance": 1.4,
+    "mean_return": 24.062
+  },
+  "rule_constant": {
+    "visible_rate": 0.6301666666666667,
+    "hidden_frames": 2219,
+    "collisions": 0,
+    "reacquired_episodes": 20,
+    "episodes": 20,
+    "mean_distance": 1.828,
+    "min_clearance": 1.4,
+    "mean_return": 24.062
+  }
+}
