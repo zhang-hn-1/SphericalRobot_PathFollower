@@ -69,6 +69,9 @@
 | `perception/research/train_teacher_student.py` | 特权 teacher PPO + DAgger student 蒸馏 |
 | `perception/research/calibrate_conformal.py` | split-conformal 预测半径校准 |
 | `perception/research/train_multimodal_predictor.py` | GRU + K-mode MDN（Trajectron++-lite） |
+| `perception/candidate_scorer.py` | 8 维线性候选打分器（VideoJev-lite） |
+| `perception/research/train_candidate_scorer.py` | 候选打分器训练 |
+| `perception/research/eval_candidate_scorer.py` | 带/不带候选打分器的跟踪对比 |
 | `perception/sim/stage_follow.py --residual` | 残差 PPO 对照实验（当前未选用） |
 | `perception/stage_map.py` | 舞台墙占据图 + 2D 线段可见性（无 Isaac Gym 依赖） |
 | `perception/sim/stage_follow.py` | 可选 `--policy/--predictor`，并把监督+RL 接入舞台闭环 |
@@ -795,6 +798,50 @@ Teacher-student 的 3 个种子舞台结果：
 没有收益，反而增加了优化难度；不接规划，也不替换当前预测器。真正需要多模态
 时（人群、岔路、未知意图）再重做，而不是为了形式上的 Trajectron++。
 
+### 3.15 VideoJev-lite：超轻量候选打分头
+
+把 VideoJev 的核心思想压成一个相机侧可跑的版本：不做视频大模型，只做
+**每帧共享的候选特征 + 8→1 线性打分器**，用来判断“这个检测是不是目标”。
+
+**实现**
+
+- 特征 8 维：与目标 anchor 的外观相似度、与目标模板相似度、归一化运动残差、
+  距离/门限、时间间隔、检测置信度、框面积比、是否 close-target。
+- 模型：逻辑回归，8 个权重 + bias，CPU 单次打分是几十纳秒级。
+- 接入点：`TargetPerceptionLayer(candidate_scorer=..., candidate_weight=...)`，
+  只在目标轨迹的候选关联代价上加一个软惩罚；默认关闭，不影响旧结果。
+
+**训练**
+
+用相似外观交叉、快速交叉、噪声交叉、普通交叉和 1 s dropout 场景生成
+40k 个候选样本；训练/验证按随机种子分开。验证集：
+
+| 指标 | 值 |
+|---|---:|
+| candidate accuracy | 96.37% |
+| precision | 93.19% |
+| recall | 99.95% |
+
+**跟踪效果（50 seeds / 场景）**
+
+| 场景 | baseline identity | +scorer | wrong frames |
+|---|---:|---:|---:|
+| clean / crossing / dropout | 不变 | 不变 | 0 |
+| similar_crossing | 0.99728 | 0.99728 | 11 → 11 |
+| similar_crossing_fast | 0.99926 | **0.99951** | 3 → 2 |
+| similar_crossing_noisy | 0.99333 | **0.99358** | 27 → 26 |
+| long_loss_reid | 0.99822 | 0.99822 | 9 → 9 |
+
+结论：
+
+- 候选分类本身是有效的（96%），但当前目标层的运动/外观门限已经很强，
+  这个打分器只在最难的噪声相似交叉上带来 **+0.025 个百分点**、少 1 个错帧；
+  普通场景没有变化。
+- 这就是“超轻量”的代价：它没有视频上下文，只能看单候选的 8 个特征；要真正
+  复现 VideoJev 的收益，需要共享的短时视觉前缀/多候选交互，而不是再加一个
+  MLP。
+- 因此它保留为可选 hook，不替换现有跟踪器，也不进默认舞台策略。
+
 ## 4. 与“最新机器人模型 / 更真实场景”的关系
 
 - **旧模型可用**：当前仿真和闭环用的是仓库里的旧球形机器人模型，感知层不依赖
@@ -956,6 +1003,7 @@ source local_env.sh
 | `.../stage_teacher_student/summary.json` | teacher-student 600 帧 3-seed 结果 |
 | `.../conformal_safety/` | conformal 半径与安全帽舞台结果 |
 | `.../multimodal_predictor/` | 3-mode MDN 的 checkpoint 与离线指标 |
+| `.../videojev_lite/` | 8 维候选打分器与 hard-case 对比结果 |
 | `.../stage_ppo/summary.json` | 早期 PPO 零样本实验（已被 3.10 取代） |
 | `.../live_depth/summary.json` | 真实渲染 1 s 消失，深度融合 |
 | `.../live_depth/dropout_episode00.mp4` | 真实渲染消失视频 |

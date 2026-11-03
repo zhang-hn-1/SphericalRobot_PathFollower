@@ -1,0 +1,129 @@
+{
+  "scorer": "/home/jason/perception_data/runs/candidate_scorer_v1/scorer.json",
+  "gate": 0.0,
+  "weight": 0.25,
+  "noise": 0.08,
+  "seeds": 50,
+  "results": {
+    "clean": {
+      "baseline": {
+        "frames": 4050,
+        "identity": 1.0,
+        "wrong": 0
+      },
+      "scored": {
+        "frames": 4050,
+        "identity": 1.0,
+        "wrong": 0
+      }
+    },
+    "crossing": {
+      "baseline": {
+        "frames": 4050,
+        "identity": 0.99877,
+        "wrong": 5
+      },
+      "scored": {
+        "frames": 4050,
+        "identity": 0.99877,
+        "wrong": 5
+      }
+    },
+    "similar_crossing": {
+      "baseline": {
+        "frames": 4050,
+        "identity": 0.99728,
+        "wrong": 11
+      },
+      "scored": {
+        "frames": 4050,
+        "identity": 0.99728,
+        "wrong": 11
+      }
+    },
+    "dropout_1s": {
+      "baseline": {
+        "frames": 4050,
+        "identity": 1.0,
+        "wrong": 0
+      },
+      "scored": {
+        "frames": 4050,
+        "identity": 1.0,
+        "wrong": 0
+      }
+    },
+    "dropout_turn": {
+      "baseline": {
+        "frames": 4050,
+        "identity": 1.0,
+        "wrong": 0
+      },
+      "scored": {
+        "frames": 4050,
+        "identity": 1.0,
+        "wrong": 0
+      }
+    },
+    "dropout_2s": {
+      "baseline": {
+        "frames": 4050,
+        "identity": 1.0,
+        "wrong": 0
+      },
+      "scored": {
+        "frames": 4050,
+        "identity": 1.0,
+        "wrong": 0
+      }
+    },
+    "long_loss_reid": {
+      "baseline": {
+        "frames": 5050,
+        "identity": 0.99822,
+        "wrong": 9
+      },
+      "scored": {
+        "frames": 5050,
+        "identity": 0.99822,
+        "wrong": 9
+      }
+    },
+    "reid_after_memory": {
+      "baseline": {
+        "frames": 4050,
+        "identity": 0.87654,
+        "wrong": 0
+      },
+      "scored": {
+        "frames": 4050,
+        "identity": 0.87654,
+        "wrong": 0
+      }
+    },
+    "similar_crossing_fast": {
+      "baseline": {
+        "frames": 4050,
+        "identity": 0.99926,
+        "wrong": 3
+      },
+      "scored": {
+        "frames": 4050,
+        "identity": 0.99926,
+        "wrong": 3
+      }
+    },
+    "similar_crossing_noisy": {
+      "baseline": {
+        "frames": 4050,
+        "identity": 0.99333,
+        "wrong": 27
+      },
+      "scored": {
+        "frames": 4050,
+        "identity": 0.99358,
+        "wrong": 26
+      }
+    }
+  }
+}

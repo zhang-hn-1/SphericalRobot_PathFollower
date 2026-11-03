@@ -150,7 +150,10 @@ class Rollout:
 
 def run_scenario(scenario: Scenario, seed: int,
                  position_noise: float = 0.06,
-                 detection_confidence: float = 0.9) -> Rollout:
+                 detection_confidence: float = 0.9,
+                 candidate_scorer=None,
+                 candidate_gate: float = 0.0,
+                 candidate_weight: float = 0.0) -> Rollout:
     rng = np.random.default_rng(seed)
     target_appearance = np.array([1.0, 0.0, 0.0])
     if scenario.similar_appearance:
@@ -166,6 +169,9 @@ def run_scenario(scenario: Scenario, seed: int,
         max_prediction_s=1.0,
         max_memory_s=scenario.max_memory_s,
         accel_std=0.6,
+        candidate_scorer=candidate_scorer,
+        candidate_gate=candidate_gate,
+        candidate_weight=candidate_weight,
     )
     result = Rollout(scenario=scenario.name, seed=seed)
     visible_at_start = True

@@ -33,6 +33,9 @@ original design and evidence are in
 | `research/train_teacher_student.py` | privileged teacher PPO + DAgger student distillation |
 | `research/calibrate_conformal.py` | split-conformal prediction-radius calibration |
 | `research/train_multimodal_predictor.py` | GRU + K-mode MDN (Trajectron++-lite) |
+| `candidate_scorer.py` | 8-feature linear candidate scorer (VideoJev-lite) |
+| `research/train_candidate_scorer.py` | train the candidate scorer |
+| `research/eval_candidate_scorer.py` | with/without scorer stress comparison |
 | `learned_predictor.py` | supervised future-position predictor (0.5/1/2 s displacement) |
 | `research/train_trajectory_predictor.py` | train/validate the trajectory predictor; `--no-absolute` is the route-blind ablation |
 | `research/eval_trajectory_predictor.py` | score a predictor on the training route and unseen routes |
@@ -239,8 +242,11 @@ The teacher-student follow-up is implemented (report section 3.13); the
 conformal speed-cap and 3-mode MDN prototypes are documented in section 3.14.
 The conformal cap was too conservative (503/97 vs 563/37) and the MDN's 1 s
 minADE was 0.372 m vs 0.071 m for the single-mode predictor, so neither is
-selected. The remaining recommendations are TD3+BC/AWAC offline-to-online and
-CrowdNav-style attention / model-based RL. See
+selected. A VideoJev-lite candidate scorer (8 features, logistic regression,
+96.4% candidate accuracy) gives only +0.025 pp identity on the hardest noisy
+similar-crossing stress case and no change elsewhere; it is an optional
+`candidate_scorer=` hook, not the default. The remaining recommendations are
+TD3+BC/AWAC offline-to-online and CrowdNav-style attention / model-based RL. See
 [`../artifacts/perception/TARGET_PERCEPTION_20261102.md`](../artifacts/perception/TARGET_PERCEPTION_20261102.md).
 
 ## Rocketbox avatars (optional, replaces the coloured primitives)

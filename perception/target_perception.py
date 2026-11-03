@@ -354,6 +354,9 @@ class TargetPerceptionLayer:
         max_box_area_ratio: float = 1.8,
         min_box_area_ratio: float = 0.45,
         default_dt: float = 0.1,
+        candidate_scorer=None,
+        candidate_gate: float = 0.0,
+        candidate_weight: float = 0.0,
     ):
         self.init_bbox = None if init_bbox is None else np.asarray(init_bbox, dtype=np.float64)
         self.init_position_xy = _as_xy(init_position_xy)
@@ -384,6 +387,9 @@ class TargetPerceptionLayer:
         self.max_box_area_ratio = float(max_box_area_ratio)
         self.min_box_area_ratio = float(min_box_area_ratio)
         self.default_dt = float(default_dt)
+        self.candidate_scorer = candidate_scorer
+        self.candidate_gate = float(candidate_gate)
+        self.candidate_weight = float(candidate_weight)
 
         self.tracks: list[_Track] = []
         self.next_id = 1
@@ -716,8 +722,57 @@ class TargetPerceptionLayer:
                 second = value
         return second < 1e6 and (second - best) < self.ambiguity_margin
 
+    def _candidate_features(self, track: _Track, detection: PersonDetection,
+                            t: float) -> np.ndarray:
+        """Shared per-candidate features for the tiny scorer."""
+        similarity = _cosine(track.anchor, detection.appearance)
+        target_similarity = _cosine(self.target_anchor,
+                                    detection.appearance)
+        position = _as_xy(detection.position_xy)
+        gap = max(0.0, t - track.last_measure_t)
+        distance = 0.0
+        gate = self.position_gate_m + self.max_speed_mps * min(gap, 3.0)
+        if position is not None:
+            distance = float(np.linalg.norm(track.filter.x[:2] - position))
+        motion = min(1.0, distance / max(gate, 1e-6))
+        ratio = 1.0
+        if track.bbox is not None and detection.bbox is not None:
+            track_area = _box_area(track.bbox)
+            det_area = _box_area(detection.bbox)
+            if track_area > 0.0 and det_area > 0.0:
+                ratio = det_area / track_area
+        close = bool(track.track_id == self.target_id
+                     and gap <= self.target_close_gap_s
+                     and position is not None
+                     and distance <= self.target_close_position_gate_m)
+        return np.array([
+            0.0 if similarity is None else float(similarity),
+            0.0 if target_similarity is None else float(target_similarity),
+            float(motion),
+            float(min(distance / max(gate, 1e-6), 3.0)),
+            float(min(gap, 3.0)),
+            float(np.clip(detection.score, 0.0, 1.0)),
+            float(np.clip(ratio, 0.0, 3.0)),
+            1.0 if close else 0.0,
+        ], dtype=np.float64)
+
     def _pair_cost(self, track: _Track, detection: PersonDetection,
                    t: float) -> float:
+        cost = self._pair_cost_base(track, detection, t)
+        if (self.candidate_scorer is None
+                or track.track_id != self.target_id
+                or cost >= 1e6):
+            return cost
+        probability = float(self.candidate_scorer(
+            self._candidate_features(track, detection, t)))
+        if self.candidate_gate > 0.0 and probability < self.candidate_gate:
+            return 1e6
+        if self.candidate_weight:
+            cost += self.candidate_weight * (1.0 - probability)
+        return cost
+
+    def _pair_cost_base(self, track: _Track, detection: PersonDetection,
+                        t: float) -> float:
         similarity = _cosine(track.anchor, detection.appearance)
         position = _as_xy(detection.position_xy)
         gap = max(0.0, t - track.last_measure_t)
