@@ -1,0 +1,23 @@
+{
+  "step": 20000,
+  "learned": {
+    "visible_rate": 0.5808333333333333,
+    "hidden_frames": 2515,
+    "collisions": 0,
+    "reacquired_episodes": 20,
+    "episodes": 20,
+    "mean_distance": 2.119,
+    "min_clearance": 1.4,
+    "mean_return": 22.113
+  },
+  "rule": {
+    "visible_rate": 0.6301666666666667,
+    "hidden_frames": 2219,
+    "collisions": 0,
+    "reacquired_episodes": 20,
+    "episodes": 20,
+    "mean_distance": 1.828,
+    "min_clearance": 1.4,
+    "mean_return": 24.062
+  }
+}

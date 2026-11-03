@@ -28,7 +28,8 @@ original design and evidence are in
 | `sim/map_follow.py` | closed-loop map following: target A* route + robot A* stand-off |
 | `sim/stage_follow.py` | ReplicaCAD apartment + refrigerator: 40 s complex loop, multiple occlusions, wall clearance; optional `--policy` |
 | `research/predictive_follow_env.py` | fast predictive-follow environment: stage visibility, detection dropout, 15D obs / 1D action |
-| `research/train_predictive_follow.py` | rule behavior cloning + PPO for the predictive-follow actor |
+| `research/train_predictive_follow.py` | rule behavior cloning + PPO; `--residual` is the residual-RL variant |
+| `research/train_predictive_follow_sac.py` | SAC baseline on the same env/predictor/eval protocol |
 | `learned_predictor.py` | supervised future-position predictor (0.5/1/2 s displacement) |
 | `research/train_trajectory_predictor.py` | train/validate the trajectory predictor; `--no-absolute` is the route-blind ablation |
 | `research/eval_trajectory_predictor.py` | score a predictor on the training route and unseen routes |
@@ -126,6 +127,21 @@ python3 perception/eval_target_perception.py \
     --predictor /home/jason/perception_data/runs/trajectory_predictor_relative_v1/predictor.pt \
     --policy /home/jason/perception_data/runs/predictive_follow_ppo_stage_relative_v1/actor.pt
 
+# alternate RL baselines (SAC and residual PPO; not selected)
+/home/jason/.venvs/ultralytics-rice/bin/python \
+    perception/research/train_predictive_follow_sac.py \
+    --out /home/jason/perception_data/runs/predictive_follow_sac_v2 \
+    --steps 30000 --warmup 10000 --batch 256 --lr 1e-4 \
+    --predictor /home/jason/perception_data/runs/trajectory_predictor_v2/predictor.pt \
+    --stage-visibility --detection-dropout 0.30 --measurement-noise 0.05
+
+/home/jason/legged_gym/.venv/bin/python perception/sim/stage_follow.py \
+    --out /home/jason/perception_data/runs/stage_residual_abs_seed7_600 \
+    --frames 600 --seed 7 --video \
+    --predictor /home/jason/perception_data/runs/trajectory_predictor_v2/predictor.pt \
+    --policy /home/jason/perception_data/runs/predictive_follow_ppo_residual_v1/actor.pt \
+    --residual --residual-scale 0.4
+
 # open-source HouseExpo indoor floorplans (MIT, 1.35x scaled for the ball)
 /home/jason/legged_gym/.venv/bin/python perception/sim/map_follow.py \
     --out /home/jason/perception_data/runs/houseexpo_follow_v1 \
@@ -187,7 +203,15 @@ unseen rotated route; the route-blind model goes from 14.3 cm to **19.7 cm**
 (smoothed constant velocity: 18.1 / 16.8 cm). So the 7.1 cm result is partly
 route memory, not a general dynamics model. In the stage, route-blind + RL is
 highly seed-dependent (580/20/1.0 s, 390/209/8.9 s, 529/71/4.8 s visible /
-hidden / longest), so it does not replace the route-aware policy yet. See
+hidden / longest), so it does not replace the route-aware policy yet.
+
+Two further RL baselines were tested and are **not selected**: residual PPO
+(rule action + learned correction) reached 63.2% vs 63.0% in the 2D env but
+degraded in the stage (393/121/335 visible across three seeds, identity
+94–99%); SAC was unstable without tuning and reached 58.1% visible in 2D.
+The literature survey and next-step recommendation (privileged teacher-student,
+TD3+BC/AWAC offline-to-online, SoNIC-style conformal safety) are in report
+section 3.12. See
 [`../artifacts/perception/TARGET_PERCEPTION_20261102.md`](../artifacts/perception/TARGET_PERCEPTION_20261102.md).
 
 ## Rocketbox avatars (optional, replaces the coloured primitives)

@@ -1,0 +1,31 @@
+{
+  "runs": [
+    {
+      "seed": "20261102",
+      "visible": 393,
+      "hidden": 207,
+      "identity": 0.9416666666666667,
+      "longest": 12.8,
+      "collisions": 0,
+      "min_clearance": 0.559
+    },
+    {
+      "seed": "7",
+      "visible": 121,
+      "hidden": 478,
+      "identity": 0.988313856427379,
+      "longest": 22.1,
+      "collisions": 0,
+      "min_clearance": 0.559
+    },
+    {
+      "seed": "13",
+      "visible": 335,
+      "hidden": 265,
+      "identity": 0.955,
+      "longest": 9.0,
+      "collisions": 0,
+      "min_clearance": 0.608
+    }
+  ]
+}

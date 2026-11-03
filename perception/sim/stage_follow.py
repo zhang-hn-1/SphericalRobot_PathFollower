@@ -504,6 +504,17 @@ def run(args):
                 with torch.no_grad():
                     policy_action = float(policy(torch.from_numpy(
                         policy_obs).unsqueeze(0)))
+                if args.residual:
+                    base_target = (target_point if belief.target_visible
+                                   else learned_prediction
+                                   if learned_prediction is not None
+                                   else last_target_point)
+                    base_vx = float(np.clip(
+                        0.8 * (np.asarray(base_target)[0] - robot.x),
+                        -0.55, 0.55))
+                    policy_action = float(np.clip(
+                        base_vx / 0.60
+                        + args.residual_scale * policy_action, -1.0, 1.0))
             if policy_action is not None and belief.lost:
                 # The supervised predictor is the local target model.  If the
                 # RL action points away from its prediction, or if the model
@@ -742,6 +753,10 @@ def main():
                         help="optional PPO actor (.pt) for the lateral action")
     parser.add_argument("--predictor", default="",
                         help="optional supervised trajectory predictor (.pt)")
+    parser.add_argument("--residual", action="store_true",
+                        help="treat --policy as a correction on the rule action")
+    parser.add_argument("--residual-scale", type=float, default=0.4,
+                        help="maximum residual correction in normalized action units")
     parser.add_argument("--video", action="store_true")
     args = parser.parse_args()
     result = run(args)

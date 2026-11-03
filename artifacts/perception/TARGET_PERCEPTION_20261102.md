@@ -64,6 +64,8 @@
 | `perception/learned_predictor.py` | 监督式未来位置预测器：历史 -> 0.5/1/2 s 位移 |
 | `perception/research/train_trajectory_predictor.py` | 生成轨迹窗口并训练/验证预测器；`--no-absolute` 做 route-blind 消融 |
 | `perception/research/eval_trajectory_predictor.py` | 在训练路线和未见路线上评估预测器 |
+| `perception/research/train_predictive_follow_sac.py` | SAC 对照实验 |
+| `perception/sim/stage_follow.py --residual` | 残差 PPO 对照实验（当前未选用） |
 | `perception/stage_map.py` | 舞台墙占据图 + 2D 线段可见性（无 Isaac Gym 依赖） |
 | `perception/sim/stage_follow.py` | 可选 `--policy/--predictor`，并把监督+RL 接入舞台闭环 |
 
@@ -660,6 +662,60 @@ Route-blind RL 的逐种子里程碑波动很大：默认种子 580/20/1.0 s，s
 - 下一步必须做**路线/遮挡/速度随机化训练**，并同时报告 route-aware 和
   route-blind 的同路线、跨路线结果；否则不能声称通用行人跟随。
 
+### 3.12 其他强化学习方案与文献调研
+
+这一轮又试了两个方案，结论是“能跑，但不比当前的监督预测 + PPO 更好”，
+同时把公开机器人系统的可借鉴路线整理出来。
+
+**3.12.1 残差 PPO（规则动作 + 学习修正）**
+
+- 动作：`u = clip(u_rule + 0.4 * u_policy, -1, 1)`；
+- Actor 最后一层初始化为 0，行为克隆也以 0 残差为目标，所以初始策略
+  严格等价于规则控制器；
+- 2D stage-like 环境：63.2% 可见率 vs 规则 63.0%，略好但不如直接 PPO 的 64.7%；
+- 舞台 600 帧 ×3 seeds：visible 393 / 121 / 335，identity 94.2% / 98.8% / 95.5%，
+  最长遮挡 12.8 / 22.1 / 9.0 s，明显差于直接 PPO + shield（547/53/3.6 s 均值）。
+- 失败原因：舞台的规则基线和训练环境的 `rule_action` 不是完全同一条控制律
+  （尤其丢失阶段的间距/衰减），残差会与基线相互抵消；这类方法要求基线和
+  部署控制器严格一致，否则“修正”会变成扰动。
+
+**3.12.2 SAC（off-policy、熵正则）**
+
+- 同一 15D 观测 / 1D 动作、同一冻结预测器和 stage-like 环境；
+- 第一版 60k 步后 Q 值/actor loss 发散、alpha 塌缩；
+- 加 log_std/alpha 约束、降低学习率后的 30k 步版本：2D 可见率 **58.1%**，
+  低于规则 63.0%，没有进入舞台主对比；
+- 不把它当成“SAC 不行”的结论，只说明在这个奖励尺度、短预算和 1D 动作上
+  没有调好；当前不值得用它替换稳定的 PPO。
+
+**3.12.3 文献里值得借鉴的路线**
+
+检索日期 2026-11-02/03；“链接/代码存在”是公开页面核对，未逐行审计。
+对我们最有用的不是再换一个端到端算法，而是把“监督模块 + RL”组合成
+teacher-student / offline-to-online 结构：
+
+| 路线 | 代表工作 | 与我们的关系 |
+|---|---|---|
+| 残差 RL | [Johannink et al., 2019](https://arxiv.org/abs/1812.03201) | 我们试了，但要求基线控制器与部署完全一致；当前舞台不满足 |
+| 社会导航 PPO | [CrowdNav](https://arxiv.org/abs/1809.08835) / [code](https://github.com/vita-epfl/CrowdNav) | 多目标/障碍时把当前单目标状态扩展为注意力输入 |
+| 关系图 + 安全约束 | [SARL](https://arxiv.org/abs/1909.13165) / [SoNIC](https://arxiv.org/abs/2407.17460) | SoNIC 的 conformal prediction + constrained RL 很适合我们的“预测不确定度 + 安全回退” |
+| 离线到在线 | [AWAC](https://arxiv.org/abs/2006.09359)、[IQL](https://arxiv.org/abs/2110.06169)、[TD3+BC](https://arxiv.org/abs/2106.06860) | 用规则/PPO 日志预训练，再做少量在线微调；比冷启动 PPO 更省样本 |
+| teacher-student / 特权学习 | [RMA](https://arxiv.org/abs/2107.04034)、[Learning by Cheating](https://arxiv.org/abs/1912.12294)、[DreamWaQ](https://arxiv.org/abs/2301.10602) | 最贴合：teacher 用真值目标/无 dropout，student 用测量历史 + 监督预测器，再用 DAgger 蒸馏 |
+| 预测器 + 规划 | [Trajectron++](https://arxiv.org/abs/2001.03093) | 多模态轨迹预测；当前 GRU 是单模态，后续可扩展 |
+| 模型-based RL | [DreamerV3](https://arxiv.org/abs/2301.04104)、[TD-MPC2](https://arxiv.org/abs/2310.16828)、[MBPO](https://arxiv.org/abs/1906.08253) | 2D 状态便宜，但会多一个世界模型训练环；优先级低于 teacher-student |
+
+**3.12.4 下一步排序**
+
+1. **Teacher-student 特权蒸馏**（最高优先）：teacher 用真值目标/无 dropout
+   训练 PPO，student 用 `TargetBelief` 历史 + 冻结监督预测器，DAgger 式
+   在 student 状态上重标注；预期收益是遮挡/漏检鲁棒性，且不依赖路线记忆。
+2. **TD3+BC / AWAC offline-to-online**：用规则和现有 PPO 日志预训练，
+   再做少量在线更新；适合减少舞台上的冷启动和危险探索。
+3. **SoNIC 风格安全层**：把监督预测不确定性 + conformal 区域接到 constrained
+   RL，给安全回退一个概率保证；比继续调 PPO 奖励更有研究价值。
+4. 最后再考虑 DreamerV3/TD-MPC2；当前监督预测器已经提供了很好的低维接口，
+   先做模型-based 的收益不明显。
+
 ## 4. 与“最新机器人模型 / 更真实场景”的关系
 
 - **旧模型可用**：当前仿真和闭环用的是仓库里的旧球形机器人模型，感知层不依赖
@@ -815,6 +871,8 @@ source local_env.sh
 | `.../stage_supervised_rl/summary.json` | 600 帧 3 seeds 规则 vs 监督+RL 汇总 |
 | `.../supervised_predictor_relative/eval_seen_unseen.json` | route-blind 的同路线/未见路线误差 |
 | `.../stage_supervised_rl_relative/summary.json` | route-blind 预测器接回舞台的 600 帧结果 |
+| `.../alternate_rl/` | 残差 PPO / SAC 的 checkpoint 与 config |
+| `.../stage_alternate_rl/summary.json` | 残差 PPO 的 3-seed 舞台结果 |
 | `.../stage_ppo/summary.json` | 早期 PPO 零样本实验（已被 3.10 取代） |
 | `.../live_depth/summary.json` | 真实渲染 1 s 消失，深度融合 |
 | `.../live_depth/dropout_episode00.mp4` | 真实渲染消失视频 |

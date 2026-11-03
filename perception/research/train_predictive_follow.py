@@ -33,12 +33,16 @@ from predictive_follow_env import (PredictiveFollowEnv,  # noqa: E402
 
 
 class Actor(nn.Module):
-    def __init__(self, obs_dim, hidden=64):
+    def __init__(self, obs_dim, hidden=64, zero_output=False):
         super().__init__()
         self.net = nn.Sequential(
             nn.Linear(obs_dim, hidden), nn.ELU(),
             nn.Linear(hidden, hidden), nn.ELU(),
             nn.Linear(hidden, 1))
+        if zero_output:
+            with torch.no_grad():
+                self.net[-1].weight.zero_()
+                self.net[-1].bias.zero_()
         self.log_std = nn.Parameter(torch.tensor([-0.8]))
 
     def forward(self, x):
@@ -82,7 +86,7 @@ def rule_action(env):
     return vx / 0.6
 
 
-def collect_bc_data(env, episodes=20, seed0=7000):
+def collect_bc_data(env, episodes=20, seed0=7000, labels_zero=False):
     observations = []
     actions = []
     for episode in range(episodes):
@@ -91,7 +95,7 @@ def collect_bc_data(env, episodes=20, seed0=7000):
         while not done:
             action = rule_action(env)
             observations.append(obs)
-            actions.append(action)
+            actions.append(0.0 if labels_zero else action)
             obs, _reward, done, _info = env.step(action)
     return (np.asarray(observations, dtype=np.float32),
             np.asarray(actions, dtype=np.float32))
@@ -115,8 +119,17 @@ def train_bc(actor, observations, actions, steps=1000, lr=1e-3,
     return rmse
 
 
+def apply_action(raw_action, env, residual=False, residual_scale=0.4):
+    """Convert a policy output to the actual action sent to the env."""
+    raw_action = float(np.clip(raw_action, -1.0, 1.0))
+    if not residual:
+        return raw_action
+    base = rule_action(env)
+    return float(np.clip(base + residual_scale * raw_action, -1.0, 1.0))
+
+
 def evaluate(policy, episodes=20, seed0=9000, predictor=None,
-             env_kwargs=None):
+             env_kwargs=None, residual=False, residual_scale=0.4):
     env = PredictiveFollowEnv(**(env_kwargs or {}))
     if predictor is not None:
         env.set_predictor(predictor)
@@ -131,7 +144,7 @@ def evaluate(policy, episodes=20, seed0=9000, predictor=None,
         while not done:
             with torch.no_grad():
                 action = float(policy(torch.from_numpy(obs).unsqueeze(0)))
-            action = float(np.clip(action, -1.0, 1.0))
+            action = apply_action(action, env, residual, residual_scale)
             obs, reward, done, info = env.step(action)
             total += reward
             visible += int(info["visible"])
@@ -209,6 +222,10 @@ def main():
                         help="probability a geometrically visible target is missed")
     parser.add_argument("--measurement-noise", type=float, default=0.03,
                         help="std of measured target position, metres")
+    parser.add_argument("--residual", action="store_true",
+                        help="policy output is a small correction on the rule action")
+    parser.add_argument("--residual-scale", type=float, default=0.4,
+                        help="maximum residual correction in normalized action units")
     args = parser.parse_args()
 
     out = Path(args.out)
@@ -228,11 +245,13 @@ def main():
         from perception.learned_predictor import TrajectoryPredictor
         predictor = TrajectoryPredictor(args.predictor)
         env.set_predictor(predictor)
-    actor = Actor(env.obs_dim)
+    actor = Actor(env.obs_dim, zero_output=args.residual)
     critic = Critic(env.obs_dim)
     if args.bc_episodes > 0 and args.bc_steps > 0:
         bc_obs, bc_act = collect_bc_data(
-            env, episodes=args.bc_episodes, seed0=args.seed * 100000 + 7000)
+            env, episodes=args.bc_episodes,
+            seed0=args.seed * 100000 + 7000,
+            labels_zero=args.residual)
         bc_rmse = train_bc(actor, bc_obs, bc_act, steps=args.bc_steps,
                            lr=args.bc_lr)
         (out / "bc.json").write_text(json.dumps(dict(
@@ -260,12 +279,15 @@ def main():
                 obs_b.append(obs)
                 with torch.no_grad():
                     dist = actor.distribution(torch.from_numpy(obs).unsqueeze(0))
-                    action = dist.sample()
-                    logp_b.append(float(dist.log_prob(action)))
+                    raw_action = dist.sample()
+                    logp_b.append(float(dist.log_prob(raw_action)))
                     val_b.append(float(critic(
                         torch.from_numpy(obs).unsqueeze(0))))
+                action = apply_action(
+                    float(raw_action), env, args.residual,
+                    args.residual_scale)
                 obs, reward, done, _info = env.step(float(action))
-                act_b.append(float(action))
+                act_b.append(float(raw_action))
                 rew_b.append(float(reward))
                 done_b.append(1.0 if done else 0.0)
                 episode_return += reward
@@ -315,7 +337,9 @@ def main():
             rule_constant = (evaluate_rule(env_kwargs=env_kwargs)
                              if predictor is not None else None)
             learned = evaluate(
-                actor, predictor=predictor, env_kwargs=env_kwargs)
+                actor, predictor=predictor, env_kwargs=env_kwargs,
+                residual=args.residual,
+                residual_scale=args.residual_scale)
             entry["rule"] = rule
             entry["learned"] = learned
             score = learned["visible_rate"] - 0.01 * learned["collisions"]
@@ -340,7 +364,8 @@ def main():
         predictor=args.predictor or None,
         stage_visibility=args.stage_visibility,
         detection_dropout=args.detection_dropout,
-        measurement_noise=args.measurement_noise), indent=2))
+        measurement_noise=args.measurement_noise,
+        residual=args.residual, residual_scale=args.residual_scale), indent=2))
     print(json.dumps(dict(model=str(out / "actor.pt"),
                           best=json.loads((out / "best.json").read_text())
                           if (out / "best.json").exists() else None),

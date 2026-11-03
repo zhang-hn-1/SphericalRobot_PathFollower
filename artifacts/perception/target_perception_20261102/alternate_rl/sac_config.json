@@ -1,0 +1,18 @@
+{
+  "obs_dim": 15,
+  "action_dim": 1,
+  "steps": 30000,
+  "warmup": 10000,
+  "batch": 256,
+  "capacity": 80000,
+  "hidden": 64,
+  "lr": 0.0001,
+  "gamma": 0.99,
+  "tau": 0.005,
+  "seed": 7,
+  "episode_s": 30.0,
+  "predictor": "/home/jason/perception_data/runs/trajectory_predictor_v2/predictor.pt",
+  "stage_visibility": true,
+  "detection_dropout": 0.3,
+  "measurement_noise": 0.05
+}
