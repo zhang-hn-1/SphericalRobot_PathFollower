@@ -113,6 +113,7 @@ class StageMap:
                 for point in points[:, :2]
             ], fill=255)
         occupied = np.asarray(image) > 0
+        self.occupied = occupied
         self.distance = distance_transform_edt(~occupied) * self.resolution
 
     def clearance(self, point):
@@ -326,10 +327,41 @@ def run(args):
 
         if args.video:
             import cv2
+            video_name = ("stage_multiview.mp4" if args.multiview
+                          else "stage_follow.mp4")
             video = cv2.VideoWriter(
-                str(out / "stage_follow.mp4"),
+                str(out / video_name),
                 cv2.VideoWriter_fourcc(*"mp4v"), 10.0,
                 (camera.width, camera.height))
+            panel_w, panel_h = camera.width // 2, camera.height // 2
+            topdown_base = None
+            if args.multiview:
+                occupied = stage_map.occupied.astype(np.uint8)
+                grey = np.where(occupied[..., None], 55, 235).astype(np.uint8)
+                grey = np.repeat(grey, 3, axis=2)
+                topdown_base = cv2.resize(
+                    grey, (panel_w, panel_h), interpolation=cv2.INTER_NEAREST)
+
+                def world_to_panel(point):
+                    ix = ((point[0] - stage_map.minimum[0])
+                          / stage_map.resolution)
+                    iy = (stage_map.height - 1
+                          - (point[1] - stage_map.minimum[1])
+                          / stage_map.resolution)
+                    return (int(ix * panel_w / stage_map.width),
+                            int(iy * panel_h / stage_map.height))
+
+                route_pixels = np.asarray([
+                    world_to_panel(point) for point in TARGET_WAYPOINTS
+                ], dtype=np.int32)
+                cv2.polylines(topdown_base, [route_pixels], True,
+                              (90, 160, 220), 2)
+                fridge_pixels = [world_to_panel((FRIDGE_CENTER[0] - 0.45,
+                                                  FRIDGE_CENTER[1] - 0.45)),
+                                 world_to_panel((FRIDGE_CENTER[0] + 0.45,
+                                                  FRIDGE_CENTER[1] + 0.45))]
+                cv2.rectangle(topdown_base, fridge_pixels[0], fridge_pixels[1],
+                              (120, 120, 120), -1)
 
         layer = None
         rows = []
@@ -686,22 +718,93 @@ def run(args):
 
             if video is not None:
                 import cv2
-                canvas = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+                left_panel = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
                 for detection in raw_detections:
                     x1, y1, x2, y2 = [int(v) for v in detection["bbox"]]
                     colour = (0, 255, 0)
                     if target_box is not None and box_iou(
                             detection["bbox"], target_box) > 0.3:
                         colour = (255, 255, 0)
-                    cv2.rectangle(canvas, (x1, y1), (x2, y2), colour, 2)
+                    cv2.rectangle(left_panel, (x1, y1), (x2, y2), colour, 2)
                 if target_box is not None:
                     x1, y1, x2, y2 = [int(v) for v in target_box]
-                    cv2.rectangle(canvas, (x1, y1), (x2, y2), (255, 0, 0), 2)
-                text = (f"ReplicaCAD stage  t={t:.1f}s  {belief.status}  "
-                        f"age={belief.measurement_age_s or 0.0:.1f}s  "
-                        f"d={distance:.1f}m  clr={robot_clearance:.2f}m")
-                cv2.putText(canvas, text, (18, 38),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.65, (0, 255, 255), 2)
+                    cv2.rectangle(left_panel, (x1, y1), (x2, y2),
+                                  (255, 0, 0), 2)
+                if args.multiview:
+                    right = views[1]
+                    right_image = np.asarray(right["color"])
+                    right_seg = np.asarray(right["seg"])
+                    right_target_box, _ = _bbox_from_mask(
+                        right_seg == target.person_id, 30)
+                    right_panel = cv2.cvtColor(right_image, cv2.COLOR_RGB2BGR)
+                    if right_target_box is not None:
+                        x1, y1, x2, y2 = [int(v) for v in right_target_box]
+                        cv2.rectangle(right_panel, (x1, y1), (x2, y2),
+                                      (255, 0, 0), 2)
+                    left_panel = cv2.resize(
+                        left_panel, (panel_w, panel_h),
+                        interpolation=cv2.INTER_AREA)
+                    right_panel = cv2.resize(
+                        right_panel, (panel_w, panel_h),
+                        interpolation=cv2.INTER_AREA)
+                    top_panel = topdown_base.copy()
+                    trail_pixels = np.asarray([
+                        world_to_panel(point) for point in trail
+                    ], dtype=np.int32)
+                    if len(trail_pixels) > 1:
+                        cv2.polylines(top_panel, [trail_pixels], False,
+                                      (0, 220, 0), 1)
+                    prediction_marker = (learned_prediction
+                                         if learned_prediction is not None
+                                         else target_point)
+                    cv2.circle(top_panel, world_to_panel(target.pos),
+                               5, (0, 0, 255), -1)
+                    cv2.circle(top_panel,
+                               world_to_panel((robot.x, robot.y)),
+                               5, (255, 160, 0), -1)
+                    cv2.circle(top_panel,
+                               world_to_panel(prediction_marker),
+                               4, (0, 255, 255), 1)
+                    info_panel = np.full((panel_h, panel_w, 3), 20,
+                                         dtype=np.uint8)
+                    lines = [
+                        "teacher-student | ReplicaCAD",
+                        f"t={t:5.1f}s   status={belief.status}",
+                        f"track={belief.track_id}  det={len(raw_detections)}",
+                        f"age={belief.measurement_age_s or 0.0:.1f}s",
+                        f"distance={distance:.2f} m",
+                        f"clearance={robot_clearance:.2f} m",
+                        f"target_err={target_error if target_error is not None else -1:.2f} m",
+                        f"policy={policy_action if policy_action is not None else 0.0:+.2f}",
+                        f"conf={belief.velocity_confidence:.2f}",
+                        f"total={total_ms:.0f} ms",
+                    ]
+                    for index, line in enumerate(lines):
+                        cv2.putText(info_panel, line, (10, 42 + 28 * index),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.48,
+                                    (230, 230, 230), 1)
+                    canvas = np.zeros((camera.height, camera.width, 3),
+                                      dtype=np.uint8)
+                    canvas[0:panel_h, 0:panel_w] = left_panel
+                    canvas[0:panel_h, panel_w:2 * panel_w] = right_panel
+                    canvas[panel_h:2 * panel_h, 0:panel_w] = top_panel
+                    canvas[panel_h:2 * panel_h, panel_w:2 * panel_w] = info_panel
+                    for label, (x, y) in (
+                            ("front-left", (8, 18)),
+                            ("front-right", (panel_w + 8, 18)),
+                            ("top-down", (8, panel_h + 18)),
+                            ("telemetry", (panel_w + 8, panel_h + 18))):
+                        cv2.putText(canvas, label, (x, y),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.5,
+                                    (0, 255, 255), 1)
+                else:
+                    canvas = left_panel
+                    text = (f"ReplicaCAD stage  t={t:.1f}s  {belief.status}  "
+                            f"age={belief.measurement_age_s or 0.0:.1f}s  "
+                            f"d={distance:.1f}m  clr={robot_clearance:.2f}m")
+                    cv2.putText(canvas, text, (18, 38),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.65,
+                                (0, 255, 255), 2)
                 video.write(canvas)
 
             if frame % 10 == 0:
@@ -840,6 +943,8 @@ def main():
     parser.add_argument("--image-noise", type=float, default=0.0,
                         help="camera Gaussian noise std in [0,1] for domain-shift tests")
     parser.add_argument("--video", action="store_true")
+    parser.add_argument("--multiview", action="store_true",
+                        help="compose front-left, front-right, top-down and telemetry")
     args = parser.parse_args()
     result = run(args)
     rows = result.pop("rows")

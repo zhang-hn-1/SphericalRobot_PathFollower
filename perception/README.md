@@ -88,6 +88,13 @@ python3 perception/eval_target_perception.py \
     --out /home/jason/perception_data/runs/stage_predictive_v1 \
     --frames 400 --video
 
+# four-view recording: front-left / front-right / top-down / telemetry
+/home/jason/legged_gym/.venv/bin/python perception/sim/stage_follow.py \
+    --out /home/jason/perception_data/runs/video_teacher_student_600 \
+    --frames 600 --video --multiview \
+    --policy /home/jason/perception_data/runs/teacher_student_ppo_v1/actor.pt \
+    --predictor /home/jason/perception_data/runs/trajectory_predictor_v2/predictor.pt
+
 # supervised future-position predictor (held-out route seeds)
 /home/jason/.venvs/ultralytics-rice/bin/python \
     perception/research/train_trajectory_predictor.py \
