@@ -937,6 +937,30 @@ Teacher-student 的 5 个种子舞台结果：
 - 已发表方法的严格复现：目前是规则/PPO/SAC/teacher-student 这些强基线，不是 CrowdNav/RMA 原论文的逐项复现。
 - 真实机器人：仍是 Isaac Gym + 2D 抽象，没有真机延迟/安全验证。
 
+### 3.17 ReplicaCAD 三障碍闭环
+
+在原来一个冰箱的基础上，沿目标环路两侧增加两个错位障碍物（共 3 个），
+目标路线不变，teacher-student + 监督预测器 + 安全回退跑 600 帧：
+
+| 指标 | 结果 |
+|---|---:|
+| visible frames | **583 / 599** |
+| hidden frames | 16 |
+| 最长连续遮挡 | 0.6 s |
+| identity | **100%** |
+| measured / predicted / lost | 64.3% / 18.7% / 17.0% |
+| 碰撞 / 最小间距 | 0 / 0.559 m |
+| 同轨迹恢复 | 是 |
+| 平均帧延迟 | 116.5 ms |
+
+三障碍没有把闭环打崩，原因是目标始终沿可行环路走，机器人保持在
+观察走廊；新增障碍物主要影响可见性而不是可通行性。这个结果仍是
+默认 seed 的单次 600 帧，不是多种子统计；多障碍 + 随机路线组合还需要
+进一步评测。
+
+视频：`artifacts/perception/report_videos/teacher_student_multi_obstacle_600_multiview.mp4`
+（四联屏：front-left / front-right / top-down / telemetry）。
+
 ## 4. 与“最新机器人模型 / 更真实场景”的关系
 
 - **旧模型可用**：当前仿真和闭环用的是仓库里的旧球形机器人模型，感知层不依赖
@@ -1104,6 +1128,7 @@ source local_env.sh
 | `.../benchmarks/stage_latency_teacher_600.json` | ReplicaCAD 端到端延迟拆解 |
 | `.../benchmarks/benchmark_random_50_v3.json` | 随机化训练的 teacher-student OOD 对比 |
 | `.../stage_domain_shift/` | 4 人 / 低亮度 / 噪声测试结果 |
+| `.../stage_multi_obstacle/summary.json` | 三障碍 ReplicaCAD 600 帧结果 |
 | `.../stage_ppo/summary.json` | 早期 PPO 零样本实验（已被 3.10 取代） |
 | `.../live_depth/summary.json` | 真实渲染 1 s 消失，深度融合 |
 | `.../live_depth/dropout_episode00.mp4` | 真实渲染消失视频 |

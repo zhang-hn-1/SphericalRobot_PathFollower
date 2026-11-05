@@ -52,6 +52,11 @@ from isaacgym import gymapi  # noqa: E402
 FRIDGE_CENTER = np.array([0.0, -2.20])
 FRIDGE_SIZE = (0.75, 0.80, 0.0)
 FRIDGE_OBB = (FRIDGE_CENTER, FRIDGE_SIZE[:2], 0.0)
+MULTI_OBSTACLES = (
+    (FRIDGE_CENTER, FRIDGE_SIZE[:2], 0.0),
+    (np.array([-1.90, -1.80]), (0.55, 0.65), 0.20),
+    (np.array([ 1.90, -2.70]), (0.55, 0.65), -0.20),
+)
 ROBOT_START = np.array([1.00, -4.00])
 ROBOT_LANE_Y = -4.00
 ROBOT_YAW = math.pi / 2.0
@@ -302,8 +307,11 @@ def run(args):
         fridge_asset = load_urdf(
             scene, REPO / "perception/assets/scenes/replica_refrigerator",
             "refrigerator.urdf")
-        add_actor(scene, fridge_asset,
-                  (FRIDGE_CENTER[0], FRIDGE_CENTER[1], STAGE_Z), "refrigerator")
+        obstacles = (MULTI_OBSTACLES if args.multi_obstacle
+                     else (FRIDGE_OBB,))
+        for index, (center, size, yaw) in enumerate(obstacles):
+            add_actor(scene, fridge_asset,
+                      (center[0], center[1], STAGE_Z), f"obstacle_{index}")
         stage_map = StageMap(
             REPO / "perception/assets/scenes/replica_stage/stage.obj")
         scene.reset(0, episode_seed=args.seed)
@@ -323,7 +331,7 @@ def run(args):
 
         def scene_clearance(point):
             return min(stage_map.clearance(point),
-                       clearance(point, [FRIDGE_OBB]))
+                       clearance(point, list(obstacles)))
 
         if args.video:
             import cv2
@@ -356,12 +364,13 @@ def run(args):
                 ], dtype=np.int32)
                 cv2.polylines(topdown_base, [route_pixels], True,
                               (90, 160, 220), 2)
-                fridge_pixels = [world_to_panel((FRIDGE_CENTER[0] - 0.45,
-                                                  FRIDGE_CENTER[1] - 0.45)),
-                                 world_to_panel((FRIDGE_CENTER[0] + 0.45,
-                                                  FRIDGE_CENTER[1] + 0.45))]
-                cv2.rectangle(topdown_base, fridge_pixels[0], fridge_pixels[1],
-                              (120, 120, 120), -1)
+                for center, size, _yaw in obstacles:
+                    low = world_to_panel((center[0] - size[0] / 2.0,
+                                           center[1] - size[1] / 2.0))
+                    high = world_to_panel((center[0] + size[0] / 2.0,
+                                            center[1] + size[1] / 2.0))
+                    cv2.rectangle(topdown_base, low, high,
+                                  (120, 120, 120), -1)
 
         layer = None
         rows = []
@@ -573,8 +582,8 @@ def run(args):
                     1.0 if belief.target_visible else 0.0,
                     float(np.clip(distance_policy / 6.0, 0.0, 1.0)),
                     float(np.clip(clearance((robot.x, robot.y),
-                                            [FRIDGE_OBB]) / 2.0, 0.0, 1.0)),
-                    float(np.clip(clearance(probe_policy, [FRIDGE_OBB]) / 2.0,
+                                            list(obstacles)) / 2.0, 0.0, 1.0)),
+                    float(np.clip(clearance(probe_policy, list(obstacles)) / 2.0,
                                   0.0, 1.0)),
                     float(np.clip((robot.y - ROBOT_LANE_Y) / 1.0, -1.0, 1.0)),
                     float(np.clip((predicted_policy[0] - robot.x) / 2.0,
@@ -945,6 +954,8 @@ def main():
     parser.add_argument("--video", action="store_true")
     parser.add_argument("--multiview", action="store_true",
                         help="compose front-left, front-right, top-down and telemetry")
+    parser.add_argument("--multi-obstacle", action="store_true",
+                        help="use three staggered refrigerator obstacles")
     args = parser.parse_args()
     result = run(args)
     rows = result.pop("rows")

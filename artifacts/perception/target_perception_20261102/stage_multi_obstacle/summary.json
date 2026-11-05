@@ -1,0 +1,68 @@
+{
+  "scene": "ReplicaCAD frl_apartment_stage + refrigerator",
+  "frames": 599,
+  "visible_frames": 583,
+  "hidden_frames": 16,
+  "identity_accuracy": 1.0,
+  "wrong_frames": 0,
+  "measured_rate": 0.6427378964941569,
+  "predicted_rate": 0.18697829716193656,
+  "lost_rate": 0.17028380634390652,
+  "predictive_follow_frames": 92,
+  "predictive_follow_rate": 0.15358931552587646,
+  "learned_prediction_frames": 100,
+  "mean_distance": 2.445,
+  "min_distance": 0.827,
+  "max_distance": 3.656,
+  "min_clearance": 0.559,
+  "collision_frames": 0,
+  "latency_ms": {
+    "render": {
+      "mean_ms": 8.086,
+      "p95_ms": 9.271,
+      "max_ms": 13.476
+    },
+    "detect": {
+      "mean_ms": 102.233,
+      "p95_ms": 124.569,
+      "max_ms": 139.578
+    },
+    "track": {
+      "mean_ms": 0.851,
+      "p95_ms": 1.09,
+      "max_ms": 2.012
+    },
+    "predictor": {
+      "mean_ms": 0.227,
+      "p95_ms": 1.373,
+      "max_ms": 1.645
+    },
+    "policy": {
+      "mean_ms": 0.146,
+      "p95_ms": 0.17,
+      "max_ms": 0.358
+    },
+    "total": {
+      "mean_ms": 116.516,
+      "p95_ms": 140.122,
+      "max_ms": 158.18
+    }
+  },
+  "hidden_prediction_rate": 0.6875,
+  "hidden_lost_rate": 0.3125,
+  "hidden_rmse": 1.1447351767985467,
+  "prediction_error_at": {
+    "0.5": 0.9644999999999999
+  },
+  "hidden_start": 1.5,
+  "hidden_end": 2.0,
+  "longest_hidden_s": 0.6,
+  "hidden_intervals_s": [
+    0.5,
+    0.5,
+    0.6
+  ],
+  "reacquisition_delay": 0.4,
+  "same_track": true,
+  "success": true
+}

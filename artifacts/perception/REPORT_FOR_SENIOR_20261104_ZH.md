@@ -93,6 +93,7 @@ TargetPerceptionLayer
 | 策略 | visible | hidden | 最长遮挡 | identity | 碰撞 | 最小间距 |
 |---|---:|---:|---:|---:|---:|---:|
 | Teacher-student（当前最佳） | **563.2** | **36.4** | **1.72 s** | **99.97%** | 0 | 0.559 m |
+| Teacher-student + 三障碍（600 帧，seed 默认） | **583** | **16** | **0.6 s** | **100%** | 0 | 0.559 m |
 | 规则 + 监督预测器 | 437.4 | 162.2 | 11.02 s | 98.53% | 0 | 0.559 m |
 | 直接 PPO（3 seeds） | 547 | 53 | 3.6 s | 100% | 0 | 0.559 m |
 
@@ -153,12 +154,14 @@ TargetPerceptionLayer
 | 视频 | 内容 | 指标 |
 |---|---|---|
 | [teacher_student_600_multiview.mp4](report_videos/teacher_student_600_multiview.mp4) | 当前最佳 teacher-student，600 帧 | 585/599 visible，最长遮挡 0.5 s，identity 100%，零碰撞 |
+| [teacher_student_multi_obstacle_600_multiview.mp4](report_videos/teacher_student_multi_obstacle_600_multiview.mp4) | 三障碍 ReplicaCAD，600 帧 | 583/599 visible，最长遮挡 0.6 s，identity 100%，零碰撞 |
 | [rule_predictor_400_multiview.mp4](report_videos/rule_predictor_400_multiview.mp4) | 规则 + 监督预测器基线，400 帧 | 220/399 visible，最长遮挡 15.2 s，identity 99.25% |
 | [domain_shift_400_multiview.mp4](report_videos/domain_shift_400_multiview.mp4) | 4 人 + gain 0.7 + noise 0.02，400 帧 | 72/284 visible，measured 1.06%，长遮挡，展示检测失效 |
 
 预览图：
 
 - `report_videos/teacher_student_600_preview.png`
+- `report_videos/teacher_student_multi_obstacle_600_preview.png`
 - `report_videos/rule_predictor_400_preview.png`
 - `report_videos/domain_shift_400_preview.png`
 
@@ -166,7 +169,7 @@ TargetPerceptionLayer
 
 ## 5. 汇报建议顺序
 
-1. 先放 **teacher_student_600_multiview.mp4**：说明四联屏和当前最佳效果。
+1. 先放 **teacher_student_600_multiview.mp4** 和 **teacher_student_multi_obstacle_600_multiview.mp4**：说明四联屏、单障碍和三障碍都能跑。
 2. 放 **rule_predictor_400_multiview.mp4**：对比同一任务下规则的长遮挡。
 3. 放 **domain_shift_400_multiview.mp4**：主动说明真实域瓶颈在检测，不在跟踪/策略。
 4. 讲 5-seed 指标、固定 vs 随机路线、延迟表。
@@ -176,6 +179,7 @@ TargetPerceptionLayer
 
 - 纯仿真（Isaac Gym + ReplicaCAD），没有真实机器人/真实相机。
 - 监督预测器有当前路线先验；route-blind 版本在未见旋转路线 1 s 误差从 7.1 cm 退化到 19.7 cm。
+- 三障碍结果目前是默认 seed 的一次 600 帧长跑，不是多种子统计。
 - 低光/噪声下 YOLO 检测率从 37% 掉到 0.6%；真实部署前必须做检测域适应。
 - 真实机器人端到端延迟未知；桌面 GPU 下 123 ms，主要耗在 YOLO。
 - 已发表方法没有逐项复现；当前是规则/PPO/SAC/残差/teacher-student 强基线。

@@ -191,6 +191,13 @@ python3 perception/eval_target_perception.py \
     --residual /home/jason/perception_data/runs/predictive_follow_ppo_residual_v1/actor.pt \
     --relative-ppo /home/jason/perception_data/runs/predictive_follow_ppo_stage_relative_v1/actor.pt
 
+# three-obstacle ReplicaCAD scene (teacher-student, 600 frames)
+/home/jason/legged_gym/.venv/bin/python perception/sim/stage_follow.py \
+    --out /home/jason/perception_data/runs/video_multi_obstacle_600 \
+    --frames 600 --multi-obstacle --video --multiview \
+    --policy /home/jason/perception_data/runs/teacher_student_ppo_v1/actor.pt \
+    --predictor /home/jason/perception_data/runs/trajectory_predictor_v2/predictor.pt
+
 # open-source HouseExpo indoor floorplans (MIT, 1.35x scaled for the ball)
 /home/jason/legged_gym/.venv/bin/python perception/sim/map_follow.py \
     --out /home/jason/perception_data/runs/houseexpo_follow_v1 \
