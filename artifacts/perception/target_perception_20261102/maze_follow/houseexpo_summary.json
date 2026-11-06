@@ -1,0 +1,26 @@
+{
+  "maps_root": "/media/jason/Jason\u2018s u/SphericalRobot_PathFollower_20260911/perception/assets/maps",
+  "scenarios": [
+    {
+      "scenario": "houseexpo_maze",
+      "map": "houseexpo_a64a310dfa11",
+      "family": "converted open map",
+      "frames": 443,
+      "target_path_length": 17.56,
+      "identity_accuracy": 1.0,
+      "mean_distance": 2.808,
+      "min_distance": 0.869,
+      "max_distance": 3.245,
+      "min_clearance": 0.545,
+      "mean_clearance": 2.206,
+      "collision_frames": 0,
+      "measured_rate": 0.9007,
+      "predicted_rate": 0.0248,
+      "lost_rate": 0.0745,
+      "final_progress": 1.0,
+      "success": true
+    }
+  ],
+  "success_rate": 1.0,
+  "mean_identity": 1.0
+}

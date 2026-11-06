@@ -191,6 +191,13 @@ python3 perception/eval_target_perception.py \
     --residual /home/jason/perception_data/runs/predictive_follow_ppo_residual_v1/actor.pt \
     --relative-ppo /home/jason/perception_data/runs/predictive_follow_ppo_stage_relative_v1/actor.pt
 
+# maze-like HouseExpo floorplan: target walks an A* route, P0 follows
+/home/jason/legged_gym/.venv/bin/python perception/sim/map_follow.py \
+    --out /home/jason/perception_data/runs/maze_houseexpo_450 \
+    --map-json perception/assets/maps/houseexpo/houseexpo_a64a310dfa11.json \
+    --scene-id houseexpo_a64a310dfa11 --map-name houseexpo_maze \
+    --frames 450 --plan-inflation 0.42 --replan-inflation 0.40 --video
+
 # three-obstacle ReplicaCAD scene (teacher-student, 600 frames)
 /home/jason/legged_gym/.venv/bin/python perception/sim/stage_follow.py \
     --out /home/jason/perception_data/runs/video_multi_obstacle_600 \
@@ -284,6 +291,14 @@ similar-crossing stress case and no change elsewhere; it is an optional
 `candidate_scorer=` hook, not the default. The remaining recommendations are
 TD3+BC/AWAC offline-to-online and CrowdNav-style attention / model-based RL. See
 [`../artifacts/perception/TARGET_PERCEPTION_20261102.md`](../artifacts/perception/TARGET_PERCEPTION_20261102.md).
+
+## Latest maze result
+
+`map_follow` with the HouseExpo `houseexpo_a64a310dfa11` floorplan follows a
+17.56 m target route with **identity 100%, measured 90.1%, zero collisions,
+final progress 1.0** in 443 frames. A self-built 4x4 narrow maze is kept as a
+failure analysis: the P0 base cannot clear the tight corners; the perception
+layer is not the limiting factor.
 
 ## Rocketbox avatars (optional, replaces the coloured primitives)
 

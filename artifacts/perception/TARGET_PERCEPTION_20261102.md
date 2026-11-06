@@ -961,6 +961,34 @@ Teacher-student 的 5 个种子舞台结果：
 视频：`artifacts/perception/report_videos/teacher_student_multi_obstacle_600_multiview.mp4`
 （四联屏：front-left / front-right / top-down / telemetry）。
 
+### 3.18 迷宫式户型：完整开过去
+
+自建 4×4 窄迷宫在 P0 底盘上失败：目标路径 16.56 m，但球在窄拐角会贴墙，
+且目标长时间被墙遮挡；holonomic 版本虽然不撞墙，却容易在拐角停住。
+这不是感知链路的问题，而是 P0 的转弯半径/窄走廊约束。
+
+改用仓库已有的 HouseExpo 宽走廊户型 `houseexpo_a64a310dfa11`，目标沿 A*
+路径走 17.56 m，P0 机器人跟在后面：
+
+| 指标 | 结果 |
+|---|---:|
+| frames | 443 |
+| target path length | 17.56 m |
+| identity | **100%** |
+| measured rate | **90.1%** |
+| predicted / lost | 2.5% / 7.5% |
+| mean distance | 2.81 m |
+| min / mean clearance | 0.545 m / 2.21 m |
+| collision frames | **0** |
+| final progress | **1.0** |
+| success | ✅ |
+
+视频：`artifacts/perception/report_videos/houseexpo_maze_450_multiview.mp4`
+（上：前相机；下：俯视迷宫 + 目标/机器人轨迹）。
+
+结论：**机器人可以完整穿过复杂户型/迷宫式地图并跟住人**，前提是走廊宽度
+满足 P0 的转弯约束；自建窄迷宫作为失败案例保留，不把它包装成成功。
+
 ## 4. 与“最新机器人模型 / 更真实场景”的关系
 
 - **旧模型可用**：当前仿真和闭环用的是仓库里的旧球形机器人模型，感知层不依赖
@@ -1129,6 +1157,7 @@ source local_env.sh
 | `.../benchmarks/benchmark_random_50_v3.json` | 随机化训练的 teacher-student OOD 对比 |
 | `.../stage_domain_shift/` | 4 人 / 低亮度 / 噪声测试结果 |
 | `.../stage_multi_obstacle/summary.json` | 三障碍 ReplicaCAD 600 帧结果 |
+| `.../maze_follow/houseexpo_summary.json` | HouseExpo 迷宫式户型闭环结果 |
 | `.../stage_ppo/summary.json` | 早期 PPO 零样本实验（已被 3.10 取代） |
 | `.../live_depth/summary.json` | 真实渲染 1 s 消失，深度融合 |
 | `.../live_depth/dropout_episode00.mp4` | 真实渲染消失视频 |

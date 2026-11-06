@@ -86,6 +86,21 @@ FOLLOW_MAPS = {
 }
 
 
+class HolonomicBase:
+    """Simple holonomic base for the map/maze demonstration."""
+
+    def __init__(self, xy=(0.0, 0.0), yaw=0.0):
+        self.x, self.y, self.yaw = float(xy[0]), float(xy[1]), float(yaw)
+        self.v = 0.0
+
+    def move(self, vx, vy, w, dt):
+        self.v = math.hypot(vx, vy)
+        self.yaw = math.atan2(math.sin(self.yaw + w * dt),
+                              math.cos(self.yaw + w * dt))
+        self.x += vx * dt
+        self.y += vy * dt
+
+
 # ------------------------------------------------------------------ geometry
 
 
@@ -274,6 +289,28 @@ def lookahead_point(path, robot_xy, distance=1.2):
     return path[-1]
 
 
+def path_progress(path, point):
+    """Arc length of the nearest point on a polyline."""
+    point = np.asarray(point, dtype=np.float64).reshape(2)
+    best_error = float("inf")
+    best = 0.0
+    travelled = 0.0
+    for index in range(len(path) - 1):
+        segment = path[index + 1] - path[index]
+        length = float(np.linalg.norm(segment))
+        if length <= 1e-9:
+            continue
+        unit = segment / length
+        projection = float(np.clip(np.dot(point - path[index], unit),
+                                   0.0, length))
+        error = float(np.linalg.norm(point - (path[index] + unit * projection)))
+        if error < best_error:
+            best_error = error
+            best = travelled + projection
+        travelled += length
+    return best
+
+
 def choose_bystander(obstacles, target_points):
     candidates = []
     for x in np.arange(-2.0, 8.0, 0.5):
@@ -372,7 +409,7 @@ def run_map(scenario, args, worker, camera):
     if len(target_path_robot) < 2:
         raise RuntimeError(f"no A* route for {scenario.scene_id}")
     total_length = path_length(target_path_robot)
-    target_start_s = min(2.5, 0.4 * total_length)
+    target_start_s = min(1.2, 0.08 * total_length)
     target_goal = goal
 
     cfg = front_pair_config(
@@ -406,13 +443,20 @@ def run_map(scenario, args, worker, camera):
                 cv2.VideoWriter_fourcc(*"mp4v"), 10.0,
                 (camera.width, camera.height))
 
-        robot = P0Robot()
+        first_delta = target_path_robot[1] - target_path_robot[0]
+        initial_yaw = math.atan2(first_delta[1], first_delta[0])
+        robot = (HolonomicBase((0.0, 0.0), yaw=initial_yaw)
+                 if args.holonomic else P0Robot(yaw=initial_yaw))
         layer = None
-        path = list(target_path_robot)
+        path = (list(target_path_robot) if args.follow_target_route
+                else list(target_path_robot))
         last_plan_t = -1.0
         rows = []
         last_visible_t = None
         target_center = target.pos.copy()
+        last_seen_target_s = target_start_s
+        last_seen_t = 0.0
+        last_seen_velocity = np.zeros(2)
 
         for frame in range(args.frames):
             t = round(frame * 0.1, 6)
@@ -489,17 +533,46 @@ def run_map(scenario, args, worker, camera):
             if target_visible:
                 last_visible_t = t
 
-            # Replan the robot's route to a stand-off point behind the target.
-            if (belief.position_xy is not None and not belief.lost
+            # Track the target's progress along the known map route.  If the
+            # visual prediction expires behind a maze wall, continue along
+            # that route instead of stopping at the last stale point.
+            if (belief.position_xy is not None and not belief.lost):
+                last_seen_target_s = path_progress(
+                    target_path_robot, belief.position_xy)
+                last_seen_t = t
+                if belief.velocity_xy is not None:
+                    last_seen_velocity = np.asarray(
+                        belief.velocity_xy, dtype=float)
+            lost_age = t - last_seen_t
+            target_point = None
+            target_tangent = np.zeros(2)
+            if not belief.lost and belief.position_xy is not None:
+                target_point = np.asarray(belief.position_xy, dtype=float)
+            elif last_seen_target_s is not None and lost_age <= 15.0:
+                speed_estimate = max(0.18, float(np.linalg.norm(
+                    last_seen_velocity)))
+                predicted_s = last_seen_target_s + speed_estimate * lost_age
+                target_point, target_tangent = point_at_distance(
+                    target_path_robot, predicted_s)
+            if target_point is None:
+                target_point = target_center
+                target_tangent = np.zeros(2)
+
+            # Replan the robot's route to a stand-off point behind the target
+            # or its map-aware continuation.
+            if (not args.follow_target_route and target_point is not None
                     and (t - last_plan_t >= 0.8 or len(path) < 2)):
-                velocity = np.asarray(belief.velocity_xy, dtype=float)
-                target_xy = np.asarray(belief.position_xy, dtype=float)
+                target_xy = np.asarray(target_point, dtype=float)
+                velocity = (last_seen_velocity if belief.lost
+                            else np.asarray(belief.velocity_xy, dtype=float))
                 if np.linalg.norm(velocity) > 0.15:
-                    goal_xy = target_xy - 1.5 * velocity / np.linalg.norm(velocity)
+                    direction = velocity / np.linalg.norm(velocity)
+                elif np.linalg.norm(target_tangent) > 1e-6:
+                    direction = target_tangent
                 else:
-                    delta = target_xy - np.array([robot.x, robot.y])
-                    goal_xy = target_xy - 1.5 * delta / max(
-                        np.linalg.norm(delta), 1e-6)
+                    direction = target_xy - np.array([robot.x, robot.y])
+                    direction /= max(np.linalg.norm(direction), 1e-6)
+                goal_xy = target_xy - 1.5 * direction
                 planned = plan_path((robot.x, robot.y), goal_xy, obstacles,
                                     bounds=bounds,
                                     inflation=args.replan_inflation,
@@ -508,19 +581,48 @@ def run_map(scenario, args, worker, camera):
                     path = planned
                 last_plan_t = t
 
-            target_point = (belief.position_xy if belief.position_xy is not None
-                            else target_center)
-            if belief.lost:
-                # The 1 s prediction has expired.  Stop rather than driving
-                # toward an increasingly stale point.
-                speed, kappa = 0.0, 0.0
+            if args.holonomic:
+                look = lookahead_point(path, (robot.x, robot.y), 1.2)
+                if look is None:
+                    look = np.asarray(target_point)
+                desired = math.atan2(look[1] - robot.y,
+                                     look[0] - robot.x)
+                best = None
+                for offset in np.radians([0, 15, -15, 30, -30, 45, -45,
+                                          60, -60, 90, -90]):
+                    heading = desired + float(offset)
+                    direction = np.array([math.cos(heading),
+                                          math.sin(heading)])
+                    probe = np.array([robot.x, robot.y]) + 0.55 * direction
+                    probe_clearance = clearance(probe, obstacles)
+                    cost = abs(float(offset)) + 20.0 * max(
+                        0.0, 0.55 - probe_clearance)
+                    if probe_clearance < 0.40:
+                        cost += 50.0
+                    if best is None or cost < best[0]:
+                        best = (cost, heading, probe_clearance)
+                _, heading, probe_clearance = best
+                if (probe_clearance < 0.45
+                        or (belief.lost and lost_age > 15.0)):
+                    vx = vy = 0.0
+                else:
+                    vx = 0.50 * math.cos(heading)
+                    vy = 0.50 * math.sin(heading)
+                desired_yaw = math.atan2(target_point[1] - robot.y,
+                                         target_point[0] - robot.x)
+                yaw_error = wrap_angle(desired_yaw - robot.yaw)
+                robot.move(vx, vy, np.clip(2.0 * yaw_error, -1.8, 1.8), 0.1)
             else:
-                speed, kappa, _ = candidate_curvature(
-                    robot, target_point, path, obstacles)
-            a2 = invert_steer(robot.a1_f, kappa) if robot.a1_f > 0.05 else 0.0
-            a1 = speed
-            for _ in range(5):
-                robot.tick(a1, a2)
+                if belief.lost and lost_age > 15.0:
+                    # Do not chase an unbounded map prediction forever.
+                    speed, kappa = 0.0, 0.0
+                else:
+                    speed, kappa, _ = candidate_curvature(
+                        robot, target_point, path, obstacles)
+                a2 = invert_steer(robot.a1_f, kappa) if robot.a1_f > 0.05 else 0.0
+                a1 = speed
+                for _ in range(5):
+                    robot.tick(a1, a2)
 
             robot_clearance = clearance((robot.x, robot.y), obstacles)
             target_center = target.pos.copy()
@@ -543,6 +645,7 @@ def run_map(scenario, args, worker, camera):
                 distance=round(distance, 3),
                 robot_clearance=round(robot_clearance, 3),
                 path_progress=round(target_s / max(total_length, 1e-6), 3),
+                lost_age=round(lost_age, 3),
             ))
 
             if video is not None:
@@ -625,6 +728,10 @@ def main():
                         help="robot clearance used for the initial A* route")
     parser.add_argument("--replan-inflation", type=float, default=0.48,
                         help="robot clearance used for the stand-off replan")
+    parser.add_argument("--follow-target-route", action="store_true",
+                        help="keep the robot on the target's maze route instead of replanning around it")
+    parser.add_argument("--holonomic", action="store_true",
+                        help="use a simple holonomic base instead of the P0 model")
     parser.add_argument("--maps-root", default=str(
         REPO / "perception/assets/maps"))
     parser.add_argument("--frames", type=int, default=320)
