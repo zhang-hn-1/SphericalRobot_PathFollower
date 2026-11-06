@@ -33,6 +33,7 @@ original design and evidence are in
 | `research/train_teacher_student.py` | privileged teacher PPO + DAgger student distillation |
 | `research/crowd_follow_env.py` | multi-dynamic-pedestrian 2D benchmark |
 | `research/train_crowd_attention.py` | CrowdNav-lite attention + predictive safety benchmark |
+| `research/export_crowd_benchmark.py` | export deterministic scenarios, replays and 95% CI statistics |
 | `research/calibrate_conformal.py` | split-conformal prediction-radius calibration |
 | `research/train_multimodal_predictor.py` | GRU + K-mode MDN (Trajectron++-lite) |
 | `candidate_scorer.py` | 8-feature linear candidate scorer (VideoJev-lite) |
@@ -300,8 +301,13 @@ TD3+BC/AWAC offline-to-online and CrowdNav-style attention / model-based RL. See
 static occluders. Over 50 episodes, CrowdNav-lite attention improved success
 from 0.28 (rule) to 0.54 and reduced pedestrian collisions from 36 to 19.
 Adding a 0.35 s predictive safety filter reached **0.80 success / 5
-pedestrian collisions**, at the cost of a larger 3.1 m following distance.
-This is a 2D benchmark, not a full visual/identity crowd system.
+pedestrian collisions** (50 episodes), at the cost of a larger 3.1 m
+following distance. A 25-episode deterministic replay set and 95% CI
+statistics are in
+`artifacts/perception/target_perception_20261102/crowd_dynamic/public_replay_25/`.
+This is a 2D benchmark, not a full visual/identity crowd system. The attention
+policy is a CrowdNav-lite reimplementation, not the official CrowdNav code;
+ORCA/SARL exact baselines are still blocked by missing packages/network.
 
 ## Latest maze result
 

@@ -76,6 +76,23 @@ class CrowdFollowEnv(PredictiveFollowEnv):
             ])
         return np.asarray(features, dtype=np.float32)
 
+    def scenario_metadata(self):
+        """Serializable scenario record for replay datasets."""
+        return dict(
+            route=[[float(value) for value in point] for point in self.route],
+            obstacles=[dict(center=[float(center[0]), float(center[1])],
+                            size=[float(size[0]), float(size[1])],
+                            yaw=float(yaw))
+                       for center, size, yaw in self.obstacles],
+            pedestrians=[dict(position=[float(p["position"][0]),
+                                        float(p["position"][1])],
+                              velocity=[float(p["velocity"][0]),
+                                        float(p["velocity"][1])])
+                         for p in self.pedestrians],
+            target_speed=float(self.target_speed),
+            robot_start=[float(self.robot_x), float(self.robot_y)],
+        )
+
     def social_observation(self):
         base = (self._base_obs if self._base_obs is not None
                 else super()._observation(self.target, True, 0.0))

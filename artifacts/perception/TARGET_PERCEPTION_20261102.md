@@ -1029,6 +1029,40 @@ success **+26 个百分点**，碰撞 **19→5**。代价是平均跟距从 1.9 
 - 可以支撑“系统/benchmark + 安全层”的 workshop/arXiv 贡献，但不能宣称
   已经击败正式发表的 social navigation 方法。
 
+### 3.20 公开 scenario / replay 数据与统计
+
+在 3.19 的 3 动态行人 benchmark 上导出确定性数据：
+
+- `public_replay_25/scenarios.jsonl`：25 个 episode 的路线、静态障碍、行人初始状态、目标速度、机器人起点；
+- `replay_rule.jsonl` / `replay_teacher.jsonl` / `replay_attention_safety.jsonl`：
+  每步机器人/目标/行人位置、动作、可见性、距离、行人碰撞；
+- `statistics.json`：每策略的成功率均值与 95% CI、碰撞总数、跟距、最小行人距离。
+
+**25 episodes 统计（95% CI）**
+
+| 方法 | success (95% CI) | 行人碰撞 | mean distance |
+|---|---:|---:|---:|
+| 规则 | 0.28 [0.10, 0.46] | 18 | 1.92 m |
+| Teacher-student 15D | 0.16 [0.01, 0.31] | 21 | 2.31 m |
+| **Attention + 0.35 s safety** | **0.72 [0.54, 0.90]** | **4** | 3.02 m |
+
+这组数据可以直接作为公开 benchmark/replay 使用，也支持逐 episode 复现和失败分析。
+
+**精确基线问题（必须诚实说明）**
+
+- 当前环境里没有 `rvo2`/ORCA 包，PyPI 镜像也没有可安装版本；
+- 官方 CrowdNav 仓库 clone 超时，SARL 更重，无法在本机完成“官方代码 + 原论文配置”的精确复现；
+- 因此 3.19 的 attention 明确标为 **CrowdNav-lite reimplementation**，不是 CrowdNav 原论文；
+- 如果要投稿，下一步必须在有网络/依赖的环境里补：
+  1. CrowdNav 官方 policy + 原论文 observation/action；
+  2. SARL 关系图 + model-based value expansion；
+  3. ORCA/RVO2 经典基线；
+  4. 同样的 2D 动作空间和 episode 协议。
+
+在没有这三条之前，不能写“击败了已发表 social navigation 方法”；目前只能说
+“在一个公开的 3 行人 benchmark 上，我们的预测式安全层优于规则/直接 PPO/
+CrowdNav-lite reimplementation”。
+
 ## 4. 与“最新机器人模型 / 更真实场景”的关系
 
 - **旧模型可用**：当前仿真和闭环用的是仓库里的旧球形机器人模型，感知层不依赖
@@ -1199,6 +1233,7 @@ source local_env.sh
 | `.../stage_multi_obstacle/summary.json` | 三障碍 ReplicaCAD 600 帧结果 |
 | `.../maze_follow/houseexpo_summary.json` | HouseExpo 迷宫式户型闭环结果 |
 | `.../crowd_dynamic/summary.json` | 3 动态行人 benchmark 与安全层结果 |
+| `.../crowd_dynamic/public_replay_25/` | 25 episode scenario/replay 与 95% CI 统计 |
 | `.../stage_ppo/summary.json` | 早期 PPO 零样本实验（已被 3.10 取代） |
 | `.../live_depth/summary.json` | 真实渲染 1 s 消失，深度融合 |
 | `.../live_depth/dropout_episode00.mp4` | 真实渲染消失视频 |
