@@ -1,0 +1,25 @@
+{
+  "protocol": {
+    "source": "official CrowdNav / Python-RVO2",
+    "environment": "CrowdNav circle_crossing (5 ORCA humans, time_limit=25s, dt=0.25s)",
+    "test_episodes": 20
+  },
+  "orca": {
+    "success_rate": 0.40,
+    "collision_rate": 0.60,
+    "mean_navigation_time_s": 10.94
+  },
+  "crowdnav_official_short": {
+    "policy": "SARL (CrowdNav official code, attention/global-state variant)",
+    "training_episodes": 120,
+    "success_rate": 0.60,
+    "collision_rate": 0.40,
+    "mean_navigation_time_s": 10.44,
+    "note": "short training for environment validation; not the paper's 10k-episode training"
+  },
+  "sarl_official": {
+    "status": "source downloaded but not run",
+    "reason": "repository has no config.py and no explicit license; adapting/executing without config would not be an exact reproduction"
+  },
+  "comparison_note": "These are native social-navigation (goal-reaching) results, not the 1D target-following benchmark in section 3.19; they are not directly comparable and must not be used to claim superiority."
+}

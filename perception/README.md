@@ -295,6 +295,16 @@ similar-crossing stress case and no change elsewhere; it is an optional
 TD3+BC/AWAC offline-to-online and CrowdNav-style attention / model-based RL. See
 [`../artifacts/perception/TARGET_PERCEPTION_20261102.md`](../artifacts/perception/TARGET_PERCEPTION_20261102.md).
 
+## Official social-navigation baselines
+
+On the native CrowdNav circle-crossing task, the official ORCA/Python-RVO2
+baseline reached 0.40 success / 0.60 collision over 20 test episodes; the
+official CrowdNav code (SARL attention, short 120-episode training) reached
+0.60 / 0.40. These are goal-reaching results, not the 1D target-following
+benchmark, and must not be compared directly. SARL (RelationalGraphLearning)
+source was downloaded but lacks a runnable config/license, so it is not claimed
+as reproduced. See report section 3.21.
+
 ## Dynamic crowd benchmark
 
 `research/crowd_follow_env.py` adds 3 moving pedestrians, random routes and

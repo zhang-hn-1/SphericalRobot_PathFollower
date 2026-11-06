@@ -1063,6 +1063,35 @@ success **+26 个百分点**，碰撞 **19→5**。代价是平均跟距从 1.9 
 “在一个公开的 3 行人 benchmark 上，我们的预测式安全层优于规则/直接 PPO/
 CrowdNav-lite reimplementation”。
 
+### 3.21 官方社交导航基线：ORCA / CrowdNav / SARL 现状
+
+我实际下载并运行了官方代码，避免把 reimplementation 当成精确基线。
+
+**能跑通的**
+
+| 基线 | 环境/配置 | 20 test episodes |
+|---|---|---:|
+| ORCA（官方 Python-RVO2） | CrowdNav circle_crossing，5 ORCA humans，dt=0.25 s | success **0.40** / collision **0.60** / nav 10.94 s |
+| CrowdNav（官方代码，SARL attention 版） | 同一 circle_crossing；短训练 120 RL episodes | success **0.60** / collision **0.40** / nav 10.44 s |
+
+说明：CrowdNav 是官方实现，但只训练了 120 episodes 用于环境验证，不是论文的
+10k-episode 训练；因此 0.60 不能和论文数字直接比。
+
+**没能诚实完成的**
+
+- SARL（RelationalGraphLearning）源码已下载，但仓库没有提供 `config.py`，
+  也没有明确 license；没有配置就运行不能算“精确复现”，因此没有硬跑。
+- ORCA/SARL/CrowdNav 都是 **goal-reaching 社交导航**任务，不是我们 1D
+  target-following benchmark；两者不能直接横比。
+
+**结论**
+
+- 3.19 的 CrowdNav-lite 仍只是 reimplementation；
+- 3.21 的 ORCA/CrowdNav 是官方代码，但原生任务不同，不能写“我们的方法
+  击败了官方 CrowdNav/SARL”；
+- 若要写强 benchmark 论文，下一步必须把官方策略统一到同一个 2D
+  target-following 动作/观测协议，并在相同 episodes 上评测。
+
 ## 4. 与“最新机器人模型 / 更真实场景”的关系
 
 - **旧模型可用**：当前仿真和闭环用的是仓库里的旧球形机器人模型，感知层不依赖
@@ -1234,6 +1263,7 @@ source local_env.sh
 | `.../maze_follow/houseexpo_summary.json` | HouseExpo 迷宫式户型闭环结果 |
 | `.../crowd_dynamic/summary.json` | 3 动态行人 benchmark 与安全层结果 |
 | `.../crowd_dynamic/public_replay_25/` | 25 episode scenario/replay 与 95% CI 统计 |
+| `.../official_baselines/summary.json` | ORCA/CrowdNav 官方基线原生任务结果与限制 |
 | `.../stage_ppo/summary.json` | 早期 PPO 零样本实验（已被 3.10 取代） |
 | `.../live_depth/summary.json` | 真实渲染 1 s 消失，深度融合 |
 | `.../live_depth/dropout_episode00.mp4` | 真实渲染消失视频 |
