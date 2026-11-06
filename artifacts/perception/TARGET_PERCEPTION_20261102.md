@@ -989,6 +989,46 @@ Teacher-student 的 5 个种子舞台结果：
 结论：**机器人可以完整穿过复杂户型/迷宫式地图并跟住人**，前提是走廊宽度
 满足 P0 的转弯约束；自建窄迷宫作为失败案例保留，不把它包装成成功。
 
+### 3.19 多动态行人 benchmark：系统/benchmark 贡献
+
+这一节回应“多场景、多动态行人、公开代码/数据、与现有基线比较”。
+
+**Benchmark**（`perception/research/crowd_follow_env.py`）
+
+- 2D stage-like 环境，随机路线、随机 1–3 个静态遮挡物；
+- 3 个动态行人，带速度、在场地内反弹，靠近机器人 <0.45 m 记一次行人碰撞；
+- 检测 dropout 0.30、测量噪声 0.05 m；
+- 50 episodes ×30 s，所有方法共享同一批 seed。
+
+**方法**
+
+- 规则：跟随目标 + 静态障碍间距；
+- 直接 PPO / teacher-student：原来 15D 跟随策略，不显式看行人；
+- CrowdNav-lite：15D 目标特征 + 3 个行人特征，单头 attention 聚合，PPO 训练；
+- **Ours：CrowdNav-lite + 0.35 s 行人预测安全过滤**（预测未来位置，风险动作 Veto/刹车）。
+
+**结果（50 episodes）**
+
+| 方法 | success | 行人碰撞 | 静态碰撞 | mean distance |
+|---|---:|---:|---:|---:|
+| 规则 | 0.28 | 36 | 0 | 1.90 m |
+| 直接 PPO（15D） | 0.24 | 38 | 0 | 1.91 m |
+| Teacher-student（15D） | 0.24 | 38 | 0 | 2.24 m |
+| CrowdNav-lite attention | 0.54 | 19 | 0 | 2.96 m |
+| **Attention + predictive safety** | **0.80** | **5** | 0 | 3.12 m |
+
+相对规则：success **+52 个百分点**，行人碰撞 **36→5**；相对 attention 基线：
+success **+26 个百分点**，碰撞 **19→5**。代价是平均跟距从 1.9 m 增到 3.1 m，
+即策略学会保持更安全的社交距离。
+
+**边界**
+
+- 这是 2D 抽象 benchmark，不是带 YOLO/身份的完整视觉 crowd 系统；
+- CrowdNav-lite 是我们重实现的注意力基线，不是原论文逐项复现；
+- 行人运动是简单反弹模型，不是社会力/ORCA 人群；
+- 可以支撑“系统/benchmark + 安全层”的 workshop/arXiv 贡献，但不能宣称
+  已经击败正式发表的 social navigation 方法。
+
 ## 4. 与“最新机器人模型 / 更真实场景”的关系
 
 - **旧模型可用**：当前仿真和闭环用的是仓库里的旧球形机器人模型，感知层不依赖
@@ -1158,6 +1198,7 @@ source local_env.sh
 | `.../stage_domain_shift/` | 4 人 / 低亮度 / 噪声测试结果 |
 | `.../stage_multi_obstacle/summary.json` | 三障碍 ReplicaCAD 600 帧结果 |
 | `.../maze_follow/houseexpo_summary.json` | HouseExpo 迷宫式户型闭环结果 |
+| `.../crowd_dynamic/summary.json` | 3 动态行人 benchmark 与安全层结果 |
 | `.../stage_ppo/summary.json` | 早期 PPO 零样本实验（已被 3.10 取代） |
 | `.../live_depth/summary.json` | 真实渲染 1 s 消失，深度融合 |
 | `.../live_depth/dropout_episode00.mp4` | 真实渲染消失视频 |

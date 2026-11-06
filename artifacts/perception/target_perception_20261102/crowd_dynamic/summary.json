@@ -1,0 +1,52 @@
+{
+  "protocol": {
+    "episodes": 50,
+    "episode_s": 30,
+    "dynamic_pedestrians": 3,
+    "randomize": true,
+    "detection_dropout": 0.3,
+    "measurement_noise": 0.05
+  },
+  "methods": {
+    "rule": {
+      "success_rate": 0.28,
+      "visible_rate": 0.5804,
+      "static_collisions": 0,
+      "pedestrian_collisions": 36,
+      "mean_distance": 1.895,
+      "min_ped_distance": 0.383
+    },
+    "attention_crowdnav_lite": {
+      "success_rate": 0.54,
+      "visible_rate": 0.5636,
+      "static_collisions": 0,
+      "pedestrian_collisions": 19,
+      "mean_distance": 2.957,
+      "min_ped_distance": 0.403
+    },
+    "attention_pred_safety": {
+      "success_rate": 0.8,
+      "visible_rate": 0.5502,
+      "static_collisions": 0,
+      "pedestrian_collisions": 5,
+      "mean_distance": 3.116,
+      "min_ped_distance": 0.413
+    },
+    "teacher_student_15d": {
+      "success_rate": 0.24,
+      "visible_rate": 0.5842,
+      "static_collisions": 0,
+      "pedestrian_collisions": 38,
+      "mean_distance": 2.243,
+      "min_ped_distance": 0.376
+    },
+    "direct_ppo_15d": {
+      "success_rate": 0.24,
+      "visible_rate": 0.5808,
+      "static_collisions": 0,
+      "pedestrian_collisions": 38,
+      "mean_distance": 1.906,
+      "min_ped_distance": 0.394
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{"iter": 0, "learned": {"episodes": 20, "success_rate": 0.5, "visible_rate": 0.5467, "static_collisions": 0, "pedestrian_collisions": 9, "mean_distance": 2.686, "min_ped_distance": 0.412}}
+{"iter": 10, "learned": {"episodes": 20, "success_rate": 0.55, "visible_rate": 0.5431, "static_collisions": 0, "pedestrian_collisions": 9, "mean_distance": 2.652, "min_ped_distance": 0.409}}
+{"iter": 20, "learned": {"episodes": 20, "success_rate": 0.3, "visible_rate": 0.5325, "static_collisions": 0, "pedestrian_collisions": 14, "mean_distance": 2.456, "min_ped_distance": 0.404}}
+{"iter": 30, "learned": {"episodes": 20, "success_rate": 0.25, "visible_rate": 0.5492, "static_collisions": 0, "pedestrian_collisions": 15, "mean_distance": 2.335, "min_ped_distance": 0.377}}
+{"iter": 40, "learned": {"episodes": 20, "success_rate": 0.55, "visible_rate": 0.5568, "static_collisions": 0, "pedestrian_collisions": 9, "mean_distance": 2.706, "min_ped_distance": 0.4}}
+{"iter": 50, "learned": {"episodes": 20, "success_rate": 0.6, "visible_rate": 0.5438, "static_collisions": 0, "pedestrian_collisions": 5, "mean_distance": 3.162, "min_ped_distance": 0.424}}
+{"iter": 60, "learned": {"episodes": 20, "success_rate": 0.3, "visible_rate": 0.5543, "static_collisions": 0, "pedestrian_collisions": 2, "mean_distance": 4.041, "min_ped_distance": 0.425}}
+{"iter": 70, "learned": {"episodes": 20, "success_rate": 0.5, "visible_rate": 0.5466, "static_collisions": 0, "pedestrian_collisions": 6, "mean_distance": 3.269, "min_ped_distance": 0.414}}
+{"iter": 79, "learned": {"episodes": 20, "success_rate": 0.55, "visible_rate": 0.5495, "static_collisions": 0, "pedestrian_collisions": 5, "mean_distance": 3.292, "min_ped_distance": 0.416}}

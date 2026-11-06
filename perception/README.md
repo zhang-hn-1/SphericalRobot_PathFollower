@@ -31,6 +31,8 @@ original design and evidence are in
 | `research/train_predictive_follow.py` | rule behavior cloning + PPO; `--residual` is the residual-RL variant |
 | `research/train_predictive_follow_sac.py` | SAC baseline on the same env/predictor/eval protocol |
 | `research/train_teacher_student.py` | privileged teacher PPO + DAgger student distillation |
+| `research/crowd_follow_env.py` | multi-dynamic-pedestrian 2D benchmark |
+| `research/train_crowd_attention.py` | CrowdNav-lite attention + predictive safety benchmark |
 | `research/calibrate_conformal.py` | split-conformal prediction-radius calibration |
 | `research/train_multimodal_predictor.py` | GRU + K-mode MDN (Trajectron++-lite) |
 | `candidate_scorer.py` | 8-feature linear candidate scorer (VideoJev-lite) |
@@ -291,6 +293,15 @@ similar-crossing stress case and no change elsewhere; it is an optional
 `candidate_scorer=` hook, not the default. The remaining recommendations are
 TD3+BC/AWAC offline-to-online and CrowdNav-style attention / model-based RL. See
 [`../artifacts/perception/TARGET_PERCEPTION_20261102.md`](../artifacts/perception/TARGET_PERCEPTION_20261102.md).
+
+## Dynamic crowd benchmark
+
+`research/crowd_follow_env.py` adds 3 moving pedestrians, random routes and
+static occluders. Over 50 episodes, CrowdNav-lite attention improved success
+from 0.28 (rule) to 0.54 and reduced pedestrian collisions from 36 to 19.
+Adding a 0.35 s predictive safety filter reached **0.80 success / 5
+pedestrian collisions**, at the cost of a larger 3.1 m following distance.
+This is a 2D benchmark, not a full visual/identity crowd system.
 
 ## Latest maze result
 
