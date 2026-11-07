@@ -1301,6 +1301,7 @@ source local_env.sh
 | `.../crowd_dynamic/public_replay_100/` | 100 episode scenario/replay 与 95% CI 统计 |
 | `perception/research/official_crowdnav/` | MIT-licensed official CrowdNav source + checkpoint |
 | `perception/research/crowd_follow_2d_env.py` | 2D crowd benchmark with exact ORCA |
+| `.../crowd_2d/bc_summary.json` | ORCA 行为克隆 2D attention 的失败结果 |
 | `.../official_baselines/summary.json` | ORCA/CrowdNav 官方基线原生任务结果与限制 |
 | `.../stage_ppo/summary.json` | 早期 PPO 零样本实验（已被 3.10 取代） |
 | `.../live_depth/summary.json` | 真实渲染 1 s 消失，深度融合 |

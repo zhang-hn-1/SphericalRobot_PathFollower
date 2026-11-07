@@ -1,0 +1,18 @@
+{
+  "attention": {
+    "episodes": 50,
+    "success_rate": 0.46,
+    "static_collisions": 0,
+    "pedestrian_collisions": 469,
+    "mean_distance": 0.5186,
+    "min_ped_distance": 0.0125
+  },
+  "orca": {
+    "episodes": 50,
+    "success_rate": 0.9,
+    "static_collisions": 0,
+    "pedestrian_collisions": 43,
+    "mean_distance": 0.8456,
+    "min_ped_distance": null
+  }
+}

@@ -19,7 +19,7 @@ class CrowdFollow2DEnv:
         self.target_speed = float(target_speed)
         self.obstacle_num = int(obstacle_num)
         self.action_dim = 2
-        self.obs_dim = 15 + 4 * self.num_pedestrians
+        self.obs_dim = 15 + 6 * self.num_pedestrians
         self.route = np.asarray(TARGET_WAYPOINTS, dtype=np.float64)
         self.obstacles = []
         self.pedestrians = []
@@ -109,6 +109,7 @@ class CrowdFollow2DEnv:
         self.pedestrian_collisions = 0
         self.min_ped_distance = float("inf")
         self.distance_sum = 0.0
+        self._previous_distance = float(np.linalg.norm(self.target - self.robot))
         self.path_length = 0.0
         self.control_effort = 0.0
         self.route_length = float(sum(
@@ -143,11 +144,16 @@ class CrowdFollow2DEnv:
         ]
         for pedestrian in self.pedestrians:
             delta = pedestrian["position"] - self.robot
+            distance = float(np.linalg.norm(delta))
+            approach = float(np.dot(delta, pedestrian["velocity"]) /
+                             max(distance, 1e-6))
             features.extend([
                 float(np.clip(delta[0] / 3.0, -1.0, 1.0)),
                 float(np.clip(delta[1] / 3.0, -1.0, 1.0)),
                 float(np.clip(pedestrian["velocity"][0], -1.0, 1.0)),
                 float(np.clip(pedestrian["velocity"][1], -1.0, 1.0)),
+                float(np.clip(distance / 3.0, 0.0, 1.0)),
+                float(np.clip(approach / 1.0, -1.0, 1.0)),
             ])
         return np.asarray(features, dtype=np.float32)
 
@@ -208,13 +214,22 @@ class CrowdFollow2DEnv:
         self.visible_frames += 1
         distance = float(np.linalg.norm(self.target - self.robot))
         self.distance_sum += distance
-        reward = (0.10
-                  - 0.02 * abs(distance - 2.0)
-                  - 0.004 * float(np.linalg.norm(velocity)))
+        reward = 0.0
+        # Primary objective: follow the target, not the target's own motion.
+        previous_robot_distance = getattr(self, "_previous_distance", distance)
+        closure = previous_robot_distance - distance
+        self._previous_distance = distance
+        reward += 0.6 * float(np.clip(closure, -0.2, 0.2))
+        if distance <= 3.0:
+            reward += 0.25
+        else:
+            reward += max(-0.40, 0.25 - 0.08 * (distance - 3.0))
+        reward += 0.10 * max(0.0, 1.0 - abs(distance - 2.0) / 3.0)
+        # Safety penalties are dominant but not so large that the robot freezes.
         if collision:
-            reward -= 10.0
-        if self.static_collisions:
-            reward -= 2.0
+            reward -= 4.0
+        if self._obstacle_clearance(self.robot) < 0.30:
+            reward -= 1.0
         done = self.t >= self.episode_s - 1e-9
         info = dict(distance=distance,
                     pedestrian_collision=collision,

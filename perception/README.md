@@ -299,8 +299,9 @@ TD3+BC/AWAC offline-to-online and CrowdNav-style attention / model-based RL. See
 
 `research/crowd_follow_2d_env.py` adds a 2D-action benchmark with 3 moving
 pedestrians and random static occluders. ORCA is an exact Python-RVO2 baseline;
-the first 2D attention policy is not yet competitive (0.00 success vs ORCA 0.10
-over 50 episodes), so it is documented as a failed training run, not a result.
+an ORCA behavior-cloning variant with pedestrian-distance features reaches only
+0.46 success / 469 pedestrian collisions vs ORCA 0.90 / 43 over 50 episodes,
+so the learned 2D policy is documented as a failed attempt, not a result.
 
 ## Official social-navigation baselines
 

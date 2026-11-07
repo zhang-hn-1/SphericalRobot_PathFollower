@@ -17,7 +17,7 @@ from perception.research.crowd_follow_2d_env import CrowdFollow2DEnv  # noqa: E4
 
 
 class AttentionActor2D(nn.Module):
-    def __init__(self, base_dim=15, ped_dim=4, hidden=64, action_dim=2):
+    def __init__(self, base_dim=15, ped_dim=6, hidden=64, action_dim=2):
         super().__init__()
         self.base = nn.Sequential(nn.Linear(base_dim, hidden), nn.ELU())
         self.ped = nn.Sequential(nn.Linear(ped_dim, hidden), nn.ELU())
@@ -28,7 +28,7 @@ class AttentionActor2D(nn.Module):
 
     def forward(self, observation):
         base = observation[:, :15]
-        peds = observation[:, 15:].reshape(-1, 3, 4)
+        peds = observation[:, 15:].reshape(-1, 3, 6)
         base_h = self.base(base)
         ped_h = self.ped(peds)
         query = self.query(base_h).unsqueeze(1)
@@ -38,7 +38,7 @@ class AttentionActor2D(nn.Module):
 
 
 class Critic(nn.Module):
-    def __init__(self, obs_dim=27, hidden=64):
+    def __init__(self, obs_dim=33, hidden=64):
         super().__init__()
         self.net = nn.Sequential(nn.Linear(obs_dim, hidden), nn.ELU(),
                                  nn.Linear(hidden, hidden), nn.ELU(),
@@ -48,8 +48,40 @@ class Critic(nn.Module):
         return self.net(observation).squeeze(-1)
 
 
-def evaluate(actor, episodes=50, seed0=1000, device=torch.device("cpu")):
-    env = CrowdFollow2DEnv(episode_s=30, seed=seed0)
+def collect_orca_data(env, episodes=40, seed0=7000):
+    observations, actions = [], []
+    for episode in range(episodes):
+        obs = env.reset(seed=seed0 + episode)
+        done = False
+        while not done:
+            observations.append(obs.copy())
+            actions.append((env.orca_action() / 0.6).copy())
+            obs, _reward, done, _info = env.step(actions[-1])
+    return (np.asarray(observations, dtype=np.float32),
+            np.asarray(actions, dtype=np.float32))
+
+
+def train_bc(actor, observations, actions, steps=2000, lr=1e-3,
+             batch_size=256, device=torch.device("cpu")):
+    optimizer = torch.optim.AdamW(actor.parameters(), lr=lr)
+    obs_t = torch.from_numpy(observations).to(device)
+    act_t = torch.from_numpy(actions).to(device)
+    for _ in range(steps):
+        indices = torch.randperm(len(obs_t))[:batch_size]
+        loss = F.mse_loss(actor(obs_t[indices]), act_t[indices])
+        optimizer.zero_grad(); loss.backward()
+        torch.nn.utils.clip_grad_norm_(actor.parameters(), 1.0)
+        optimizer.step()
+    with torch.no_grad():
+        residual = actor(obs_t) - act_t
+        return float(torch.sqrt(torch.mean(residual ** 2)))
+
+
+def evaluate(actor, episodes=50, seed0=1000, device=torch.device("cpu"),
+             target_speed=0.45, obstacle_num=2):
+    env = CrowdFollow2DEnv(episode_s=30, seed=seed0,
+                           target_speed=target_speed,
+                           obstacle_num=obstacle_num)
     distances, ped_min = [], []
     successes = static = ped = 0
     for episode in range(episodes):
@@ -59,9 +91,7 @@ def evaluate(actor, episodes=50, seed0=1000, device=torch.device("cpu")):
         while not done:
             with torch.no_grad():
                 mean = actor(torch.from_numpy(obs).unsqueeze(0).to(device))[0]
-                std = actor.log_std.exp()
-                dist = torch.distributions.Normal(mean, std)
-                action = dist.sample().clamp(-1, 1).cpu().numpy()
+                action = mean.clamp(-1, 1).cpu().numpy()
             obs, _, done, info = env.step(action)
             episode_distances.append(info["distance"])
         distances.append(float(np.mean(episode_distances)))
@@ -82,7 +112,11 @@ def evaluate(actor, episodes=50, seed0=1000, device=torch.device("cpu")):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--out", required=True)
-    parser.add_argument("--iters", type=int, default=80)
+    parser.add_argument("--iters", type=int, default=200)
+    parser.add_argument("--eval-every", type=int, default=25)
+    parser.add_argument("--bc-episodes", type=int, default=0)
+    parser.add_argument("--bc-steps", type=int, default=0)
+    parser.add_argument("--bc-only", action="store_true")
     parser.add_argument("--episodes", type=int, default=8)
     parser.add_argument("--episode-s", type=float, default=30.0)
     parser.add_argument("--seed", type=int, default=7)
@@ -90,14 +124,28 @@ def main():
     out = Path(args.out); out.mkdir(parents=True, exist_ok=True)
     torch.manual_seed(args.seed); np.random.seed(args.seed)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    env = CrowdFollow2DEnv(episode_s=args.episode_s, seed=args.seed)
+    env = CrowdFollow2DEnv(episode_s=args.episode_s, seed=args.seed,
+                           target_speed=0.35, obstacle_num=0)
     actor = AttentionActor2D().to(device)
     critic = Critic().to(device)
+    if args.bc_episodes > 0 and args.bc_steps > 0:
+        bc_env = CrowdFollow2DEnv(episode_s=args.episode_s, seed=args.seed,
+                                  target_speed=0.35, obstacle_num=0)
+        bc_obs, bc_act = collect_orca_data(
+            bc_env, episodes=args.bc_episodes, seed0=args.seed * 100000 + 7000)
+        rmse = train_bc(actor, bc_obs, bc_act, steps=args.bc_steps,
+                        device=device)
+        (out / "bc.json").write_text(json.dumps(dict(
+            episodes=args.bc_episodes, steps=args.bc_steps,
+            rmse=round(rmse, 5), samples=len(bc_obs)), indent=2))
+        print(json.dumps(dict(bc=dict(episodes=args.bc_episodes,
+                                      steps=args.bc_steps,
+                                      rmse=round(rmse, 5)))), flush=True)
     optimizer = torch.optim.AdamW(
         list(actor.parameters()) + list(critic.parameters()), lr=3e-4)
     best = -1.0
     metrics = out / "metrics.jsonl"
-    for iteration in range(args.iters):
+    for iteration in range(0 if args.bc_only else args.iters):
         obs_b, act_b, logp_b, val_b, rew_b, done_b = [], [], [], [], [], []
         for episode in range(args.episodes):
             obs = env.reset(seed=args.seed * 100000 + iteration * 100 + episode)
@@ -148,8 +196,9 @@ def main():
                 torch.nn.utils.clip_grad_norm_(
                     list(actor.parameters()) + list(critic.parameters()), 0.5)
                 optimizer.step()
-        if iteration % 10 == 0 or iteration == args.iters - 1:
-            learned = evaluate(actor, episodes=20, seed0=9000, device=device)
+        if iteration % args.eval_every == 0 or iteration == args.iters - 1:
+            learned = evaluate(actor, episodes=20, seed0=9000, device=device,
+                               target_speed=0.35, obstacle_num=0)
             entry = dict(iter=iteration, learned=learned)
             print(json.dumps(entry), flush=True)
             metrics.open("a").write(json.dumps(entry) + "\n")
@@ -159,7 +208,8 @@ def main():
     if not (out / "actor.pt").exists():
         torch.save(actor.state_dict(), out / "actor.pt")
     orca_distances, orca_ped, orca_static, orca_success = [], 0, 0, 0
-    env = CrowdFollow2DEnv(episode_s=30, seed=1000)
+    env = CrowdFollow2DEnv(episode_s=30, seed=1000,
+                           target_speed=0.35, obstacle_num=0)
     for episode in range(50):
         env.reset(seed=1000 + episode); done = False
         episode_distances = []
@@ -173,7 +223,8 @@ def main():
                             and env.pedestrian_collisions == 0
                             and np.mean(episode_distances) < 3.0)
     results = dict(
-        attention=evaluate(actor, episodes=50, seed0=1000, device=device),
+        attention=evaluate(actor, episodes=50, seed0=1000, device=device,
+                           target_speed=0.35, obstacle_num=0),
         orca=dict(episodes=50,
                   success_rate=round(orca_success / 50, 4),
                   static_collisions=orca_static,
