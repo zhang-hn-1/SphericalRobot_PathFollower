@@ -312,9 +312,10 @@ static occluders. Over 50 episodes, CrowdNav-lite attention improved success
 from 0.28 (rule) to 0.54 and reduced pedestrian collisions from 36 to 19.
 Adding a 0.35 s predictive safety filter reached **0.80 success / 5
 pedestrian collisions** (50 episodes), at the cost of a larger 3.1 m
-following distance. A 25-episode deterministic replay set and 95% CI
+following distance. A 100-episode deterministic replay set and 95% CI
 statistics are in
-`artifacts/perception/target_perception_20261102/crowd_dynamic/public_replay_25/`.
+`artifacts/perception/target_perception_20261102/crowd_dynamic/public_replay_100/`
+(attention-safety 0.71 [0.62,0.80], 17 pedestrian collisions vs rule 0.21 [0.13,0.29], 66).
 This is a 2D benchmark, not a full visual/identity crowd system. The attention
 policy is a CrowdNav-lite reimplementation, not the official CrowdNav code;
 ORCA/SARL exact baselines are still blocked by missing packages/network.

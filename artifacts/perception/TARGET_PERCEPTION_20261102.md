@@ -1038,6 +1038,14 @@ success **+26 个百分点**，碰撞 **19→5**。代价是平均跟距从 1.9 
   每步机器人/目标/行人位置、动作、可见性、距离、行人碰撞；
 - `statistics.json`：每策略的成功率均值与 95% CI、碰撞总数、跟距、最小行人距离。
 
+**100 episodes 统计（95% CI）**
+
+| 方法 | success (95% CI) | 行人碰撞 | mean distance |
+|---|---:|---:|---:|
+| 规则 | 0.21 [0.13, 0.29] | 66 | 2.28 m |
+| Teacher-student 15D | 0.21 [0.13, 0.29] | 79 | 2.28 m |
+| **Attention + 0.35 s safety** | **0.71 [0.62, 0.80]** | **17** | 3.07 m |
+
 **25 episodes 统计（95% CI）**
 
 | 方法 | success (95% CI) | 行人碰撞 | mean distance |
@@ -1263,6 +1271,7 @@ source local_env.sh
 | `.../maze_follow/houseexpo_summary.json` | HouseExpo 迷宫式户型闭环结果 |
 | `.../crowd_dynamic/summary.json` | 3 动态行人 benchmark 与安全层结果 |
 | `.../crowd_dynamic/public_replay_25/` | 25 episode scenario/replay 与 95% CI 统计 |
+| `.../crowd_dynamic/public_replay_100/` | 100 episode scenario/replay 与 95% CI 统计 |
 | `.../official_baselines/summary.json` | ORCA/CrowdNav 官方基线原生任务结果与限制 |
 | `.../stage_ppo/summary.json` | 早期 PPO 零样本实验（已被 3.10 取代） |
 | `.../live_depth/summary.json` | 真实渲染 1 s 消失，深度融合 |
