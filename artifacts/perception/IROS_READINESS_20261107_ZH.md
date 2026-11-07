@@ -1,11 +1,11 @@
 # 完整汇总：行人跟随系统、公开 benchmark、官方基线与 IROS 差距
 
-日期：2026-11-07  
+日期：2026-11-07
 状态：仿真闭环完整；公开数据/复现包完整；学习型 2D crowd 策略为失败记录；尚不具备 IROS 主文水平。
 
 ## 0. 一句话结论
 
-当前工作已经达到 **workshop / arXiv 系统+benchmark 报告** 水平；  
+当前工作已经达到 **workshop / arXiv 系统+benchmark 报告** 水平；
 如果要冲击 **IROS 主文**，还缺三件硬事：真机或完整视觉 crowd、官方基线在同一 2D 任务上的统一复现、以及一个能稳定优于 ORCA/CrowdNav 的学习方法。
 
 ## 1. 系统链路
@@ -215,22 +215,22 @@ artifacts/perception/target_perception_20261102/crowd_dynamic/
 
 按优先级：
 
-1. **把 2D crowd benchmark 做成统一协议**  
+1. **把 2D crowd benchmark 做成统一协议**
    - ORCA / CrowdNav / SARL / 我们的方法使用同一 2D 动作空间；
    - 同一批 scenario/replay；
    - 100+ episodes、多种子、95% CI。
-2. **修复 2D 学习策略失败**  
+2. **修复 2D 学习策略失败**
    - 观测加入目标轨迹 / 行人轨迹 / 地图结构；
    - 课程学习：无行人 → 低密度 → 高密度；
    - ORCA 行为克隆后再 PPO；
    - 或将 ORCA 作为安全层，学习方法只学残差。
-3. **补 SARL 官方复现**  
+3. **补 SARL 官方复现**
    - 找可运行 config 或根据论文重建；
    - 与 CrowdNav/ORCA 使用同一协议。
-4. **加入完整视觉 / 身份 crowd 系统**  
+4. **加入完整视觉 / 身份 crowd 系统**
    - YOLO + 目标层 + 多行人；
    - 不再使用 2D 抽象观测。
-5. **真机或硬件在环**  
+5. **真机或硬件在环**
    - 即使小场景，也比纯仿真强很多。
 
 ## 7. 已知失败与诚实边界
