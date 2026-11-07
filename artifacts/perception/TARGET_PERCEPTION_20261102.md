@@ -1100,6 +1100,33 @@ CrowdNav-lite reimplementation”。
 - 若要写强 benchmark 论文，下一步必须把官方策略统一到同一个 2D
   target-following 动作/观测协议，并在相同 episodes 上评测。
 
+### 3.22 统一 2D crowd benchmark：官方 CrowdNav 源码 + ORCA + 自家策略
+
+为了把“精确基线”和“我们方法”放到同一套协议里，新增：
+
+- 官方 CrowdNav 源码 vendored 到 `perception/research/official_crowdnav/`
+  （MIT license）；
+- Python-RVO2 编译后作为 **ORCA exact**；
+- `research/crowd_follow_2d_env.py`：2D 动作 crowd benchmark，随机路线、
+  3 动态行人、随机静态遮挡物；
+- `research/train_crowd_attention_2d.py`：在同一 2D 环境训练 attention 策略。
+
+**当前 2D 结果（50 episodes）**
+
+| 方法 | success | 行人碰撞 | 静态碰撞 | mean distance |
+|---|---:|---:|---:|---:|
+| ORCA exact | 0.10 | 335 | 4509 | 1.38 m |
+| Attention 2D（首版） | 0.00 | 350 | 0 | 4.98 m |
+
+结论：ORCA 在这个 2D 协议里能走但碰撞多；我们的 2D attention 首版训练
+失败，主要是 reward/observation/课程问题，不是方法无效。这说明要做 IROS
+级 benchmark 还需要：
+
+1. 2D reward 里加入目标跟随成功、行人安全、静态避障的更细权重；
+2. 课程学习：先无行人，再低密度，再高密度；
+3. 用 official CrowdNav 的状态/动作协议做 policy adapter；
+4. 更长训练和多种子统计。
+
 ## 4. 与“最新机器人模型 / 更真实场景”的关系
 
 - **旧模型可用**：当前仿真和闭环用的是仓库里的旧球形机器人模型，感知层不依赖
@@ -1272,6 +1299,8 @@ source local_env.sh
 | `.../crowd_dynamic/summary.json` | 3 动态行人 benchmark 与安全层结果 |
 | `.../crowd_dynamic/public_replay_25/` | 25 episode scenario/replay 与 95% CI 统计 |
 | `.../crowd_dynamic/public_replay_100/` | 100 episode scenario/replay 与 95% CI 统计 |
+| `perception/research/official_crowdnav/` | MIT-licensed official CrowdNav source + checkpoint |
+| `perception/research/crowd_follow_2d_env.py` | 2D crowd benchmark with exact ORCA |
 | `.../official_baselines/summary.json` | ORCA/CrowdNav 官方基线原生任务结果与限制 |
 | `.../stage_ppo/summary.json` | 早期 PPO 零样本实验（已被 3.10 取代） |
 | `.../live_depth/summary.json` | 真实渲染 1 s 消失，深度融合 |
